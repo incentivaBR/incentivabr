@@ -2,6 +2,12 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Segurança de conta (risco 05)
+- O JWT deixa de carregar o CPF. Leva só `userId`, `orgId`, `orgSlug` e os papéis; ninguém no backend lia o CPF do token, e o payload é legível por qualquer um que tenha o token.
+- Tokens de redefinição de senha e de verificação de e-mail entram no banco como SHA-256 (`backend/src/lib/tokens.js`, o mesmo mecanismo dos convites). O valor em claro só existe no e-mail. Migration 038 anula os que existiam em claro.
+- O fluxo "Esqueceu sua senha?" passa a funcionar de ponta a ponta: antes o botão mandava escrever para o contato, e o e-mail apontava para uma página que não existia. Agora `login.html` pede o e-mail, o servidor envia o link e `redefinir-senha.html` grava a senha nova. Resposta igual exista ou não a conta.
+- `backend/tests/redefinicao-senha.test.mjs`: hash no banco, claro no e-mail, o hash roubado não redefine, uso único, expiração, JWT sem CPF, migration 038.
+
 ### Alterado
 - Dependências do backend sem vulnerabilidade conhecida (`npm audit`: 7 → 0). `multer` 2.1.1 → 2.3.0, `nodemailer` 8 → 10 (só o Ethereal de desenvolvimento usa; produção é Resend), `form-data`, `ip-address`, `brace-expansion`, `body-parser` nas versões corrigidas; `qs` fixado em `^6.16.0` por `overrides`, porque o Express 4 prende em `~6.14.0`. Suíte completa verde. Os alertas restantes do Dependabot são de `archive/`, que não é servido.
 
