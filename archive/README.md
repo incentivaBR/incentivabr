@@ -60,6 +60,22 @@ destinados").
 Nada daqui entra na TINA real (`backend/src/knowledge/nucleo.md`). Fica como
 registro de que a assistente foi pensada antes de existir.
 
+## paginas-2026/
+
+Páginas do produto que ficaram sem nenhum link chegando nelas e saíram do
+`frontend/` em setembro de 2026:
+
+- `impacto.html` ("O Potencial do Seu IR"): a lista das sete leis com o
+  teto de cada uma. A página inicial passou a dizer o mesmo, com a
+  Rouanet na frente, e a biblioteca jurídica tem as fichas. No lugar ficou
+  um redirecionamento para a página inicial, para links antigos não
+  quebrarem.
+
+Os outros endereços antigos (`campanha`, `piloto`, `piloto-start`,
+`calculadora-escolha`, `calculadora-rapida`, `projetos`, `termos`,
+`privacidade`) já eram só redirecionamentos de nove linhas e continuam no
+`frontend/` por esse motivo.
+
 ## demos-2026/
 
 Páginas e imagens que o produto não usa mais:
