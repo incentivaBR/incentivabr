@@ -4,7 +4,7 @@
 F03 · Biblioteca Jurídica
 ## A lei está do seu lado.
 O laudo também.
-Base normativa completa dos 7 mecanismos de destinação do IR — leis, instruções normativas, fichas DIRPF e requisitos de comprovante. Para orientar clientes com segurança jurídica total.
+Base normativa da Lei Rouanet, que a IncentivaBR opera, e das outras seis leis de incentivo ao IR, para consulta — leis, instruções normativas, fichas DIRPF e requisitos de comprovante. Para orientar clientes com segurança.
 Ver fichas por modalidade →
 Espaço do Contador
 mecanismos com base legal consolidada
@@ -13,8 +13,9 @@ risco na malha fina com limites e documentação corretos
 84%
 dos contribuintes do DF desconhecem (CRC-DF 2021)
 BASE NORMATIVA POR MODALIDADE
-### 7 Fichas Legais Completas
+### Fichas legais: Rouanet e as demais leis
 Selecione a modalidade para ver lei, IN RFB, ficha DIRPF e requisitos do comprovante.
+A IncentivaBR registra destinação apenas pela Lei Rouanet. As outras fichas são material de consulta para o contador; não há caminho de destinação para elas na plataforma.
 🎭 Rouanet
 ⚽ Esporte
 👧 FDCA
@@ -217,11 +218,15 @@ Use o Validador Anti-Malha Fina para verificar os limites de cada cliente de for
 FERRAMENTAS RELACIONADAS
 ### Complete o atendimento ao cliente com
 Validador Anti-Malha Fina
-Verifica se o cliente está dentro dos limites em todas as 7 modalidades antes de declarar
+Verifica se o cliente está dentro do teto, somando as modalidades que o dividem, antes de declarar
 Espaço do Contador
 Calculadora de limites por cliente, modelos de comprovante e FAQ profissional
 Agenda Fiscal
 Prazos e janelas de destinação por modalidade para planejar com antecedência
+IncentivaBR programa de computador registrado no INPI sob o n BR512025000647-0.
+Marca mista depositada no INPI sob os processos n 939403005 (NCL 35) e n 939403110 (NCL 42).
+Documenta o t cnica registrada no 2 Of cio de Registro Civil, T tulos e Documentos e Pessoas Jur dicas de Bras lia/DF.
+2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. vedada a reprodu o, distribui o ou engenharia reversa, total ou parcial, sem autoriza o expressa.
 
 ---
 
