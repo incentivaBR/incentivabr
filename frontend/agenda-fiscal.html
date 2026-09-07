@@ -39,22 +39,9 @@
 </head>
 <body class="bg-navy font-sans text-white min-h-screen">
 
-  <!-- NAV -->
-  <nav style="background:rgba(13,27,62,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,215,0,0.12)" class="fixed top-0 left-0 right-0 z-50">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-      <a href="index.html" class="inline-flex items-center bg-white rounded-xl px-2 py-1">
-        <img src="assets/logo-incentivabr-compact.png" alt="IncentivaBR" class="h-6 w-auto">
-      </a>
-      <div class="flex items-center gap-4 text-sm text-white/60">
-        <a href="validador.html" class="hover:text-white transition hidden sm:inline">Validador</a>
-        <a href="espaco-contador.html" class="hover:text-white transition hidden sm:inline">Espaço do Contador</a>
-        <a href="destinar-rouanet.html" class="bg-gold text-navy font-bold px-4 py-1.5 rounded-full text-xs hover:brightness-110 transition">Destinar IR →</a>
-      </div>
-    </div>
-  </nav>
 
   <!-- HERO -->
-  <section class="pt-28 pb-10 px-4">
+  <section class="pt-12 pb-10 px-4">
     <div class="max-w-2xl mx-auto text-center">
       <div class="inline-flex items-center gap-2 bg-yellow-500/15 border border-yellow-500/25 rounded-full px-4 py-1.5 mb-5">
         <span class="text-yellow-400 text-xs">📅</span>
@@ -157,21 +144,6 @@
     </div>
   </section>
 
-  <footer class="border-t border-white/8 py-6 px-4 text-center text-white/25 text-xs">
-    <a href="espaco-contador.html" class="text-gold/50 hover:text-gold transition">Espaço do Contador</a>
-    <span class="mx-2">·</span>
-    <a href="validador.html" class="hover:text-white/50 transition">Validador</a>
-    <span class="mx-2">·</span>
-    <a href="index.html" class="hover:text-white/50 transition">IncentivaBR</a>
-  
-      <!-- incentivabr-legal -->
-      <div class="mt-6 pt-5 text-center" style="border-top:1px solid rgba(255,255,255,0.06);font-size:11px;line-height:1.7;color:rgba(255,255,255,0.28)">
-        <strong>IncentivaBR</strong>&trade; &mdash; programa de computador registrado no INPI sob o n&ordm; BR512025000647-0.<br>
-        Marca mista depositada no INPI sob os processos n&ordm; 939403005 (NCL 35) e n&ordm; 939403110 (NCL 42).<br>
-        Documenta&ccedil;&atilde;o t&eacute;cnica registrada no 2&ordm; Of&iacute;cio de Registro Civil, T&iacute;tulos e Documentos e Pessoas Jur&iacute;dicas de Bras&iacute;lia/DF.<br>
-        &copy; 2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. &Eacute; vedada a reprodu&ccedil;&atilde;o, distribui&ccedil;&atilde;o ou engenharia reversa, total ou parcial, sem autoriza&ccedil;&atilde;o expressa.
-      </div>
-    </footer>
 
 <script>
   const HOJE = new Date();
@@ -481,5 +453,16 @@
     acoesContainer.appendChild(div);
   });
 </script>
+  <script src="js/auth.js"></script>
+  <script src="js/layout.js"></script>
+  <script>Layout.init('contador');</script>
+
+<!-- incentivabr-legal -->
+<div style="max-width:1100px;margin:0 auto;padding:22px 18px 30px;text-align:center;border-top:1px solid rgba(128,128,128,0.14);font-size:11px;line-height:1.7;color:rgba(128,128,128,0.75);font-family:inherit">
+  <strong>IncentivaBR</strong>&trade; &mdash; programa de computador registrado no INPI sob o n&ordm; BR512025000647-0.<br>
+  Marca mista depositada no INPI sob os processos n&ordm; 939403005 (NCL 35) e n&ordm; 939403110 (NCL 42).<br>
+  Documenta&ccedil;&atilde;o t&eacute;cnica registrada no 2&ordm; Of&iacute;cio de Registro Civil, T&iacute;tulos e Documentos e Pessoas Jur&iacute;dicas de Bras&iacute;lia/DF.<br>
+  &copy; 2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. &Eacute; vedada a reprodu&ccedil;&atilde;o, distribui&ccedil;&atilde;o ou engenharia reversa, total ou parcial, sem autoriza&ccedil;&atilde;o expressa.
+</div>
 </body>
 </html>

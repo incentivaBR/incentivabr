@@ -135,6 +135,10 @@ for (const p of paginas) {
     if (info.usaMontserrat && !info.montserratOk) recursos.push('Montserrat não carregou: ' + info.montserrat);
   }
   if (info.html < 500) falhas.push(`página vazia (${info.html} bytes)`);
+  // Duas barras de navegação na mesma página: a copiada à mão e a injetada
+  // por layout.js. Era o estado de nove páginas antes do layout único.
+  const navs = await page.evaluate(() => document.querySelectorAll('nav').length);
+  if (navs > 1) falhas.push(`${navs} barras de navegação na página`);
 
   const ruim = info.cspv.length || consoleCsp.length || falhas.length || recursos.length;
   if (ruim) comProblema++;
