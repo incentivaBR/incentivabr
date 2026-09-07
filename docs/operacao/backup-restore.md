@@ -109,9 +109,35 @@ Comparação dos esquemas (`pg_dump --schema-only`) de origem e destino: sem
 diferença além da forma como o Postgres imprime as constraints `CHECK`
 (`ARRAY[...]::text[]` contra `ARRAY[(...)::text]`, o mesmo significado).
 
-Ainda não executado: restore de um dump vindo do bucket de produção, porque
-o bucket e os segredos ainda não existem. Faça uma vez, num banco temporário,
-assim que o primeiro backup automático rodar, e anote aqui a data.
+## Primeiro backup de produção: 7 de setembro de 2026
+
+Segredos cadastrados no GitHub e workflow disparado à mão. Os dois primeiros
+disparos falharam e corrigiram o script (PRs #15 e #16): o runner trazia o
+`pg_dump` 16 contra um servidor 18, e a `aws cli` recusava o `.sha256` vindo
+de um pipe. O terceiro disparo passou de ponta a ponta:
+
+```
+== pg_dump (2026-09-07T12:12:13Z)
+   incentivabr-2026-09-07-1212.dump: 112323 bytes
+== cifrando
+   incentivabr-2026-09-07-1212.dump.gpg sha256=3dc1ddf3…9dec1
+== enviando para s3://<bucket>/backups/
+== retenção: apagando dumps com mais de 30 dias
+== no bucket agora:
+2026-09-07 12:09:50   39735 incentivabr-2026-09-07-1209.dump.gpg
+2026-09-07 12:12:20     103 incentivabr-2026-09-07-1212.dump.gpg.sha256
+2026-09-07 12:12:19   39732 incentivabr-2026-09-07-1212.dump.gpg
+== ok
+```
+
+O dump das 12:09 é do segundo disparo, que subiu o arquivo mas não o
+`.sha256`; a retenção o apaga em 30 dias. A partir daqui o cron roda todo dia
+às 03:00 UTC.
+
+Ainda não executado: restore de um dump vindo do bucket de produção. Precisa
+de alguém com a `BACKUP_PASSPHRASE` e as chaves do bucket, num banco
+temporário (`scripts/restaurar-postgres.sh --do-bucket <arquivo>`), com
+`pg_restore` 18 ou mais novo. Anote aqui a data quando fizer.
 
 ## Monitor de disponibilidade
 

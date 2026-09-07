@@ -7,7 +7,7 @@
 - `.github/workflows/backup.yml` e `scripts/backup-postgres.sh` — dump diário cifrado (gpg) para o bucket, retenção de 30 dias; `scripts/restaurar-postgres.sh` com conferência de contagens. Restore executado e registrado em `docs/operacao/backup-restore.md`.
 - `.github/workflows/uptime.yml` — `/health` e `/diagnostico` a cada 15 minutos; falha vira e-mail do GitHub.
 - `backend/src/services/armazenamento.js` — object storage S3-compatível (R2 recomendado) com fallback local; `lib/validaArquivo.js` decide o tipo pelos primeiros bytes; `lib/recebeArquivo.js` e `lib/entregaArquivo.js`. Migration 037 (`receipt_sha256`, `mecenato_sha256`). `backend/scripts/migrar-uploads-para-storage.mjs`.
-- `backup.yml` instala o cliente Postgres na versão do servidor (a Railway está no 18; o runner trazia o 16 e o `pg_dump` abortava por "server version mismatch").
+- `backup.yml` instala o cliente Postgres na versão do servidor (a Railway está no 18; o runner trazia o 16 e o `pg_dump` abortava por "server version mismatch"). `backup-postgres.sh` grava o `.sha256` em disco antes de enviar (a `aws cli` recusa pipes). Primeiro backup de produção no bucket em 7 de setembro de 2026.
 - Sonda do armazenamento na subida: o servidor grava um arquivo em `_diagnostico/`, lê de volta, confere o SHA-256 e apaga. Chave errada, endpoint com o nome do bucket ou token sem escrita viram `armazenamento: error` no `/diagnostico` (campos `verificado` e `verificado_em`) e linha vermelha no log, sem esperar o primeiro upload de um servidor.
 - Migration 036 (`users.updated_at`): `PUT /api/auth/profile` respondia 500.
 - Testes: `migracoes`, `teto-registro`, `armazenamento`, `uploads-http`; garantias novas em `modo-texto` e `conferencia-http`.
