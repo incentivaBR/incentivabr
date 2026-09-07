@@ -2,6 +2,9 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Página órfã arquivada
+- `impacto.html` não tinha nenhum link chegando nela; foi para `archive/paginas-2026/` e no lugar ficou um redirecionamento para a página inicial. Os outros sete endereços antigos já eram redirecionamentos e continuam. A agenda fiscal apontava para `projetos.html` (um redirecionamento) e passa a apontar direto para `projetos-rouanet.html`.
+
 ### Rouanet na frente (risco 12)
 - O produto registra destinação só pela Lei Rouanet, mas quatro páginas prometiam "7 modalidades" e a persona da TINA se apresentava como assistente dos "7 mecanismos". Agora a página inicial, a calculadora, a biblioteca jurídica, o Espaço do Contador e a página de impacto dizem o que a plataforma faz: destinação pela Lei Rouanet, art. 18; as outras leis ficam como material de consulta, com aviso de que não há caminho de destinação para elas na plataforma. O card de Cultura na página inicial é marcado "Disponível na plataforma".
 - A resposta "Posso cair na malha fina?" da página inicial deixava de dizer quem emite o recibo e afirmava que a plataforma "gera toda a documentação necessária"; corrigida.
