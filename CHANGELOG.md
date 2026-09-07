@@ -1,5 +1,12 @@
 # CHANGELOG — IncentivaBR Rouanet
 
+## [Não lançado] — 2026-09 — Onda 2 do Raio-X
+
+### Alterado
+- Dependências do backend sem vulnerabilidade conhecida (`npm audit`: 7 → 0). `multer` 2.1.1 → 2.3.0, `nodemailer` 8 → 10 (só o Ethereal de desenvolvimento usa; produção é Resend), `form-data`, `ip-address`, `brace-expansion`, `body-parser` nas versões corrigidas; `qs` fixado em `^6.16.0` por `overrides`, porque o Express 4 prende em `~6.14.0`. Suíte completa verde. Os alertas restantes do Dependabot são de `archive/`, que não é servido.
+
+---
+
 ## [Não lançado] — 2026-09-07 — Onda 1 do Raio-X: fundações (PRs #7 a #12)
 
 ### Adicionado
