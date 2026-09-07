@@ -4,6 +4,13 @@ Tudo aqui é histórico. Nada nesta pasta é servido pela aplicação, copiado
 para o deploy (`.railwayignore`) ou lido pelo backend. Serve para provar de
 onde cada coisa veio e para consultar código antigo sem ressuscitá-lo.
 
+Os manifestos npm (`package.json`, `package-lock.json`) dos três repositórios
+foram removidos em setembro de 2026: o Dependabot os lia e acusava dezenas de
+vulnerabilidades em código que ninguém executa, escondendo os alertas do
+backend real. Os `npm install` dos READMEs antigos, portanto, não funcionam
+mais a partir daqui. Para reconstruir um deles, pegue o manifesto no commit
+anterior a essa remoção (`git log --diff-filter=D -- archive/**/package.json`).
+
 ## incentivabr-gdf/
 
 O repositório ancestral, `incentivaBR/incentivabr-gdf`, trazido inteiro com
