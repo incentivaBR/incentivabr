@@ -52,6 +52,25 @@ for (const [rotulo, system] of [['sem tenant', semTenant], ['com tenant', comTen
 
 // A persona nao pode voltar a ter tabela de limites propria: e o bloco que
 // divergia. Percentual de mecanismo so no nucleo.
+// O widget (frontend/js/tina.js) escapa a resposta do modelo antes de mostrar.
+// Enquanto a persona mandava responder em HTML, cada <br> e <strong> aparecia
+// escrito na tela. O formato pedido tem de ser texto.
+teste('a persona pede texto simples, nao HTML', () => {
+  const persona = semTenant[0].text;
+  if (/use HTML/i.test(persona)) throw new Error('a persona voltou a pedir resposta em HTML');
+  if (!/NUNCA escreva tags HTML/i.test(persona)) throw new Error('faltou a proibicao de tags HTML');
+});
+
+// "Zero risco" e "milhoes fazem" sao promessas que ninguem consegue sustentar
+// diante da Receita. O prompt inteiro (persona + nucleo) nao pode traze-las.
+for (const [rotulo, texto] of [['sem tenant', textoDe(semTenant)], ['com tenant', textoDe(comTenant)]]) {
+  teste(`prompt final ${rotulo} nao promete "zero risco" nem cita "milhoes"`, () => {
+    // A persona proibe a frase entre aspas; o que nao pode voltar e a afirmacao.
+    if (/zero risco (de|se|seguindo)/i.test(texto)) throw new Error('"zero risco" voltou ao prompt como afirmacao');
+    if (/milh[oõ]es de brasileiros/i.test(texto)) throw new Error('"milhoes de brasileiros" voltou ao prompt');
+  });
+}
+
 teste('a persona nao tem tabela de limites por mecanismo', () => {
   const persona = semTenant[0].text;
   if (/Limite PF/i.test(persona)) throw new Error('a persona voltou a listar "Limite PF" por mecanismo');

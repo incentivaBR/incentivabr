@@ -635,6 +635,16 @@ const TINA = (function() {
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // A resposta do modelo é texto, não HTML: escapa tudo e só então devolve
+  // a formatação mínima que o prompt pede — **negrito** vira <strong> e
+  // quebra de linha vira <br>. Qualquer tag que o modelo escrever aparece
+  // escrita, de propósito: HTML que roda tem de ser nosso.
+  function formataResposta(texto) {
+    return esc(texto)
+      .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
   // Adicionar mensagem — `content` é HTML já seguro
   function addMessage(content, isUser = false) {
     const messages = document.getElementById('tinaMessages');
@@ -709,9 +719,7 @@ const TINA = (function() {
         conversationHistory.push({ role: 'assistant', content: resposta });
         // Mantém histórico enxuto
         if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
-        // A resposta do modelo é texto, não HTML: escapa e só então troca
-        // quebra de linha por <br>.
-        addMessage(esc(resposta).replace(/\n/g, '<br>'));
+        addMessage(formataResposta(resposta));
       } else {
         addMessage(getResposta(pergunta));
       }
