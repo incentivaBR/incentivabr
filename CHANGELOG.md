@@ -2,6 +2,11 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Rouanet na frente (risco 12)
+- O produto registra destinação só pela Lei Rouanet, mas quatro páginas prometiam "7 modalidades" e a persona da TINA se apresentava como assistente dos "7 mecanismos". Agora a página inicial, a calculadora, a biblioteca jurídica, o Espaço do Contador e a página de impacto dizem o que a plataforma faz: destinação pela Lei Rouanet, art. 18; as outras leis ficam como material de consulta, com aviso de que não há caminho de destinação para elas na plataforma. O card de Cultura na página inicial é marcado "Disponível na plataforma".
+- A resposta "Posso cair na malha fina?" da página inicial deixava de dizer quem emite o recibo e afirmava que a plataforma "gera toda a documentação necessária"; corrigida.
+- Persona da TINA (`chat.js`): plataforma de destinação pela Lei Rouanet; sobre as demais leis, explica em termos gerais e encaminha ao contador. `nucleo.md` regenerado.
+
 ### Layout único, parte 1: barra e rodapé (risco 11)
 - `frontend/js/layout.js` passa a ser a única barra de navegação e o único rodapé das páginas públicas, com o CSS injetado por ele mesmo (antes o CSS das classes `dai-nav` não existia em lugar nenhum: nove páginas mostravam a barra copiada à mão e, por cima, uma segunda barra sem estilo). Menu de celular com gaveta, overlay e Escape. Links fixos: Calculadora, Projetos, Como funciona, Contadores, FAQ, Entrar (vira o nome de quem está logado) e "Destinar agora" (`data-destinar`, preenchido pelo tenant).
 - Quinze páginas perderam o `<nav>` próprio e sete perderam o `<footer>` próprio; seis passaram a chamar `Layout.init` (`index`, `espaco-contador`, `biblioteca-juridica`, `validador`, `agenda-fiscal`, `para-associacoes`). A barra é `sticky`, então a primeira seção dessas páginas deixou de reservar espaço para uma barra fixa.
