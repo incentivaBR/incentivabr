@@ -42,6 +42,7 @@
       to   { opacity: 1; transform: translateY(0); }
     }
   </style>
+  <script src="js/tenant.js"></script>
 </head>
 <body>
   <!-- ── NAVBAR ── -->
@@ -151,7 +152,7 @@
         <p class="text-sm font-bold text-[#EE985C] mb-3">O que você destina pode voltar pra você</p>
         <div class="font-mono text-sm space-y-1 text-white/90 mb-3">
           <div class="flex justify-between"><span>Imposto retido na fonte (ano)</span><span>R$ 10.000</span></div>
-          <div class="flex justify-between"><span>Destinação Rouanet (6%)</span><span class="text-red-300">− R$ 600</span></div>
+          <div class="flex justify-between"><span>Destinação Rouanet (<span data-fiscal="teto_pct">6%</span>)</span><span class="text-red-300">− R$ 600</span></div>
           <div class="border-t border-white/20 mt-2 pt-2 flex justify-between font-bold"><span>Restituição extra</span><span class="text-[#EE985C]">+ R$ 600</span></div>
           <div class="flex justify-between"><span>Custo líquido pro seu bolso</span><span class="text-green-300 font-bold">R$ 0</span></div>
         </div>
@@ -160,7 +161,7 @@
 
       <p class="text-[15px] text-slate-600 leading-relaxed mb-7">
         O <strong>IR Devido</strong> é o imposto calculado sobre sua renda, <em>antes</em> de abater o que já foi retido na fonte.
-        Você precisa desse número para calcular o limite de destinação (6% do IR Devido). Há três formas de encontrá-lo:
+        Você precisa desse número para calcular o limite de destinação (<span data-fiscal="teto_pct">6%</span> do IR Devido). Há três formas de encontrá-lo:
       </p>
 
       <!-- Método 1: e-CAC -->
@@ -227,7 +228,7 @@
                 </div>
                 <p class="text-sm text-slate-600 leading-relaxed mt-3">
                   O valor que você precisa é o <strong>Imposto Devido</strong> — no exemplo: <strong>R$ 8.200,00</strong>.<br>
-                  Seu limite de destinação = R$ 8.200 × 6% = <strong>R$ 492,00</strong>.
+                  Seu limite de destinação = R$ 8.200 × <span data-fiscal="teto_pct">6%</span> = <strong>R$ 492,00</strong>.
                 </p>
               </div>
             </li>
@@ -285,7 +286,7 @@
               <div>
                 <h4 class="font-bold text-[#0F1E3D] text-sm mb-1">Use o IRRF acumulado como estimativa do IR Devido</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">
-                  No exemplo: IRRF acumulado = R$ 7.900 → limite estimado = R$ 7.900 × 6% = <strong>R$ 474,00</strong>.
+                  No exemplo: IRRF acumulado = R$ 7.900 → limite estimado = R$ 7.900 × <span data-fiscal="teto_pct">6%</span> = <strong>R$ 474,00</strong>.
                 </p>
               </div>
             </li>
@@ -443,7 +444,7 @@
               <i class="fas fa-lightbulb text-emerald-600 mt-0.5 flex-shrink-0"></i>
               <p class="text-sm text-emerald-900 leading-relaxed">
                 O CNPJ do proponente e o nome completo constam no <strong>Recibo de Mecenato</strong>
-                que a IncentivaBR emite para você após a confirmação do pagamento.
+                que o proponente do projeto emite em seu nome depois que a transferência é conferida.
               </p>
             </div>
           </div>
@@ -455,7 +456,7 @@
           <div>
             <h4 class="font-bold text-[#0F1E3D] mb-1">Confira o limite automático</h4>
             <p class="text-sm text-slate-600 leading-relaxed">
-              O programa IRPF calcula automaticamente se você está dentro do limite de 6%.
+              O programa IRPF calcula automaticamente se você está dentro do limite de <span data-fiscal="teto_pct">6%</span>.
               Se ultrapassar, ele avisa antes de você enviar a declaração.
             </p>
           </div>
@@ -481,7 +482,7 @@
         <p class="text-sm text-blue-900 leading-relaxed">
           <strong>Fiz a transferência parcelada (várias vezes no ano).</strong> Lance cada transferência individualmente na ficha
           "Doações Efetuadas" com a data e valor correspondentes. Ou lance o total anual em uma única linha com a data da última
-          transferência — desde que o total não ultrapasse 6% do IR Devido.
+          transferência — desde que o total não ultrapasse <span data-fiscal="teto_pct">6%</span> do IR Devido.
         </p>
       </div>
 
@@ -548,7 +549,7 @@
       <div class="flex gap-3 items-start bg-emerald-50 border border-emerald-200 rounded-xl p-4 mt-5">
         <i class="fas fa-shield-alt text-emerald-600 mt-0.5 flex-shrink-0"></i>
         <p class="text-sm text-emerald-900 leading-relaxed">
-          <strong>Zero risco de malha fina</strong> se você respeitar o limite de 6%, informar o código correto (41) e
+          <strong>Zero risco de malha fina</strong> se você respeitar o limite de <span data-fiscal="teto_pct">6%</span>, informar o código correto (<span data-fiscal="dirpf_cultura">41</span>) e
           guardar os comprovantes. Milhões de brasileiros destinam via Lei Rouanet todo ano — é um procedimento reconhecido
           e incentivado pela própria Receita Federal.
         </p>
@@ -612,7 +613,7 @@
             <span class="font-semibold tabular-nums">R$ 8.184,00</span>
           </div>
           <div class="flex justify-between py-2.5 text-sm gap-3">
-            <span class="text-white/65">Limite Lei Rouanet (6% do IR Devido)</span>
+            <span class="text-white/65">Limite Lei Rouanet (<span data-fiscal="teto_pct">6%</span> do IR Devido)</span>
             <span class="font-bold text-[#EE985C] tabular-nums">R$ 491,00</span>
           </div>
           <div class="flex justify-between py-2.5 text-sm gap-3">

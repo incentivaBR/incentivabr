@@ -343,6 +343,37 @@ const tenant = {
     window.TETO_FRACAO     = window.TETO_PERCENTUAL / 100;
     window.TETO_BASE_LEGAL = brand.teto_base_legal || 'Lei 9.532/1997, art. 22';
 
+    // A fonte única dos textos fiscais (backend/src/lib/textosFiscais.js).
+    //
+    // Cada página escreve o valor de hoje como texto de reserva dentro de um
+    // <span data-fiscal="teto_pct">6%</span>; aqui ele é trocado pelo que o
+    // servidor mandou. Sem JavaScript ou com a API fora, a página continua
+    // legível — só não acompanha o banco. A TINA recebe o mesmo objeto, em
+    // texto, no prompt.
+    if (brand.fiscal) {
+      window.FISCAL = brand.fiscal;
+      const f = brand.fiscal;
+      const pct = n => String(Math.round(Number(n) * 100) / 100).replace('.', ',') + '%';
+      const valores = {
+        teto_pct:          pct(f.teto.percentual),
+        teto_base:         f.teto.base_legal || '',
+        prazo_recibo:      String(f.recibo.prazo_dias),
+        dirpf_ficha:       f.dirpf.ficha,
+        dirpf_cultura:     String(f.dirpf.codigos.cultura),
+        dirpf_eca:         String(f.dirpf.codigos.eca),
+        dirpf_idoso:       String(f.dirpf.codigos.idoso),
+        dirpf_desporto:    String(f.dirpf.codigos.desporto),
+        dirpf_audiovisual: String(f.dirpf.codigos.audiovisual),
+        art18_pct:         pct(f.rouanet.art18_dedutivel_pct),
+        art26_pct:         pct(f.rouanet.art26_dedutivel_pct),
+        guarda_anos:       String(f.guarda_documentos_anos)
+      };
+      document.querySelectorAll('[data-fiscal]').forEach(el => {
+        const v = valores[el.dataset.fiscal];
+        if (v != null && v !== '') el.textContent = v;
+      });
+    }
+
     window.dispatchEvent(new CustomEvent('brandLoaded', { detail: brand }));
   }
 };

@@ -34,12 +34,19 @@ const TINA = (function() {
 
     limite: {
       keywords: ['limite', 'quanto posso', 'percentual', 'teto', 'máximo', 'maximo'],
-      response: 'O limite depende do mecanismo — não existe um número único.<br><br>' +
-        'A Lei Rouanet e os fundos da Criança, do Idoso e da Reciclagem trabalham na faixa de 6% do IR devido; ' +
-        'o Incentivo ao Esporte chega a 7%; PRONON e PRONAS têm limite próprio, menor.<br><br>' +
-        'Quanto dá no conjunto depende da Instrução Normativa da Receita vigente no exercício — ' +
-        'é exatamente a conta que o contador confirma para o seu caso. ' +
-        'Use a <strong>calculadora</strong> para a estimativa e leve ao contador para confirmar.'
+      // Função, não texto fixo: o percentual vem do banco (window.FISCAL,
+      // preenchido por tenant.js a partir de /api/config/brand). Sem ele, o
+      // valor de reserva é o conservador.
+      response: () => {
+        const f = window.FISCAL;
+        const teto = f ? f.teto.percentual_texto : '6%';
+        const base = f ? f.teto.base_legal : 'Lei 9.532/1997, art. 22';
+        return `O teto é <strong>${teto} do IR devido</strong> (${base}), e é um só: ` +
+          'Lei Rouanet, fundos da Criança e do Idoso, audiovisual e, para pessoa física, o incentivo ao esporte ' +
+          'dividem esse mesmo limite — os percentuais não se somam.<br><br>' +
+          'PRONON e PRONAS ficam fora, com limite próprio menor, conjunto entre os dois.<br><br>' +
+          'Use a <strong>calculadora</strong> para a estimativa e confirme com o seu contador antes de destinar.';
+      }
     },
 
     ir: {
@@ -83,7 +90,7 @@ const TINA = (function() {
     for (const categoria of Object.values(respostas)) {
       for (const keyword of categoria.keywords) {
         if (perguntaLower.includes(keyword)) {
-          return categoria.response;
+          return typeof categoria.response === 'function' ? categoria.response() : categoria.response;
         }
       }
     }

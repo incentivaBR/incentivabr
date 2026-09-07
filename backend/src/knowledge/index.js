@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { resumoParaPrompt } from '../lib/textosFiscais.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -50,13 +51,21 @@ export const NUCLEO = carregaNucleo();
  * na tela de destinação, onde o usuário está autenticado no fluxo; num chat
  * eles viram superfície de engenharia social sem ganho nenhum de utilidade.
  */
-export function blocoDoTenant(org) {
+export function blocoDoTenant(org, fiscal = null) {
+  // O resumo dos textos fiscais (lib/textosFiscais.js) entra aqui, e não no
+  // núcleo, porque o teto e o prazo do recibo vêm do banco e podem mudar por
+  // organização — o núcleo é o prefixo cacheado e tem de ser fixo. É a mesma
+  // fonte que as páginas leem por /api/config/brand: se o banco mudar, a TINA
+  // e o site mudam juntos.
+  const resumoFiscal = fiscal ? ['', resumoParaPrompt(fiscal)] : [];
+
   if (!org) {
     return [
       '# ORGANIZAÇÃO ATUAL',
       '',
       'Nenhuma organização identificada nesta sessão. Responda apenas com o',
-      'conhecimento geral acima e não afirme dados de nenhum projeto específico.'
+      'conhecimento geral acima e não afirme dados de nenhum projeto específico.',
+      ...resumoFiscal
     ].join('\n');
   }
 
@@ -107,7 +116,8 @@ export function blocoDoTenant(org) {
     '',
     'Se o usuário perguntar dados bancários ou chave PIX, não responda por aqui:',
     'oriente a seguir para a tela de destinação, onde os dados aparecem com o',
-    'valor já calculado e o comprovante é gerado.'
+    'valor já calculado e o comprovante é gerado.',
+    ...resumoFiscal
   );
 
   return linhas.join('\n');

@@ -35,6 +35,7 @@
     .tag-closed  { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
     .tag-future  { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
   </style>
+  <script src="js/tenant.js"></script>
 </head>
 <body class="bg-navy font-sans text-white min-h-screen">
 
@@ -294,7 +295,7 @@
       emoji: '🎭',
       nome: 'Lei Rouanet — Art. 18',
       lei: 'Lei 8.313/1991',
-      limite: '6% do IR Devido',
+      limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido',
       janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
       prazoCaptacao: 'Verificar projeto a projeto (PRONAC ativo no SALIC)',
       comoFazer: 'Transferência bancária (PIX/TED) direta para a conta do projeto aprovado',
@@ -308,7 +309,7 @@
       emoji: '⚽',
       nome: 'Lei do Esporte',
       lei: 'Lei 11.438/2006',
-      limite: '6% do IR Devido — teto compartilhado com as demais modalidades',
+      limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
       janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
       prazoCaptacao: 'Verificar projeto a projeto (aprovação Ministério do Esporte)',
       comoFazer: 'Transferência bancária para a conta do projeto esportivo aprovado',
@@ -322,12 +323,12 @@
       emoji: '👧',
       nome: 'FDCA — Fundo da Criança e do Adolescente',
       lei: 'Lei 8.069/1990 (ECA) Art. 260 II',
-      limite: '6% do IR Devido — teto compartilhado com as demais modalidades',
+      limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
       janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
       prazoCaptacao: `Destinação ao fundo até 31/mai/${anoDIRPF}`,
       comoFazer: `Transferência ao FDCA-DF ou fundo municipal/estadual. Confirmar CNPJ e conta corrente junto ao CDCA-DF`,
-      comprovante: 'Recibo do fundo com CNPJ, número, valor e data. Código 40 na DIRPF',
-      onde: `Doações Efetuadas → Código 40`,
+      comprovante: 'Recibo do fundo com CNPJ, número, valor e data. Código <span data-fiscal="dirpf_eca">40</span> na DIRPF',
+      onde: `Doações Efetuadas → Código <span data-fiscal="dirpf_eca">40</span>`,
       status: 'open',
       statusLabel: `Aberto — destinação ${anoCalendario}`,
       alerta: 'Confirme a conta bancária do FDCA-DF diretamente com o CDCA antes de transferir.',
@@ -336,12 +337,12 @@
       emoji: '👴',
       nome: 'FDI — Fundo do Idoso',
       lei: 'Lei 12.213/2010',
-      limite: '6% do IR Devido — teto compartilhado com as demais modalidades',
+      limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
       janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
       prazoCaptacao: `Destinação ao fundo até 31/mai/${anoDIRPF}`,
       comoFazer: 'Transferência ao Fundo Nacional, Estadual ou Municipal do Idoso',
-      comprovante: 'Recibo do fundo com CNPJ, número, valor e data. Código 41 na DIRPF',
-      onde: `Doações Efetuadas → Código 41`,
+      comprovante: 'Recibo do fundo com CNPJ, número, valor e data. Código <span data-fiscal="dirpf_idoso">44</span> na DIRPF',
+      onde: `Doações Efetuadas → Código <span data-fiscal="dirpf_idoso">44</span>`,
       status: 'open',
       statusLabel: `Aberto — destinação ${anoCalendario}`,
       alerta: null,
@@ -350,7 +351,7 @@
       emoji: '♻️',
       nome: 'Lei de Incentivo à Reciclagem — Recicla+',
       lei: 'Lei 14.260/2021',
-      limite: '6% do IR Devido — teto compartilhado com as demais modalidades',
+      limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
       janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
       prazoCaptacao: 'Verificar cooperativa habilitada no MAPA',
       comoFazer: 'Transferência a cooperativa de catadores habilitada',

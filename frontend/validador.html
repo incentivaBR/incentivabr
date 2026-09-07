@@ -109,7 +109,7 @@
               <span>🎭</span>
               <div>
                 <div class="font-semibold text-sm">Lei Rouanet — Art. 18 (destinação direta)</div>
-                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-rouanet">—</strong> · 6% do IR Devido · Lei 8.313/1991</div>
+                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-rouanet">—</strong> · <span data-fiscal="teto_pct">6%</span> do IR Devido · Lei 8.313/1991</div>
               </div>
             </div>
             <span id="icon-rouanet" class="text-lg">—</span>
@@ -127,7 +127,7 @@
               <span>⚽</span>
               <div>
                 <div class="font-semibold text-sm">Lei do Esporte</div>
-                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-esporte">—</strong> · divide o teto de 6% · Lei 11.438/2006</div>
+                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-esporte">—</strong> · divide o teto de <span data-fiscal="teto_pct">6%</span> · Lei 11.438/2006</div>
               </div>
             </div>
             <span id="icon-esporte" class="text-lg">—</span>
@@ -143,7 +143,7 @@
           <div class="flex items-center justify-between mb-1">
             <div>
               <div class="font-semibold text-sm">FDCA + FDI — Criança, Adolescente e Idoso</div>
-              <div class="text-white/40 text-xs">FDCA (ECA art. 260, II) e FDI (Lei 12.213/2010) — dividem o teto de 6% com as demais modalidades</div>
+              <div class="text-white/40 text-xs">FDCA (ECA art. 260, II) e FDI (Lei 12.213/2010) — dividem o teto de <span data-fiscal="teto_pct">6%</span> com as demais modalidades</div>
             </div>
             <span id="icon-fidfia" class="text-lg">—</span>
           </div>
@@ -172,7 +172,7 @@
               <span>♻️</span>
               <div>
                 <div class="font-semibold text-sm">Lei de Incentivo à Reciclagem — Recicla+</div>
-                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-reciclagem">—</strong> · 6% do IR Devido · Lei 14.260/2021</div>
+                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-reciclagem">—</strong> · <span data-fiscal="teto_pct">6%</span> do IR Devido · Lei 14.260/2021</div>
               </div>
             </div>
             <span id="icon-reciclagem" class="text-lg">—</span>
@@ -280,11 +280,11 @@
         </div>
         <div class="flex gap-3 mt-4">
           <span class="flex-shrink-0">ℹ️</span>
-          <span><strong class="text-white">FDCA e FDI dividem o mesmo teto:</strong> pode usar os dois no mesmo ano, mas a soma entra nos 6% — destinar a um reduz o que resta para o outro.</span>
+          <span><strong class="text-white">FDCA e FDI dividem o mesmo teto:</strong> pode usar os dois no mesmo ano, mas a soma entra nos <span data-fiscal="teto_pct">6%</span> — destinar a um reduz o que resta para o outro.</span>
         </div>
         <div class="flex gap-3">
           <span class="flex-shrink-0">ℹ️</span>
-          <span>Pode destinar a mais de uma modalidade no mesmo ano, mas os percentuais <strong class="text-white">não se somam</strong>: Rouanet, Esporte, FDCA, FDI e Reciclagem dividem um teto único de 6% do IR devido (Lei 9.532/1997, art. 22). Só PRONON + PRONAS ficam fora, com 1% entre si.</span>
+          <span>Pode destinar a mais de uma modalidade no mesmo ano, mas os percentuais <strong class="text-white">não se somam</strong>: Rouanet, Esporte, FDCA, FDI e Reciclagem dividem um teto único de <span data-fiscal="teto_pct">6%</span> do IR devido (Lei 9.532/1997, art. 22). Só PRONON + PRONAS ficam fora, com 1% entre si.</span>
         </div>
       </div>
     </div>
@@ -369,11 +369,15 @@
     //
     // Fora do teto global ficam apenas PRONON + PRONAS, que dividem 1% entre si.
     const TETO_GLOBAL = ir * (window.TETO_FRACAO || 0.06);
+    // O percentual em texto, para as mensagens: vem do banco por tenant.js.
+    const tetoPct = `${Math.round((window.TETO_PERCENTUAL || 6) * 100) / 100}%`;
 
     // Limites
     const L = {
       rouanet:    ir * (window.TETO_FRACAO || 0.06),
-      esporte:    ir * 0.07,
+      // Para pessoa física o esporte concorre no mesmo teto (migration 031);
+      // o percentual próprio da lei está sendo reconferido após a LC 222/2025.
+      esporte:    ir * (window.TETO_FRACAO || 0.06),
       fia:        ir * (window.TETO_FRACAO || 0.06),  // FDCA
       fdi:        ir * (window.TETO_FRACAO || 0.06),  // FDI — Idoso
       reciclagem: ir * (window.TETO_FRACAO || 0.06),  // Recicla+ — Lei 14.260/2021
@@ -486,13 +490,13 @@
     // A verificação decisiva, e a primeira: uma destinação pode estar dentro de
     // cada limite individual e ainda assim estourar o teto da soma.
     if (somaNoTeto > TETO_GLOBAL)
-      problemas.push(`A soma das modalidades (${fmtBRL(somaNoTeto)}) excede o teto de 6% do IR devido `
+      problemas.push(`A soma das modalidades (${fmtBRL(somaNoTeto)}) excede o teto de ${tetoPct} do IR devido `
                    + `(${fmtBRL(TETO_GLOBAL)}) — Lei 9.532/1997, art. 22. `
                    + `Reduza ${fmtBRL(somaNoTeto - TETO_GLOBAL)}.`);
     if (V.rouanet > L.rouanet)           problemas.push('Rouanet excede o limite');
     if (V.esporte > L.esporte)           problemas.push('Esporte excede o limite');
-    if (V.fia > L.fia)                   problemas.push('FDCA excede o limite de 6%');
-    if (V.fdi > L.fdi)                   problemas.push('FDI excede o limite de 6%');
+    if (V.fia > L.fia)                   problemas.push(`FDCA excede o limite de ${tetoPct}`);
+    if (V.fdi > L.fdi)                   problemas.push(`FDI excede o limite de ${tetoPct}`);
     if (V.reciclagem > L.reciclagem)     problemas.push('Reciclagem excede o limite');
     if (V.pronon_pronas > L.pronon)      problemas.push('PRONON+PRONAS excede o limite conjunto de 1%');
     if (total > ir)                      problemas.push('Total destinado excede o IR Devido');
@@ -543,9 +547,9 @@
     itens.push(`IR Devido informado: ${fmtBRL(ir)}`);
     if (V.rouanet > 0) itens.push(`Rouanet Art. 18: ${fmtBRL(V.rouanet)} de ${fmtBRL(L.rouanet)} disponível (${Math.round(V.rouanet/L.rouanet*100)}%) ${V.rouanet <= L.rouanet ? '✅' : '❌'}`);
     if (V.esporte > 0)  itens.push(`Esporte: ${fmtBRL(V.esporte)} de ${fmtBRL(L.esporte)} disponível (${Math.round(V.esporte/L.esporte*100)}%) ${V.esporte <= L.esporte ? '✅' : '❌'}`);
-    if (V.fia > 0)        itens.push(`FDCA — Criança e Adolescente: ${fmtBRL(V.fia)} de ${fmtBRL(L.fia)} disponível (6%) ${V.fia <= L.fia ? '✅' : '❌'}`);
-    if (V.fdi > 0)        itens.push(`FDI — Idoso: ${fmtBRL(V.fdi)} de ${fmtBRL(L.fdi)} disponível (6%) ${V.fdi <= L.fdi ? '✅' : '❌'}`);
-    if (V.reciclagem > 0) itens.push(`Recicla+ (Lei 14.260/2021): ${fmtBRL(V.reciclagem)} de ${fmtBRL(L.reciclagem)} disponível (6%) ${V.reciclagem <= L.reciclagem ? '✅' : '❌'}`);
+    if (V.fia > 0)        itens.push(`FDCA — Criança e Adolescente: ${fmtBRL(V.fia)} de ${fmtBRL(L.fia)} disponível (${tetoPct}) ${V.fia <= L.fia ? '✅' : '❌'}`);
+    if (V.fdi > 0)        itens.push(`FDI — Idoso: ${fmtBRL(V.fdi)} de ${fmtBRL(L.fdi)} disponível (${tetoPct}) ${V.fdi <= L.fdi ? '✅' : '❌'}`);
+    if (V.reciclagem > 0) itens.push(`Recicla+ (Lei 14.260/2021): ${fmtBRL(V.reciclagem)} de ${fmtBRL(L.reciclagem)} disponível (${tetoPct}) ${V.reciclagem <= L.reciclagem ? '✅' : '❌'}`);
     if (V.pronon > 0)     itens.push(`PRONON — Oncologia: ${fmtBRL(V.pronon)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
     if (V.pronas > 0)     itens.push(`PRONAS — Deficiência: ${fmtBRL(V.pronas)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
     if (V.pronon_pronas > 0) itens.push(`PRONON+PRONAS total: ${fmtBRL(V.pronon_pronas)} de ${fmtBRL(L.pronon)} disponível (limite conjunto 1%) ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
