@@ -93,6 +93,7 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 | Teto conferido dentro da transação, com lock por contribuinte; IR devido fixado por ano no menor valor; vale também em simulação | set/2026 | `backend/src/lib/tetos.js`, `backend/tests/teto-registro.test.mjs` |
 | Comprovantes e recibos em object storage S3-compatível, com SHA-256 no banco; tipo decidido pelos bytes do arquivo | set/2026 | `backend/src/services/armazenamento.js`, migration 037, `docs/operacao/armazenamento.md` |
 | O PDF de registro é o do servidor; o wizard não gera PDF no navegador | set/2026 | `frontend/destinar-rouanet.html`, `backend/tests/modo-texto.test.mjs` |
+| JWT sem CPF; todo token que viaja por e-mail (redefinição, verificação, convite) fica no banco só como SHA-256 | set/2026 | `backend/src/lib/tokens.js`, migration 038, `backend/tests/redefinicao-senha.test.mjs` |
 
 ## Endpoints principais
 

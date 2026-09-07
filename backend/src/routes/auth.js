@@ -1,13 +1,38 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import pool from '../../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { notifyWelcome } from '../services/notificationService.js';
 import { sendEmail } from '../services/emailService.js';
+import { geraToken, hashDoToken, expiraEmMinutos } from '../lib/tokens.js';
 
 const router = express.Router();
+
+// Quanto vale cada link. A redefinição é curta porque o link abre a conta
+// inteira; a verificação de e-mail só confirma que a caixa existe.
+export const VALIDADE_REDEFINICAO_MIN = 60;
+export const VALIDADE_VERIFICACAO_MIN = 24 * 60;
+
+// O e-mail de redefinição sai por aqui. Os testes trocam a função para
+// capturar o token em claro, que é a única vez que ele existe fora da caixa
+// de entrada de quem pediu.
+const escapaHtml = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let enviaRedefinicao = async ({ to, nome, link }) => sendEmail({
+  to,
+  subject: 'Redefinição de senha — IncentivaBR',
+  html: `
+    <p>Olá, <strong>${escapaHtml(nome)}</strong>!</p>
+    <p>Recebemos uma solicitação para redefinir sua senha.</p>
+    <p><a href="${link}" style="background:#273F77;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Redefinir senha</a></p>
+    <p>Este link expira em <strong>1 hora</strong> e só pode ser usado uma vez.</p>
+    <p>Se você não solicitou, ignore este email. Sua senha continua a mesma.</p>
+    <hr>
+    <small>IncentivaBR — Incentivos Fiscais Simplificados</small>
+  `
+});
+export function _trocaEnvioDeRedefinicao(fn) { enviaRedefinicao = fn; }
 
 // ─────────────────────────────────────────────────────────────
 // Utilitários de validação
@@ -107,9 +132,12 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ status: 'error', message: `${campo} já cadastrado.` });
     }
 
-    // Token de verificação de email
-    const emailToken = crypto.randomBytes(32).toString('hex');
-    const emailTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+    // Token de verificação de email. Só o hash vai para o banco. O valor em
+    // claro ainda não é enviado a ninguém: o e-mail de boas-vindas não o
+    // inclui e não existe página que o receba. Fica gerado do jeito certo
+    // para quando o fluxo for ligado.
+    const { hash: emailTokenHash } = geraToken();
+    const emailTokenExpiry = expiraEmMinutos(VALIDADE_VERIFICACAO_MIN);
 
     const senhaHash = await bcrypt.hash(senha, 10);
 
@@ -126,7 +154,7 @@ router.post('/register', async (req, res) => {
       ) VALUES ($1,$2,$3,$4,$5,$6,NOW(),'1.0',false,$7,$8)
       RETURNING id, nome, email, cpf, created_at`,
       [cleanedCPF, nome.trim(), email.toLowerCase(), phone || null,
-       senhaHash, org?.id || null, emailToken, emailTokenExpiry]
+       senhaHash, org?.id || null, emailTokenHash, emailTokenExpiry]
     );
 
     const user = userResult.rows[0];
@@ -200,10 +228,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ status: 'error', message: 'Credenciais inválidas.' });
     }
 
+    // O JWT vai em todo pedido e fica no localStorage do navegador; qualquer
+    // um decodifica o payload sem a chave. Por isso leva só identificadores e
+    // papéis, nunca o CPF: quem precisa do CPF busca no banco pelo userId
+    // (Raio-X, risco 05).
     const token = jwt.sign(
       {
         userId:       user.id,
-        cpf:          user.cpf,
         orgId:        user.organization_id,
         orgSlug:      user.org_slug,
         isSuperadmin: user.is_superadmin,
@@ -368,12 +399,14 @@ router.post('/forgot-password', async (req, res) => {
     }
 
     const user = result.rows[0];
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1h
+    // Só o hash vai para o banco; o valor em claro vai para o e-mail e para
+    // mais lugar nenhum.
+    const { claro, hash } = geraToken();
+    const expiry = expiraEmMinutos(VALIDADE_REDEFINICAO_MIN);
 
     await pool.query(
       'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
-      [token, expiry, user.id]
+      [hash, expiry, user.id]
     );
 
     const org = req.organization;
@@ -385,21 +418,12 @@ router.post('/forgot-password', async (req, res) => {
       ? `https://${org.custom_domain}`
       : (process.env.APP_URL || 'https://www.incentivabr.com.br');
 
-    const resetLink = `${baseUrl}/reset-password.html?token=${token}`;
+    // A página lê `t`; `org` mantém a marca do tenant em quem não tem domínio
+    // próprio (tenant.js). Sem esse parâmetro o link abriria como www.
+    const orgParam = org?.slug && !org?.custom_domain ? `&org=${encodeURIComponent(org.slug)}` : '';
+    const resetLink = `${baseUrl}/redefinir-senha.html?t=${encodeURIComponent(claro)}${orgParam}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Redefinição de senha — IncentivaBR',
-      html: `
-        <p>Olá, <strong>${user.nome}</strong>!</p>
-        <p>Recebemos uma solicitação para redefinir sua senha.</p>
-        <p><a href="${resetLink}" style="background:#273F77;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Redefinir senha</a></p>
-        <p>Este link expira em <strong>1 hora</strong>.</p>
-        <p>Se você não solicitou, ignore este email.</p>
-        <hr>
-        <small>IncentivaBR — Incentivos Fiscais Simplificados</small>
-      `
-    }).catch(() => {});
+    await enviaRedefinicao({ to: user.email, nome: user.nome, link: resetLink }).catch(() => {});
 
     res.json({ status: 'success', message: 'Se o email estiver cadastrado, você receberá as instruções.' });
 
@@ -423,10 +447,12 @@ router.post('/reset-password', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Senha deve ter no mínimo 8 caracteres.' });
     }
 
+    // Procura pelo hash: o banco nunca viu o valor em claro. Um token tirado
+    // da tabela (o próprio hash) não abre nada, porque seria re-hasheado.
     const result = await pool.query(
       `SELECT id, nome, email, organization_id FROM users
        WHERE reset_token = $1 AND reset_token_expires > NOW()`,
-      [token]
+      [hashDoToken(token)]
     );
 
     if (result.rows.length === 0) {
@@ -468,7 +494,7 @@ router.post('/verify-email', async (req, res) => {
        WHERE email_verification_token = $1
          AND email_verification_expires > NOW()
          AND email_verified = false`,
-      [token]
+      [hashDoToken(token)]
     );
 
     if (result.rows.length === 0) {

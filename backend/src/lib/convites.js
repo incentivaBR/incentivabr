@@ -9,28 +9,16 @@
  * Este arquivo é só a mecânica do token, separada das rotas para poder ser
  * testada sem HTTP e sem banco.
  */
-import crypto from 'crypto';
+import { geraToken, hashDoToken } from './tokens.js';
 
 // Duas noites. O token de confirmação de interessado vale sete dias, mas ali o
 // que está em jogo é um e-mail numa lista; aqui é o papel que confirma dinheiro
 // de terceiros. Convite esquecido numa caixa de entrada é porta aberta.
 export const VALIDADE_HORAS = 48;
 
-/**
- * Gera o par: o que vai no e-mail e o que vai no banco.
- *
- * O banco recebe apenas o hash. Quem ler a tabela — backup vazado, acesso
- * indevido, dump de suporte — não consegue aceitar convite nenhum, porque o
- * valor em claro só existiu no e-mail enviado.
- */
-export function geraToken() {
-  const claro = crypto.randomBytes(32).toString('base64url');
-  return { claro, hash: hashDoToken(claro) };
-}
-
-export function hashDoToken(claro) {
-  return crypto.createHash('sha256').update(String(claro)).digest('hex');
-}
+// A mecânica do token (par claro/hash, SHA-256 no banco) mora em lib/tokens.js
+// e é a mesma da redefinição de senha. Reexportada para quem já importa daqui.
+export { geraToken, hashDoToken };
 
 export function expiraEm(agora = new Date()) {
   return new Date(agora.getTime() + VALIDADE_HORAS * 3600 * 1000);

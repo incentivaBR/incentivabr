@@ -43,6 +43,14 @@ const api = {
     });
   },
 
+  // Redefinição de senha: o servidor responde igual exista ou não a conta.
+  async forgotPassword(email) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  },
+
   async me() {
     const token = auth.getToken();
     if (!token) throw { status: 401, message: 'Não autenticado' };
