@@ -64,11 +64,11 @@ const Layout = {
          barra, e ela apareceria cortada com 56px de altura. */
       .dai-nav { position: sticky; top: 0; z-index: 60; background: var(--dai-navy);
                  border-bottom: 1px solid rgba(238,152,92,0.14); font-family: 'Montserrat', system-ui, sans-serif; }
-      .dai-nav__inner { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 56px;
+      .dai-nav__inner { max-width: 1152px; margin: 0 auto; padding: 0 16px; height: 64px;
                         display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-      .dai-nav__logo { display: inline-flex; align-items: center; background: #fff; border-radius: 10px;
-                       padding: 4px 8px; text-decoration: none; flex-shrink: 0; }
-      .dai-nav__logo img { height: 24px; width: auto; display: block; }
+      .dai-nav__logo { display: inline-flex; align-items: center; background: #fff; border-radius: 12px;
+                       padding: 5px 12px; text-decoration: none; flex-shrink: 0; }
+      .dai-nav__logo img { height: 36px; width: auto; display: block; }
       .dai-nav__links { display: flex; align-items: center; gap: 18px; }
       .dai-nav__link { color: rgba(255,255,255,0.65); font-size: 14px; text-decoration: none; transition: color .2s; }
       .dai-nav__link:hover, .dai-nav__link--active { color: #fff; }
@@ -88,7 +88,7 @@ const Layout = {
 
       @media (max-width: 860px) {
         .dai-nav__burger { display: block; }
-        .dai-nav__links { position: fixed; top: 56px; right: 0; bottom: 0; width: min(320px, 85vw);
+        .dai-nav__links { position: fixed; top: 64px; right: 0; bottom: 0; width: min(320px, 85vw);
                           flex-direction: column; align-items: stretch; gap: 0; padding: 12px 0 24px;
                           background: var(--dai-navy); border-left: 1px solid rgba(255,255,255,0.08);
                           transform: translateX(100%); transition: transform .25s ease; overflow-y: auto; }
@@ -108,8 +108,8 @@ const Layout = {
       .dai-footer { background: var(--dai-navy); color: rgba(255,255,255,0.55); font-family: 'Montserrat', system-ui, sans-serif;
                     border-top: 1px solid rgba(255,255,255,0.08); }
       .dai-footer__inner { max-width: 1152px; margin: 0 auto; padding: 36px 16px 28px; text-align: center; }
-      .dai-footer__logo { display: inline-flex; align-items: center; background: #fff; border-radius: 8px; padding: 3px 10px; }
-      .dai-footer__logo img { height: 20px; width: auto; display: block; }
+      .dai-footer__logo { display: inline-flex; align-items: center; background: #fff; border-radius: 10px; padding: 5px 14px; }
+      .dai-footer__logo img { height: 30px; width: auto; display: block; }
       .dai-footer__links { margin: 18px 0 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 13px; }
       .dai-footer__link { color: rgba(255,255,255,0.65); text-decoration: none; }
       .dai-footer__link:hover { color: #fff; text-decoration: underline; }
