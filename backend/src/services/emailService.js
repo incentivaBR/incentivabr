@@ -132,7 +132,7 @@ const getFromAddress = () => {
  */
 function getEmailTemplate(content, org = null, accessToken = null) {
   const orgName       = org?.name           || process.env.BRAND_NAME          || 'IncentivaBR';
-  const primaryColor  = org?.primary_color  || process.env.BRAND_COLOR_PRIMARY || '#273F77';
+  const primaryColor  = org?.primary_color  || process.env.BRAND_COLOR_PRIMARY || '#0F1E3D';
   const appUrl        = getAppUrl();
 
   return `
@@ -159,7 +159,7 @@ function getEmailTemplate(content, org = null, accessToken = null) {
         <div class="content">${content}</div>
         <div class="footer">
           <p>Este é um email automático do ${orgName}.</p>
-          <p><a href="${appUrl}" style="color:#273F77">${appUrl.replace('https://', '')}</a></p>
+          <p><a href="${appUrl}" style="color:#0F1E3D">${appUrl.replace('https://', '')}</a></p>
           ${accessToken ? `
           <p style="margin-top:14px">
             <a href="${appUrl}/minhas-preferencias.html?t=${encodeURIComponent(accessToken)}" style="color:#8B96A8">

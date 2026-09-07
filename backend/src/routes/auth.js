@@ -25,7 +25,7 @@ let enviaRedefinicao = async ({ to, nome, link }) => sendEmail({
   html: `
     <p>Olá, <strong>${escapaHtml(nome)}</strong>!</p>
     <p>Recebemos uma solicitação para redefinir sua senha.</p>
-    <p><a href="${link}" style="background:#273F77;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Redefinir senha</a></p>
+    <p><a href="${link}" style="background:#0F1E3D;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Redefinir senha</a></p>
     <p>Este link expira em <strong>1 hora</strong> e só pode ser usado uma vez.</p>
     <p>Se você não solicitou, ignore este email. Sua senha continua a mesma.</p>
     <hr>

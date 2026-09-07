@@ -103,7 +103,7 @@ export function gerarComprovante(donation, user, project, fund, opts = {}) {
 
   // Paleta do manual da marca IncentivaBR. Os valores anteriores (#1E3A5F,
   // #F7941D) eram de um protótipo antigo e não constam do manual.
-  const primaryColor   = '#273F77';
+  const primaryColor   = '#0F1E3D';
   const secondaryColor = '#EE985C';
   const textColor      = '#333333';
   const mutedColor     = '#666666';

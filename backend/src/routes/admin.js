@@ -94,7 +94,7 @@ router.post('/orgs', async (req, res) => {
       fund_name = 'Lei Rouanet — Lei 8.313/1991',
       max_percentage = 6,
       contact_email, contact_phone,
-      primary_color = '#273F77',
+      primary_color = '#0F1E3D',
       secondary_color = '#EE985C'
     } = req.body;
 
