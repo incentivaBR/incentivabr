@@ -2,6 +2,14 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Layout único, parte 2: uma paleta (risco 11)
+- Decisão: na tela, o azul primário é o navy #0F1E3D; o #273F77 do manual fica para logotipo e impresso (`brand/IDENTIDADE-VISUAL.md`).
+- `frontend/js/tema.js` é o único lugar onde a paleta do Tailwind é definida. Os 14 blocos `tailwind.config` copiados de página em página, com quatro paletas diferentes, viraram uma linha de `<script>`. `navy` era #273F77 na página inicial e em `para-associacoes` e #0F1E3D nas outras doze.
+- O acento (`gold`, `orange`) passa a sair de `--secondary-rgb`, que `tenant.js` escreve a partir da cor do cliente: `bg-gold/20` e `text-gold/80` agora seguem a cor do tenant, o que `var(--secondary-color)` direto não permitia.
+- #273F77 trocado por #0F1E3D nas seis páginas de aplicação, no e-mail de redefinição de senha, no e-mail de boas-vindas, no PDF de registro e nos padrões de `config.js` e `admin.js`.
+- O verificador de páginas do CI confere que a paleta de `tema.js` foi aplicada em toda página que usa o Tailwind.
+- Fica: os seis formatadores de moeda copiados, que dependem de todas as páginas carregarem `utils.js`.
+
 ### Página órfã arquivada
 - `impacto.html` não tinha nenhum link chegando nela; foi para `archive/paginas-2026/` e no lugar ficou um redirecionamento para a página inicial. Os outros sete endereços antigos já eram redirecionamentos e continuam. A agenda fiscal apontava para `projetos.html` (um redirecionamento) e passa a apontar direto para `projetos-rouanet.html`.
 

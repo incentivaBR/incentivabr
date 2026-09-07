@@ -46,6 +46,15 @@ function aplicaAcento(cor) {
     raiz.style.setProperty('--secondary-color', cor);
     raiz.style.setProperty('--accent-color', cor);
 
+    // Os três canais separados ("238 152 92"), para o Tailwind aplicar
+    // transparência ao acento (js/tema.js: `bg-gold/20`, `text-gold/80`).
+    const hex = String(cor).trim().replace('#', '');
+    const h6 = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex;
+    if (/^[0-9a-f]{6}$/i.test(h6)) {
+      const [r, g, b] = [0, 2, 4].map(i => parseInt(h6.slice(i, i + 2), 16));
+      raiz.style.setProperty('--secondary-rgb', `${r} ${g} ${b}`);
+    }
+
     if (String(cor).trim().toUpperCase() === ACENTO_PADRAO) return;
 
     raiz.style.setProperty('--secondary-hover', `color-mix(in srgb, ${cor} 88%, #000)`);

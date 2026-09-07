@@ -93,6 +93,7 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 | Comprovantes e recibos em object storage S3-compatível, com SHA-256 no banco; tipo decidido pelos bytes do arquivo | set/2026 | `backend/src/services/armazenamento.js`, migration 037, `docs/operacao/armazenamento.md` |
 | O PDF de registro é o do servidor; o wizard não gera PDF no navegador | set/2026 | `frontend/destinar-rouanet.html`, `backend/tests/modo-texto.test.mjs` |
 | JWT sem CPF; todo token que viaja por e-mail (redefinição, verificação, convite) fica no banco só como SHA-256 | set/2026 | `backend/src/lib/tokens.js`, migration 038, `backend/tests/redefinicao-senha.test.mjs` |
+| Na tela, o azul primário é o navy #0F1E3D; o #273F77 do manual fica para logotipo e impresso. Paleta do Tailwind só em `js/tema.js`; barra e rodapé só em `js/layout.js` | set/2026 | `brand/IDENTIDADE-VISUAL.md`, `frontend/js/tema.js`, `frontend/js/layout.js` |
 | Textos fiscais têm uma fonte só: `lib/textosFiscais.js` → `/api/config/brand` (`fiscal`) → `[data-fiscal]` nas páginas e resumo no prompt da TINA. Página não escreve percentual à mão; códigos da DIRPF estão marcados como não confirmados em fonte primária | set/2026 | `backend/src/lib/textosFiscais.js`, `frontend/js/tenant.js`, `backend/tests/textos-fiscais.test.mjs` |
 
 ## Endpoints principais

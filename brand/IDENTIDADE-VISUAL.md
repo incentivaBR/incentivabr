@@ -23,6 +23,15 @@ A IncentivaBR é especializada em facilitar o acesso a incentivos fiscais, auxil
 
 ---
 
+### Uso na tela (decisão de setembro de 2026)
+
+Na interface do produto, o azul primário é o **navy #0F1E3D**, escolhido
+sobre o #273F77 do manual por leitura do site em produção. O #273F77 continua
+sendo o azul do logotipo e do material impresso. A paleta do Tailwind fica em
+`frontend/js/tema.js` (`navy`, `navydark`, `navymid`, `gold`); a cor de
+acento de cada cliente white-label entra por `--secondary-color` e
+`--secondary-rgb`, escritas por `frontend/js/tenant.js`.
+
 ## Tipografia
 
 **Família:** Montserrat (Google Fonts)

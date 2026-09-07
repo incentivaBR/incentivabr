@@ -119,6 +119,8 @@ for (const p of paginas) {
       html: document.documentElement.outerHTML.length,
       usaTailwind: !!document.querySelector('script[src*="cdn.tailwindcss.com"]'),
       tailwindOk: !!window.tailwind,
+      // A paleta única (js/tema.js) chegou ao Tailwind desta página?
+      temaOk: !!(window.tailwind && window.tailwind.config?.theme?.extend?.colors?.navy === '#0F1E3D'),
       usaFA: !!document.querySelector('link[href*="font-awesome"]'),
       fa: await carrega(/Font Awesome/i),
       usaMontserrat: !!document.querySelector('link[href*="fonts.googleapis"]'),
@@ -131,6 +133,7 @@ for (const p of paginas) {
   const recursos = [];
   if (!SEM_CDN) {
     if (info.usaTailwind && !info.tailwindOk) recursos.push('Tailwind não carregou');
+    if (info.usaTailwind && info.tailwindOk && !info.temaOk) recursos.push('paleta de js/tema.js não aplicada ao Tailwind');
     if (info.usaFA && !info.faOk) recursos.push('Font Awesome não carregou: ' + info.fa);
     if (info.usaMontserrat && !info.montserratOk) recursos.push('Montserrat não carregou: ' + info.montserrat);
   }
