@@ -45,6 +45,7 @@
     ::-webkit-scrollbar-track { background: #0F1E3D; }
     ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 3px; }
   </style>
+  <script src="js/tenant.js"></script>
 </head>
 <body class="bg-navy font-sans text-white min-h-screen">
 
@@ -136,7 +137,7 @@
           </div>
           <div class="flex flex-wrap gap-2 mb-6">
             <span class="lei-chip">Lei nº 8.313/1991</span>
-            <span class="lei-chip pct-chip">6% do IR Devido</span>
+            <span class="lei-chip pct-chip"><span data-fiscal="teto_pct">6%</span> do IR Devido</span>
             <span class="lei-chip dirpf-chip">DIRPF: Incentivos Fiscais → PRONAC/Cultura</span>
           </div>
           <div>
@@ -150,7 +151,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Limite</span>
-              <span class="info-value"><strong class="text-gold">6% do IR Devido</strong> — Compartilha o teto de <strong>6% do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22). O valor destinado abate diretamente do IR Devido: custo líquido zero ao final do ano-calendário.</span>
+              <span class="info-value"><strong class="text-gold"><span data-fiscal="teto_pct">6%</span> do IR Devido</strong> — Compartilha o teto de <strong><span data-fiscal="teto_pct">6%</span> do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22). O valor destinado abate diretamente do IR Devido: custo líquido zero ao final do ano-calendário.</span>
             </div>
             <div class="info-row">
               <span class="info-label">Quem pode usar</span>
@@ -187,8 +188,8 @@
           </div>
           <div class="flex flex-wrap gap-2 mb-6">
             <span class="lei-chip">Lei nº 11.438/2006</span>
-            <span class="lei-chip pct-chip">7% do IR Devido</span>
-            <span class="lei-chip dirpf-chip">DIRPF: Incentivos Fiscais → Desporto</span>
+            <span class="lei-chip pct-chip">Divide o teto de <span data-fiscal="teto_pct">6%</span> do IR Devido</span>
+            <span class="lei-chip dirpf-chip">DIRPF: Doações Efetuadas → Código <span data-fiscal="dirpf_desporto">43</span></span>
           </div>
           <div>
             <div class="info-row">
@@ -201,7 +202,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Limite</span>
-              <span class="info-value"><strong class="text-gold">Concorre com o teto de 6%</strong> — para pessoa física, a Lei de Incentivo ao Esporte disputa o mesmo limite da Lei Rouanet; não é percentual adicional. A LC 222/2025 revogou o marco anterior: confirme o percentual e a vigência no ano-calendário antes de orientar o cliente.</span>
+              <span class="info-value"><strong class="text-gold">Concorre com o teto de <span data-fiscal="teto_pct">6%</span></strong> — para pessoa física, a Lei de Incentivo ao Esporte disputa o mesmo limite da Lei Rouanet; não é percentual adicional. A LC 222/2025 revogou o marco anterior: confirme o percentual e a vigência no ano-calendário antes de orientar o cliente.</span>
             </div>
             <div class="info-row">
               <span class="info-label">Quem pode usar</span>
@@ -235,8 +236,8 @@
           </div>
           <div class="flex flex-wrap gap-2 mb-6">
             <span class="lei-chip">Lei nº 8.069/1990 — ECA, Art. 260 II</span>
-            <span class="lei-chip pct-chip">6% do IR Devido</span>
-            <span class="lei-chip dirpf-chip">DIRPF: Doações Efetuadas → Código 40</span>
+            <span class="lei-chip pct-chip"><span data-fiscal="teto_pct">6%</span> do IR Devido</span>
+            <span class="lei-chip dirpf-chip">DIRPF: Doações Efetuadas → Código <span data-fiscal="dirpf_eca">40</span></span>
           </div>
           <div>
             <div class="info-row">
@@ -249,7 +250,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Limite</span>
-              <span class="info-value"><strong class="text-gold">6% do IR Devido</strong> — Compartilha o teto de <strong>6% do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22). FDCA e Fundo do Idoso <strong>não têm limites separados</strong>: destinar aos dois no mesmo ano reparte os 6%, não os duplica.</span>
+              <span class="info-value"><strong class="text-gold"><span data-fiscal="teto_pct">6%</span> do IR Devido</strong> — Compartilha o teto de <strong><span data-fiscal="teto_pct">6%</span> do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22). FDCA e Fundo do Idoso <strong>não têm limites separados</strong>: destinar aos dois no mesmo ano reparte os <span data-fiscal="teto_pct">6%</span>, não os duplica.</span>
             </div>
             <div class="info-row">
               <span class="info-label">Quem pode usar</span>
@@ -257,7 +258,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Ficha DIRPF</span>
-              <span class="info-value"><strong class="text-indigo-300">Doações Efetuadas → Código 40</strong></span>
+              <span class="info-value"><strong class="text-indigo-300">Doações Efetuadas → Código <span data-fiscal="dirpf_eca">40</span></strong></span>
             </div>
             <div class="info-row">
               <span class="info-label">Comprovante</span>
@@ -286,8 +287,8 @@
           </div>
           <div class="flex flex-wrap gap-2 mb-6">
             <span class="lei-chip">Lei nº 12.213/2010</span>
-            <span class="lei-chip pct-chip">6% do IR Devido</span>
-            <span class="lei-chip dirpf-chip">DIRPF: Doações Efetuadas → Código 41</span>
+            <span class="lei-chip pct-chip"><span data-fiscal="teto_pct">6%</span> do IR Devido</span>
+            <span class="lei-chip dirpf-chip">DIRPF: Doações Efetuadas → Código <span data-fiscal="dirpf_idoso">44</span></span>
           </div>
           <div>
             <div class="info-row">
@@ -300,7 +301,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Limite</span>
-              <span class="info-value"><strong class="text-gold">6% do IR Devido</strong> — Compartilha o teto de <strong>6% do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22). Fundo do Idoso e FDCA <strong>não têm limites separados</strong>: destinar aos dois no mesmo ano reparte os 6%, não os duplica.</span>
+              <span class="info-value"><strong class="text-gold"><span data-fiscal="teto_pct">6%</span> do IR Devido</strong> — Compartilha o teto de <strong><span data-fiscal="teto_pct">6%</span> do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22). Fundo do Idoso e FDCA <strong>não têm limites separados</strong>: destinar aos dois no mesmo ano reparte os <span data-fiscal="teto_pct">6%</span>, não os duplica.</span>
             </div>
             <div class="info-row">
               <span class="info-label">Quem pode usar</span>
@@ -308,7 +309,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Ficha DIRPF</span>
-              <span class="info-value"><strong class="text-indigo-300">Doações Efetuadas → Código 41</strong></span>
+              <span class="info-value"><strong class="text-indigo-300">Doações Efetuadas → Código <span data-fiscal="dirpf_idoso">44</span></strong></span>
             </div>
             <div class="info-row">
               <span class="info-label">Comprovante</span>
@@ -424,7 +425,7 @@
           </div>
           <div class="flex flex-wrap gap-2 mb-6">
             <span class="lei-chip">Lei nº 14.260/2021</span>
-            <span class="lei-chip pct-chip">6% do IR Devido</span>
+            <span class="lei-chip pct-chip"><span data-fiscal="teto_pct">6%</span> do IR Devido</span>
             <span class="lei-chip dirpf-chip">DIRPF: Incentivos Fiscais → Reciclagem</span>
           </div>
           <div>
@@ -438,7 +439,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Limite</span>
-              <span class="info-value"><strong class="text-gold">6% do IR Devido</strong> — Compartilha o teto de <strong>6% do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22).</span>
+              <span class="info-value"><strong class="text-gold"><span data-fiscal="teto_pct">6%</span> do IR Devido</strong> — Compartilha o teto de <strong><span data-fiscal="teto_pct">6%</span> do imposto devido</strong> com a Lei Rouanet, o FDCA, o Fundo do Idoso e o audiovisual — a soma das modalidades não ultrapassa esse limite (Lei 9.532/1997, art. 22).</span>
             </div>
             <div class="info-row">
               <span class="info-label">Quem pode usar</span>
@@ -485,31 +486,31 @@
             <tr class="border-b border-white/6 hover:bg-white/2 transition cursor-pointer" onclick="showFichaFromTable('rouanet')">
               <td class="px-4 py-3 font-medium"><span class="mr-2">🎭</span>Rouanet Art. 18</td>
               <td class="px-4 py-3 text-white/45 hidden sm:table-cell">Lei 8.313/1991</td>
-              <td class="px-4 py-3 text-center font-black text-gold">6%</td>
+              <td class="px-4 py-3 text-center font-black text-gold"><span data-fiscal="teto_pct">6%</span></td>
               <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Incentivos Fiscais → PRONAC/Cultura</td>
             </tr>
             <tr class="border-b border-white/6 hover:bg-white/2 transition cursor-pointer" onclick="showFichaFromTable('esporte')">
               <td class="px-4 py-3 font-medium"><span class="mr-2">⚽</span>Lei do Esporte</td>
               <td class="px-4 py-3 text-white/45 hidden sm:table-cell">Lei 11.438/2006</td>
-              <td class="px-4 py-3 text-center font-black text-gold">7%</td>
-              <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Incentivos Fiscais → Desporto</td>
+              <td class="px-4 py-3 text-center font-black text-gold"><span data-fiscal="teto_pct">6%</span>*</td>
+              <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Doações Efetuadas → Código <span data-fiscal="dirpf_desporto">43</span></td>
             </tr>
             <tr class="border-b border-white/6 hover:bg-white/2 transition cursor-pointer" onclick="showFichaFromTable('fdca')">
               <td class="px-4 py-3 font-medium"><span class="mr-2">👧</span>FDCA</td>
               <td class="px-4 py-3 text-white/45 hidden sm:table-cell">Lei 8.069/1990, Art. 260 II</td>
-              <td class="px-4 py-3 text-center font-black text-gold">6%</td>
-              <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Doações Efetuadas → Código 40</td>
+              <td class="px-4 py-3 text-center font-black text-gold"><span data-fiscal="teto_pct">6%</span></td>
+              <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Doações Efetuadas → Código <span data-fiscal="dirpf_eca">40</span></td>
             </tr>
             <tr class="border-b border-white/6 hover:bg-white/2 transition cursor-pointer" onclick="showFichaFromTable('fdi')">
               <td class="px-4 py-3 font-medium"><span class="mr-2">👴</span>FDI</td>
               <td class="px-4 py-3 text-white/45 hidden sm:table-cell">Lei 12.213/2010</td>
-              <td class="px-4 py-3 text-center font-black text-gold">6%</td>
-              <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Doações Efetuadas → Código 41</td>
+              <td class="px-4 py-3 text-center font-black text-gold"><span data-fiscal="teto_pct">6%</span></td>
+              <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Doações Efetuadas → Código <span data-fiscal="dirpf_idoso">44</span></td>
             </tr>
             <tr class="border-b border-white/6 hover:bg-white/2 transition cursor-pointer" onclick="showFichaFromTable('reciclagem')">
               <td class="px-4 py-3 font-medium"><span class="mr-2">♻️</span>Reciclagem</td>
               <td class="px-4 py-3 text-white/45 hidden sm:table-cell">Lei 14.260/2021</td>
-              <td class="px-4 py-3 text-center font-black text-gold">6%</td>
+              <td class="px-4 py-3 text-center font-black text-gold"><span data-fiscal="teto_pct">6%</span></td>
               <td class="px-4 py-3 text-white/35 text-xs hidden md:table-cell">Incentivos Fiscais → Reciclagem</td>
             </tr>
             <tr class="border-b border-white/6 hover:bg-white/2 transition cursor-pointer" onclick="showFichaFromTable('pronon')">
@@ -527,7 +528,7 @@
           </tbody>
         </table>
         <div class="px-4 py-3 border-t border-white/8 text-xs text-white/30">
-          * PRONON e PRONAS compartilham limite conjunto de 1% do IR Devido, fora dos 6%. As demais modalidades — Rouanet, FDCA, Fundo do Idoso, audiovisual e, para pessoa física, o incentivo ao esporte — <strong>dividem um teto único de 6%</strong> (Lei 9.532/1997, art. 22). Nunca some os percentuais para apresentar um total ao cliente: o disponível é 6% no conjunto, a ser distribuído. Clique em qualquer linha para ver a ficha completa.
+          * PRONON e PRONAS compartilham limite conjunto de 1% do IR Devido, fora dos <span data-fiscal="teto_pct">6%</span>. As demais modalidades — Rouanet, FDCA, Fundo do Idoso, audiovisual e, para pessoa física, o incentivo ao esporte — <strong>dividem um teto único de <span data-fiscal="teto_pct">6%</span></strong> (Lei 9.532/1997, art. 22). Nunca some os percentuais para apresentar um total ao cliente: o disponível é <span data-fiscal="teto_pct">6%</span> no conjunto, a ser distribuído. Clique em qualquer linha para ver a ficha completa.
         </div>
       </div>
     </div>
@@ -605,9 +606,9 @@
             <svg id="icon-c5" class="accordion-icon w-4 h-4 flex-shrink-0 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <div id="content-c5" class="accordion-content px-5 pb-5">
-            <p class="text-white/70 text-sm leading-relaxed">Sim, pode destinar a mais de uma modalidade no mesmo ano — mas <strong>os percentuais não se somam</strong>. O art. 22 da Lei 9.532/1997 limita a <strong>soma</strong> das deduções dos incisos I a III do art. 12 da Lei 9.250/1995 — fundos da criança e do idoso, projetos culturais do PRONAC e audiovisual — a <strong>6% do imposto devido</strong>, sem limite específico para nenhuma delas. Para pessoa física, o incentivo ao esporte também concorre com esse teto.</p>
+            <p class="text-white/70 text-sm leading-relaxed">Sim, pode destinar a mais de uma modalidade no mesmo ano — mas <strong>os percentuais não se somam</strong>. O art. 22 da Lei 9.532/1997 limita a <strong>soma</strong> das deduções dos incisos I a III do art. 12 da Lei 9.250/1995 — fundos da criança e do idoso, projetos culturais do PRONAC e audiovisual — a <strong><span data-fiscal="teto_pct">6%</span> do imposto devido</strong>, sem limite específico para nenhuma delas. Para pessoa física, o incentivo ao esporte também concorre com esse teto.</p>
             <p class="text-white/60 text-sm mt-2">Na prática: um cliente com R$ 10.000 de IR devido tem <strong>R$ 600 no total</strong>, a distribuir entre Rouanet, FDCA e Fundo do Idoso como preferir — e não R$ 600 em cada. A única modalidade com limite à parte é PRONON + PRONAS, que compartilham 1% entre si.</p>
-            <p class="text-white/60 text-sm mt-2">Apresente ao cliente <strong>um teto único de 6%</strong> a ser dividido. Somar percentuais por modalidade leva a destinar acima do permitido — e a glosa recai sobre ele, na malha fina.</p>
+            <p class="text-white/60 text-sm mt-2">Apresente ao cliente <strong>um teto único de <span data-fiscal="teto_pct">6%</span></strong> a ser dividido. Somar percentuais por modalidade leva a destinar acima do permitido — e a glosa recai sobre ele, na malha fina.</p>
             <p class="text-white/50 text-xs mt-3">Use o Validador Anti-Malha Fina para verificar os limites de cada cliente de forma segura.</p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import express from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import { NUCLEO, blocoDoTenant } from '../knowledge/index.js';
+import { textosFiscais } from '../lib/textosFiscais.js';
 import rateLimit from 'express-rate-limit';
 import { leErroDoSdk } from '../lib/erroIA.js';
 import { registraConsumo, estourouOTeto } from '../lib/consumoIA.js';
@@ -184,7 +185,7 @@ A destinação abate diretamente do IR Devido:
  * array: a persona dizia "7% independente da Rouanet" e "até 13%"; o núcleo,
  * teto único de 6%. Ver tests/prompt-tina.test.mjs.
  */
-export function montaSystem(organization) {
+export function montaSystem(organization, fiscal = null) {
   return [
     // Se o núcleo não carregou, o cache_control migra para a persona: um
     // bloco de texto vazio é rejeitado pela API, e sem ele o prefixo cairia
@@ -196,7 +197,7 @@ export function montaSystem(organization) {
     ...(NUCLEO
       ? [{ type: 'text', text: NUCLEO, cache_control: { type: 'ephemeral' } }]
       : []),
-    { type: 'text', text: blocoDoTenant(organization) },
+    { type: 'text', text: blocoDoTenant(organization, fiscal) },
     { type: 'text', text: LEMBRETE_FORMATO }
   ];
 }
@@ -269,13 +270,18 @@ router.post('/tina', limiteDaTina, async (req, res) => {
     // O Haiku 4.5 exige no mínimo 4.096 tokens de prefixo para cachear, e falha
     // em silêncio abaixo disso. Persona (~3,2k) + núcleo (~9,2k) passam com
     // folga — mas se o núcleo for enxugado, confira o cache_read antes.
+    // Teto, ficha e prazo do recibo vêm do banco, pela mesma função que
+    // alimenta /api/config/brand. Se o banco falhar, a TINA responde só com o
+    // núcleo — pior, mas sem afirmar valor nenhum que o site não afirme.
+    const fiscal = await textosFiscais(req.organization).catch(() => null);
+
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       // 450 cortava respostas no meio da frase depois que a base de conhecimento
       // entrou. 800 dá margem para a resposta terminar; o LEMBRETE_FORMATO abaixo
       // é o que impede que ela cresça para ocupar o espaço novo.
       max_tokens: 800,
-      system: montaSystem(req.organization),
+      system: montaSystem(req.organization, fiscal),
       messages: [
         ...safeHistory.map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content: message.trim() }

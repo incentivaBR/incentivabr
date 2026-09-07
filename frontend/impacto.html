@@ -20,6 +20,7 @@
       }
     }
   </script>
+  <script src="js/tenant.js"></script>
 </head>
 <body class="bg-[#0F1E3D] font-sans text-white min-h-screen">
 
@@ -86,7 +87,7 @@
       <div class="text-center mb-10">
         <div class="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2">7 modalidades</div>
         <h2 class="text-2xl md:text-3xl font-black">Para onde <span class="text-[#EE985C]">seu IR pode ir</span></h2>
-        <p class="text-white/50 text-sm mt-2 max-w-lg mx-auto">As modalidades dividem um teto único de 6% do IR devido. Você pode usar mais de uma no mesmo ano, distribuindo esse total entre elas.</p>
+        <p class="text-white/50 text-sm mt-2 max-w-lg mx-auto">As modalidades dividem um teto único de <span data-fiscal="teto_pct">6%</span> do IR devido. Você pode usar mais de uma no mesmo ano, distribuindo esse total entre elas.</p>
       </div>
 
       <div class="grid md:grid-cols-2 gap-4">
@@ -96,7 +97,7 @@
             <span class="text-2xl">🎭</span>
             <div>
               <div class="font-bold mb-0.5">Lei Rouanet — Cultura</div>
-              <div class="text-[#EE985C] text-xs font-bold mb-2">até 6% do IR Devido · Lei 8.313/1991</div>
+              <div class="text-[#EE985C] text-xs font-bold mb-2">até <span data-fiscal="teto_pct">6%</span> do IR Devido · Lei 8.313/1991</div>
               <p class="text-white/60 text-sm">Teatro, música, cinema, dança, literatura, patrimônio cultural. Projetos aprovados pelo Ministério da Cultura com PRONAC ativo.</p>
             </div>
           </div>
@@ -107,7 +108,7 @@
             <span class="text-2xl">⚽</span>
             <div>
               <div class="font-bold mb-0.5">Lei do Esporte</div>
-              <div class="text-[#EE985C] text-xs font-bold mb-2">Divide o teto de 6% do IR Devido · Lei 11.438/2006</div>
+              <div class="text-[#EE985C] text-xs font-bold mb-2">Divide o teto de <span data-fiscal="teto_pct">6%</span> do IR Devido · Lei 11.438/2006</div>
               <p class="text-white/60 text-sm">Projetos esportivos aprovados pelo Ministério do Esporte. Formação de atletas, infraestrutura, inclusão pelo esporte.</p>
             </div>
           </div>
@@ -118,7 +119,7 @@
             <span class="text-2xl">👧</span>
             <div>
               <div class="font-bold mb-0.5">FDCA — Criança e Adolescente</div>
-              <div class="text-[#EE985C] text-xs font-bold mb-2">até 6% do IR Devido · ECA Art. 260</div>
+              <div class="text-[#EE985C] text-xs font-bold mb-2">até <span data-fiscal="teto_pct">6%</span> do IR Devido · ECA Art. 260</div>
               <p class="text-white/60 text-sm">Fundos municipais e estaduais dos direitos da criança e do adolescente. Projetos de proteção, educação e convivência familiar.</p>
             </div>
           </div>
@@ -129,7 +130,7 @@
             <span class="text-2xl">👴</span>
             <div>
               <div class="font-bold mb-0.5">FDI — Fundo do Idoso</div>
-              <div class="text-[#EE985C] text-xs font-bold mb-2">até 6% do IR Devido · Lei 12.213/2010</div>
+              <div class="text-[#EE985C] text-xs font-bold mb-2">até <span data-fiscal="teto_pct">6%</span> do IR Devido · Lei 12.213/2010</div>
               <p class="text-white/60 text-sm">Fundos nacionais, estaduais e municipais do idoso. Financiamento de programas de atenção, cuidado e inclusão social da pessoa idosa.</p>
             </div>
           </div>
@@ -140,7 +141,7 @@
             <span class="text-2xl">♻️</span>
             <div>
               <div class="font-bold mb-0.5">Recicla+ — Reciclagem</div>
-              <div class="text-[#EE985C] text-xs font-bold mb-2">até 6% do IR Devido · Lei 14.260/2021</div>
+              <div class="text-[#EE985C] text-xs font-bold mb-2">até <span data-fiscal="teto_pct">6%</span> do IR Devido · Lei 14.260/2021</div>
               <p class="text-white/60 text-sm">Cooperativas de catadores de materiais recicláveis habilitadas. Renda, dignidade e impacto ambiental direto na cadeia de reciclagem.</p>
             </div>
           </div>
@@ -161,7 +162,7 @@
 
       <div class="mt-6 bg-[#EE985C]/10 border border-[#EE985C]/20 rounded-xl px-5 py-4 text-sm text-white/70 text-center">
         <i class="fas fa-info-circle text-[#EE985C] mr-2"></i>
-        Os percentuais <strong class="text-white">não se somam</strong>: as modalidades dividem um teto de 6% do imposto devido (Lei 9.532/97, art. 22). Combinar modalidades reparte esse total, não o amplia.
+        Os percentuais <strong class="text-white">não se somam</strong>: as modalidades dividem um teto de <span data-fiscal="teto_pct">6%</span> do imposto devido (Lei 9.532/97, art. 22). Combinar modalidades reparte esse total, não o amplia.
       </div>
     </div>
   </section>

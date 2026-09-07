@@ -58,7 +58,9 @@ function extrai(arquivo) {
   const saida = [];
   let anterior = '';
   for (const bruta of h.split('\n')) {
-    const l = bruta.replace(/[ \t]+/g, ' ').trim();
+    // Tags removidas no meio da frase (os <span data-fiscal>) deixam espaço
+    // antes de vírgula e depois de parêntese: "6% , informar ( 41 )".
+    const l = bruta.replace(/[ \t]+/g, ' ').replace(/\s+([,.;:)])/g, '$1').replace(/\(\s+/g, '(').trim();
     if (!l || l === anterior) { anterior = l; continue; }
     if (l.length < 3 && !l.startsWith('#')) continue;
     saida.push(l);

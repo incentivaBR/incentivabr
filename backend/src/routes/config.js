@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../../config/database.js';
 import { tetoDoMecanismo } from '../lib/tetos.js';
+import { textosFiscais } from '../lib/textosFiscais.js';
 
 const router = express.Router();
 
@@ -105,8 +106,12 @@ router.get('/brand', async (req, res) => {
   // delas no frontend — e mover o número para o banco não adiantaria: o banco
   // diria uma coisa e a calculadora mostraria outra.
   let teto = null;
+  let fiscal = null;
   try {
     teto = await tetoDoMecanismo(org?.incentive_group_code || 'ROUANET');
+    // A fonte única dos textos fiscais (lib/textosFiscais.js): teto, ficha da
+    // DIRPF, recibo, art. 18/26. tenant.js preenche os [data-fiscal] com isto.
+    fiscal = await textosFiscais(org);
   } catch (erro) {
     console.error('[config] falha ao ler o teto:', erro.message);
   }
@@ -122,7 +127,8 @@ router.get('/brand', async (req, res) => {
     // Percentual sobre o IMPOSTO DEVIDO apurado na declaração — não sobre a
     // renda, nem sobre o imposto a pagar depois de retenções.
     teto_percentual: teto?.percentual ?? null,
-    teto_base_legal: teto?.base_legal ?? null
+    teto_base_legal: teto?.base_legal ?? null,
+    fiscal
   };
 
   res.json(brand);

@@ -86,6 +86,15 @@ for (const p of paginas) {
   page.on('console', m => {
     if (/Content Security Policy|Refused to/.test(m.text())) consoleCsp.push(m.text().slice(0, 220));
   });
+  // Exceção não tratada no JavaScript da página: um script que quebra no
+  // carregamento deixa a tela pela metade sem nenhum aviso ao usuário.
+  page.on('pageerror', e => {
+    const msg = String(e.message || e).split('\n')[0].slice(0, 200);
+    // Sem o CDN, o `tailwind.config = …` embutido roda sem o script do
+    // Tailwind e explode; não é erro da página.
+    if (SEM_CDN && /tailwind/i.test(msg)) return;
+    falhas.push('erro de JavaScript: ' + msg);
+  });
   try {
     await page.goto(`${BASE}/${p}`, { waitUntil: 'networkidle', timeout: 60000 });
   } catch (e) {

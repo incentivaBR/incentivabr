@@ -130,7 +130,7 @@
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
               <p class="mb-3"><strong class="text-[#0F1E3D]">Não!</strong> O valor destinado é deduzido integralmente do IR devido. Você redireciona dinheiro que já iria para o governo para um projeto cultural. Custo adicional: <strong class="text-[#0F1E3D]">zero</strong>.</p>
               <div class="bg-[#0F1E3D]/5 border-l-4 border-[#EE985C] rounded-r-xl px-4 py-3 text-[#0F1E3D] text-xs font-medium">
-                Exemplo: IR devido R$ 10.000 → destina R$ 600 (6%) → paga só R$ 9.400 ao governo. A diferença vai para a cultura.
+                Exemplo: IR devido R$ 10.000 → destina R$ 600 (<span data-fiscal="teto_pct">6%</span>) → paga só R$ 9.400 ao governo. A diferença vai para a cultura.
               </div>
             </div>
           </div>
@@ -143,7 +143,7 @@
           </button>
           <div class="faq-answer">
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
-              <p class="mb-2">A <strong class="text-[#0F1E3D]">Lei 8.313/1991</strong> permite que pessoas físicas destinem até <strong class="text-[#0F1E3D]">6% do IR devido</strong> para projetos culturais aprovados pelo Ministério da Cultura (MinC) e cadastrados no sistema <strong class="text-[#0F1E3D]">SALIC</strong>.</p>
+              <p class="mb-2">A <strong class="text-[#0F1E3D]">Lei 8.313/1991</strong> permite que pessoas físicas destinem até <strong class="text-[#0F1E3D]"><span data-fiscal="teto_pct">6%</span> do IR devido</strong> para projetos culturais aprovados pelo Ministério da Cultura (MinC) e cadastrados no sistema <strong class="text-[#0F1E3D]">SALIC</strong>.</p>
               <p>O dinheiro vai direto para a <strong class="text-[#0F1E3D]">Conta de Captação do projeto</strong>, no Banco do Brasil. É uma conta bloqueada, aberta pelo Ministério da Cultura e específica daquele PRONAC — o proponente só movimenta os recursos após a liberação do MinC.</p>
             </div>
           </div>
@@ -171,7 +171,7 @@
           </button>
           <div class="faq-answer">
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
-              <p class="mb-2">O limite é <strong class="text-[#0F1E3D]">6% do IR devido</strong> — não do salário, mas do imposto calculado. Use nossa calculadora para saber o valor exato.</p>
+              <p class="mb-2">O limite é <strong class="text-[#0F1E3D]"><span data-fiscal="teto_pct">6%</span> do IR devido</strong> — não do salário, mas do imposto calculado. Use nossa calculadora para saber o valor exato.</p>
               <p>Destinar acima do limite não gera benefício fiscal — o excedente não é dedutível.</p>
             </div>
           </div>
@@ -228,7 +228,7 @@
               <p class="mb-3">O valor exato só é conhecido após simular a declaração completa, mas você pode estimar assim:</p>
               <div class="bg-[#0F1E3D]/5 border-l-4 border-[#0F1E3D]/30 rounded-r-xl px-4 py-3 text-[#0F1E3D] text-xs font-medium mb-3">
                 <strong>IR retido no ano anterior ≈ IR devido neste ano</strong><br><br>
-                Limite Rouanet (6%) = IR retido em 2024 × 0,06<br>
+                Limite Rouanet (<span data-fiscal="teto_pct">6%</span>) = IR retido em 2024 × 0,06<br>
                 Exemplo: reteve R$ 20.000 → pode destinar até <strong>R$ 1.200</strong>
               </div>
               <p>Use nossa <a href="calculadora.html" class="text-[#0F1E3D] font-semibold underline underline-offset-2">Calculadora IR →</a> para uma estimativa mais precisa.</p>
@@ -243,7 +243,7 @@
           </button>
           <div class="faq-answer">
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
-              <p class="mb-3"><strong class="text-[#0F1E3D]">Zero risco</strong> se você respeitar o limite de 6%, informar o valor correto na ficha "Doações Efetuadas" (código 41) e guardar o comprovante por 5 anos.</p>
+              <p class="mb-3"><strong class="text-[#0F1E3D]">Zero risco</strong> se você respeitar o limite de <span data-fiscal="teto_pct">6%</span>, informar o valor correto na ficha "Doações Efetuadas" (código <span data-fiscal="dirpf_cultura">41</span>) e guardar o comprovante por <span data-fiscal="guarda_anos">5</span> anos.</p>
               <div class="bg-[#0F1E3D]/5 border-l-4 border-[#EE985C] rounded-r-xl px-4 py-3 text-[#0F1E3D] text-xs font-medium">
                 Milhões de brasileiros destinam via Lei Rouanet todo ano sem problema. A destinação é <strong>totalmente legal</strong> e reconhecida pela Receita Federal.
               </div>
@@ -318,7 +318,7 @@
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
               <p class="mb-3">O <strong class="text-[#0F1E3D]">Comunicado de Mecenato</strong> é o recibo oficial emitido pelo proponente do projeto. É o documento com valor fiscal para a declaração do IR — diferente do comprovante da plataforma (só para controle pessoal).</p>
               <ul class="space-y-1 text-xs text-gray-500 pl-4">
-                <li>O proponente tem <strong class="text-[#0F1E3D]">prazo legal de 15 dias</strong> para emitir</li>
+                <li>O proponente declara o prazo de emissão: <strong class="text-[#0F1E3D]">até <span data-fiscal="prazo_recibo">10</span> dias úteis</strong> após a confirmação da transferência</li>
                 <li>Deve conter: seu nome, CPF, valor, data e dados do projeto</li>
                 <li>Guarde por no mínimo 5 anos</li>
               </ul>
@@ -419,7 +419,7 @@
           </button>
           <div class="faq-answer">
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
-              <p class="mb-3"><strong class="text-[#0F1E3D]">Sim.</strong> Você pode distribuir seu limite entre quantos projetos SALIC quiser, desde que a soma não ultrapasse 6% do IR devido.</p>
+              <p class="mb-3"><strong class="text-[#0F1E3D]">Sim.</strong> Você pode distribuir seu limite entre quantos projetos SALIC quiser, desde que a soma não ultrapasse <span data-fiscal="teto_pct">6%</span> do IR devido.</p>
               <div class="bg-[#0F1E3D]/5 border-l-4 border-[#EE985C] rounded-r-xl px-4 py-3 text-[#0F1E3D] text-xs font-medium">
                 Exemplo: IR devido R$ 20.000 → limite R$ 1.200 → R$ 700 para o Orquestra das Periferias do DF + R$ 500 para outro projeto = R$ 1.200 ✅
               </div>

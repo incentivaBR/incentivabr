@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Fonte única dos textos fiscais (risco 04)
+- `backend/src/lib/textosFiscais.js` monta um objeto só com teto (de `tetos_deducao`), mecanismos e qual teto cada um divide (`incentive_groups`), ficha e códigos da DIRPF, quem emite o Recibo de Mecenato e em quanto tempo (`organizations.mecenato_prazo_dias`), art. 18/26, prazo de guarda e o aviso. `GET /api/config/brand` devolve em `fiscal`; a TINA recebe o resumo em texto no bloco do tenant do prompt.
+- `tenant.js` preenche todo `[data-fiscal="…"]` com esse objeto. As páginas deixaram de escrever o percentual à mão: os 76 "6%" em 15 páginas viraram `<span data-fiscal="teto_pct">6%</span>`, com o valor de hoje como reserva. Sete páginas passaram a carregar `tenant.js`.
+- Contradições resolvidas pela leitura adotada (migration 031): "até 7% do IR" na calculadora, "7% — o maior entre todas" no Espaço do Contador e na Biblioteca, "3%" do Fundo do Idoso, `0.07` no validador. Ficha DIRPF: a Rouanet e o Fundo do Idoso tinham o mesmo código 41; agora cultura 41, ECA 40, idoso 44, desporto 43, audiovisual 42, marcados como **não confirmados em fonte primária** (os sites da Receita não eram alcançáveis deste ambiente). Prazo do recibo: "15 dias legais" e "60 dias" viraram o prazo declarado pelo proponente. `guia-ir-servidor` dizia que a IncentivaBR emite o recibo.
+- `nucleo.md` regenerado pelo script de sync, que estava atrasado desde a Onda 0: saem a conta bancária antiga (três vezes) e o "IncentivaBR emite".
+- `backend/tests/textos-fiscais.test.mjs`: objeto do banco, resumo no prompt, `fiscal` na rota, e três guardas sobre as páginas (nenhum "6%" fora de `data-fiscal`, nenhum "7% do IR", `tenant.js` onde há `data-fiscal`).
+
 ### Escape de HTML e Content-Security-Policy (risco 05)
 - Todo texto que vem de fora e vira HTML passa por escape: resposta da TINA e pergunta digitada (`js/tina.js`), título e status da destinação e mensagens de erro (`dashboard.html`), dados do projeto vindos do SALIC (`destinar-rouanet.html`), nome de cliente e e-mail de convidado (`admin-clientes.html`), dados do titular (`minhas-preferencias.html`), título e mensagem dos toasts (`js/toast.js`, `js/utils.js`). `conferencia.html` e `projetos-rouanet.html` já escapavam.
 - `server.js` liga a Content-Security-Policy do helmet: script só da própria origem, do Tailwind Play CDN e do cdnjs; estilo e fonte do Google Fonts e do cdnjs; imagem de qualquer https (logo de tenant); `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `upgrade-insecure-requests`. `'unsafe-inline'` em script continua necessário porque as páginas têm script embutido e `onclick`. Conferido no Chromium, página a página, sem violação.

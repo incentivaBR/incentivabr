@@ -32,6 +32,7 @@
     details[open] .chevron { transform: rotate(180deg); }
     .chevron { transition: transform 0.25s ease; }
   </style>
+  <script src="js/tenant.js"></script>
 </head>
 <body class="bg-gray-50">
   <!-- ── NAVBAR ── -->
@@ -82,7 +83,7 @@
         Como funciona a <span class="text-[#EE985C]">Lei Rouanet?</span>
       </h1>
       <p class="text-white/60 text-lg max-w-xl mx-auto leading-relaxed">
-        Destine até 6% do seu IR para projetos culturais — sem custo adicional. Em 4 passos simples.
+        Destine até <span data-fiscal="teto_pct">6%</span> do seu IR para projetos culturais — sem custo adicional. Em 4 passos simples.
       </p>
 
       <!-- aviso requisito -->
@@ -103,7 +104,7 @@
       </h2>
       <p class="text-gray-600 leading-relaxed mb-6">
         A <strong class="text-[#0F1E3D]">Lei 8.313/1991</strong>, conhecida como Lei Rouanet, permite que pessoas físicas
-        <strong class="text-[#0F1E3D]">destinem até 6% do seu Imposto de Renda devido</strong> para projetos culturais
+        <strong class="text-[#0F1E3D]">destinem até <span data-fiscal="teto_pct">6%</span> do seu Imposto de Renda devido</strong> para projetos culturais
         aprovados pelo Ministério da Cultura (MinC) e cadastrados no sistema <strong class="text-[#0F1E3D]">SALIC</strong>.
       </p>
       <div class="rounded-2xl bg-[#0F1E3D] px-6 py-5 flex items-start gap-4">
@@ -146,7 +147,7 @@
               </div>
               <h3 class="text-lg font-bold text-[#0F1E3D] mb-2">Calcule seu limite</h3>
               <p class="text-gray-500 text-sm leading-relaxed mb-3">
-                Use o <strong class="text-[#0F1E3D]">MeuLimite</strong> para descobrir quanto pode destinar com base no seu rendimento anual e IR devido. <strong class="text-[#0F1E3D]">Limite máximo: 6% do IR devido.</strong>
+                Use o <strong class="text-[#0F1E3D]">MeuLimite</strong> para descobrir quanto pode destinar com base no seu rendimento anual e IR devido. <strong class="text-[#0F1E3D]">Limite máximo: <span data-fiscal="teto_pct">6%</span> do IR devido.</strong>
               </p>
               <div class="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-sm text-amber-800">
                 <strong>Exemplo:</strong> IR devido de R$ 10.000 → você pode destinar até <strong>R$ 600</strong> para projetos culturais.
@@ -216,7 +217,7 @@
               </p>
               <div class="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-900">
                 <div><strong>Ficha:</strong> Doações Efetuadas</div>
-                <div><strong>Código:</strong> 41 — Estatuto da Criança e do Adolescente / Lei Rouanet</div>
+                <div><strong>Código:</strong> <span data-fiscal="dirpf_cultura">41</span> — Incentivo à Cultura (Lei Rouanet)</div>
               </div>
               <p class="text-gray-400 text-xs mt-3">
                 Guarde o comprovante de transferência bancária — ele é exigido pela Receita Federal.
@@ -301,7 +302,7 @@
             </div>
           </summary>
           <div class="px-5 pb-5 text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
-            Não há risco se você respeitar o limite de 6% e guardar o comprovante. Milhões de pessoas fazem isso todo ano sem problema. O IncentivaBR bloqueia qualquer valor acima do limite automaticamente.
+            Não há risco se você respeitar o limite de <span data-fiscal="teto_pct">6%</span> e guardar o comprovante. Milhões de pessoas fazem isso todo ano sem problema. O IncentivaBR bloqueia qualquer valor acima do limite automaticamente.
           </div>
         </details>
 
@@ -347,7 +348,7 @@
       <div class="rounded-2xl bg-[#EE985C]/10 border border-[#EE985C]/25 px-6 py-5 mb-4">
         <p class="text-white font-semibold mb-1">Estimativa rápida</p>
         <p class="text-white/70 text-sm leading-relaxed">
-          IR retido no ano passado × 6% = valor máximo que você pode destinar este ano.<br>
+          IR retido no ano passado × <span data-fiscal="teto_pct">6%</span> = valor máximo que você pode destinar este ano.<br>
           <span class="text-[#EE985C]">Exemplo: reteve R$ 18.000 → pode destinar até <strong>R$ 1.080</strong> para projetos culturais.</span>
         </p>
       </div>
@@ -385,7 +386,7 @@
         </div>
 
         <div class="px-6 py-5">
-          <p class="font-semibold text-[#0F1E3D] mb-1">O que acontece se destinar mais que 6%?</p>
+          <p class="font-semibold text-[#0F1E3D] mb-1">O que acontece se destinar mais que <span data-fiscal="teto_pct">6%</span>?</p>
           <p class="text-gray-500 text-sm leading-relaxed">O excedente não é deduzível — você perderá o benefício fiscal sobre o valor acima do limite. Use o <a href="calculadora.html" class="text-[#0F1E3D] font-semibold underline underline-offset-2">MeuLimite</a> para saber seu limite exato.</p>
         </div>
 
