@@ -377,9 +377,9 @@ App ou internet banking do seu banco
 CNPJ e dados do proponente
 Recibo de Mecenato · Página do projeto no SALIC
 5 anos
-Zero risco de malha fina se você respeitar o limite de 6%, informar o código correto (41) e
-guardar os comprovantes. Milhões de brasileiros destinam via Lei Rouanet todo ano — é um procedimento reconhecido
-e incentivado pela própria Receita Federal.
+O que leva à malha fina é estourar o limite, informar valor diferente do comprovante ou não ter o comprovante.
+Respeitando o limite de 6%, informando o código correto (41) e
+guardando os comprovantes, a dedução é a prevista na Lei Rouanet desde 1991 e conferida pela Receita Federal como qualquer outra.
 Tem contador? Peça para ele confirmar o valor do IR Devido e validar a destinação antes de fazer
 a transferência. A anuência do contador é a forma mais segura — especialmente se você tem deduções complexas
 (dependentes, saúde, previdência privada etc.).
@@ -618,8 +618,8 @@ Limite Rouanet (6%) = IR retido em 2024 × 0,06
 Exemplo: reteve R$ 20.000 → pode destinar até R$ 1.200
 Use nossa Calculadora IR → para uma estimativa mais precisa.
 Existe risco de cair na malha fina?
-Zero risco se você respeitar o limite de 6%, informar o valor correto na ficha "Doações Efetuadas" (código 41) e guardar o comprovante por 5 anos.
-Milhões de brasileiros destinam via Lei Rouanet todo ano sem problema. A destinação é totalmente legal e reconhecida pela Receita Federal.
+O risco está em errar o limite ou perder o comprovante. A dedução é a prevista em lei se você respeitar o limite de 6%, informar o valor correto na ficha "Doações Efetuadas" (código 41) e guardar o comprovante por 5 anos.
+A destinação pela Lei Rouanet é prevista em lei desde 1991 e a Receita Federal a confere na declaração como qualquer outra dedução.
 Posso destinar para projetos fora da minha cidade?
 Sim. Você pode escolher projetos de qualquer localidade do Brasil, independentemente do seu domicílio fiscal. A Lei Rouanet não restringe por região.
 ### Processo
