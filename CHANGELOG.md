@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Layout único, parte 1: barra e rodapé (risco 11)
+- `frontend/js/layout.js` passa a ser a única barra de navegação e o único rodapé das páginas públicas, com o CSS injetado por ele mesmo (antes o CSS das classes `dai-nav` não existia em lugar nenhum: nove páginas mostravam a barra copiada à mão e, por cima, uma segunda barra sem estilo). Menu de celular com gaveta, overlay e Escape. Links fixos: Calculadora, Projetos, Como funciona, Contadores, FAQ, Entrar (vira o nome de quem está logado) e "Destinar agora" (`data-destinar`, preenchido pelo tenant).
+- Quinze páginas perderam o `<nav>` próprio e sete perderam o `<footer>` próprio; seis passaram a chamar `Layout.init` (`index`, `espaco-contador`, `biblioteca-juridica`, `validador`, `agenda-fiscal`, `para-associacoes`). A barra é `sticky`, então a primeira seção dessas páginas deixou de reservar espaço para uma barra fixa.
+- Apagados `css/incentivabr-theme.css` (3.552 linhas, paleta teal/âmbar que nenhuma página carregava) e `js/mobile-menu.js` (nenhuma página carregava).
+- O verificador de páginas do CI acusa mais de uma barra de navegação na mesma página.
+- Fica para a parte 2: os 14 blocos `tailwind.config` copiados, a decisão entre o azul do manual (#273F77) e o navy que as páginas usam (#0F1E3D), e os seis formatadores de moeda.
+
 ### Fonte única dos textos fiscais (risco 04)
 - `backend/src/lib/textosFiscais.js` monta um objeto só com teto (de `tetos_deducao`), mecanismos e qual teto cada um divide (`incentive_groups`), ficha e códigos da DIRPF, quem emite o Recibo de Mecenato e em quanto tempo (`organizations.mecenato_prazo_dias`), art. 18/26, prazo de guarda e o aviso. `GET /api/config/brand` devolve em `fiscal`; a TINA recebe o resumo em texto no bloco do tenant do prompt.
 - `tenant.js` preenche todo `[data-fiscal="…"]` com esse objeto. As páginas deixaram de escrever o percentual à mão: os 76 "6%" em 15 páginas viraram `<span data-fiscal="teto_pct">6%</span>`, com o valor de hoje como reserva. Sete páginas passaram a carregar `tenant.js`.

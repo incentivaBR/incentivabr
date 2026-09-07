@@ -45,8 +45,7 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 │   └── src/{routes,middleware,services,lib,knowledge,migrations,config}
 ├── frontend/                  ← só as páginas vivas do produto
 │   ├── assets/                ← só o que alguma página usa
-│   ├── css/incentivabr-theme.css
-│   └── js/{tenant,api,auth,tina,layout,utils,toast,mobile-menu}.js
+│   └── js/{tenant,api,auth,tina,layout,utils,toast}.js   ← layout.js é a barra e o rodapé únicos
 ├── brand/                     ← manual da marca, logos, IDENTIDADE-VISUAL.md
 ├── scripts/                   ← sync da base da TINA, limpeza de histórico
 ├── tests/                     ← API + E2E (Playwright)

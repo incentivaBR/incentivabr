@@ -40,27 +40,9 @@
 </head>
 <body class="bg-navy font-sans text-white min-h-screen">
 
-  <!-- ── NAVBAR ── -->
-  <nav style="background:rgba(13,27,62,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,215,0,0.12)" class="fixed top-0 left-0 right-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-2">
-        <span class="bg-white rounded-xl px-2 py-1 inline-flex items-center">
-          <img src="assets/logo-incentivabr-compact.png" alt="IncentivaBR" class="h-7 w-auto">
-        </span>
-        <span class="text-white/40 text-sm hidden sm:inline">· Espaço do Contador</span>
-      </a>
-      <div class="flex items-center gap-5 text-sm text-white/70">
-        <a href="#base-legal" class="nav-link hidden md:inline">Base Legal</a>
-        <a href="#calculadora" class="nav-link hidden md:inline">Calculadora</a>
-        <a href="#faq" class="nav-link hidden md:inline">FAQ</a>
-        <a href="biblioteca-juridica.html" class="nav-link hidden md:inline">Biblioteca Jurídica</a>
-        <a href="#selo" class="bg-gold text-navy font-bold px-4 py-1.5 rounded-full text-xs hover:brightness-110 transition">Ser Embaixador</a>
-      </div>
-    </div>
-  </nav>
 
   <!-- ── HERO ── -->
-  <section class="pt-32 pb-16 px-4">
+  <section class="pt-12 pb-16 px-4">
     <div class="max-w-3xl mx-auto text-center">
       <span class="tag bg-gold/20 text-gold mb-4 block">Para Contadores e Profissionais de Contabilidade</span>
       <h1 class="text-4xl md:text-5xl font-black leading-tight mb-4">
@@ -659,27 +641,6 @@ Qualquer dúvida, é só me chamar!
     </div>
   </section>
 
-  <!-- ── FOOTER ── -->
-  <footer class="border-t border-white/8 py-8 px-4 text-center text-white/30 text-xs">
-    <div class="max-w-3xl mx-auto">
-      <div class="flex justify-center mb-2">
-        <span class="bg-white rounded-xl px-3 py-1.5 inline-flex items-center">
-          <img src="assets/logo-incentivabr-compact.png" alt="IncentivaBR" class="h-5 w-auto">
-        </span>
-      </div>
-      <div class="mb-1">Registro INPI nº BR512025000647-0</div>
-      <div class="mb-4">As informações desta página têm caráter educativo e de referência. Consulte sempre a legislação vigente e a Instrução Normativa da Receita Federal do exercício corrente.</div>
-      <a href="index.html" class="text-gold/60 hover:text-gold transition">← Voltar ao início</a>
-    </div>
-  
-      <!-- incentivabr-legal -->
-      <div class="mt-6 pt-5 text-center" style="border-top:1px solid rgba(255,255,255,0.06);font-size:11px;line-height:1.7;color:rgba(255,255,255,0.28)">
-        <strong>IncentivaBR</strong>&trade; &mdash; programa de computador registrado no INPI sob o n&ordm; BR512025000647-0.<br>
-        Marca mista depositada no INPI sob os processos n&ordm; 939403005 (NCL 35) e n&ordm; 939403110 (NCL 42).<br>
-        Documenta&ccedil;&atilde;o t&eacute;cnica registrada no 2&ordm; Of&iacute;cio de Registro Civil, T&iacute;tulos e Documentos e Pessoas Jur&iacute;dicas de Bras&iacute;lia/DF.<br>
-        &copy; 2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. &Eacute; vedada a reprodu&ccedil;&atilde;o, distribui&ccedil;&atilde;o ou engenharia reversa, total ou parcial, sem autoriza&ccedil;&atilde;o expressa.
-      </div>
-    </footer>
 
   <script>
     // ── Accordion ──
@@ -799,5 +760,16 @@ Qualquer dúvida, é só me chamar!
     }
   </script>
   <!-- tenant.js publica window.TETO_FRACAO, lido do banco -->
-  </body>
+    <script src="js/auth.js"></script>
+  <script src="js/layout.js"></script>
+  <script>Layout.init('contador');</script>
+
+<!-- incentivabr-legal -->
+<div style="max-width:1100px;margin:0 auto;padding:22px 18px 30px;text-align:center;border-top:1px solid rgba(128,128,128,0.14);font-size:11px;line-height:1.7;color:rgba(128,128,128,0.75);font-family:inherit">
+  <strong>IncentivaBR</strong>&trade; &mdash; programa de computador registrado no INPI sob o n&ordm; BR512025000647-0.<br>
+  Marca mista depositada no INPI sob os processos n&ordm; 939403005 (NCL 35) e n&ordm; 939403110 (NCL 42).<br>
+  Documenta&ccedil;&atilde;o t&eacute;cnica registrada no 2&ordm; Of&iacute;cio de Registro Civil, T&iacute;tulos e Documentos e Pessoas Jur&iacute;dicas de Bras&iacute;lia/DF.<br>
+  &copy; 2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. &Eacute; vedada a reprodu&ccedil;&atilde;o, distribui&ccedil;&atilde;o ou engenharia reversa, total ou parcial, sem autoriza&ccedil;&atilde;o expressa.
+</div>
+</body>
 </html>
