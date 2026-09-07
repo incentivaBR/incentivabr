@@ -34,12 +34,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # O pg_dump precisa ser da mesma versão ou mais novo que o servidor.
-      # ubuntu-latest traz o 16; se a Railway estiver em 17, troque abaixo.
-      - name: Cliente Postgres
+      # O pg_dump precisa ser da mesma versão ou mais novo que o servidor,
+      # senão aborta ("server version mismatch"). O runner traz o 16 e a
+      # Railway está no 18 (set/2026). Em vez de fixar um número, pergunta ao
+      # servidor qual é a versão e instala o cliente correspondente do
+      # repositório oficial do Postgres; quando a Railway subir de versão,
+      # o backup acompanha sem mexer aqui.
+      - name: Cliente Postgres na versão do servidor
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_PUBLIC_URL }}
         run: |
+          set -euo pipefail
+          NUM=$(psql -Atc 'show server_version_num' "$DATABASE_URL")
+          MAJOR=$((NUM / 10000))
+          echo "servidor: Postgres $MAJOR (server_version_num=$NUM)"
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-16 >/dev/null
+          sudo apt-get install -y -qq "postgresql-client-$MAJOR" >/dev/null
+          echo "/usr/lib/postgresql/$MAJOR/bin" >> "$GITHUB_PATH"
+          "/usr/lib/postgresql/$MAJOR/bin/pg_dump" --version
 
       - name: Backup
         env:
