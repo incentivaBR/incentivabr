@@ -80,6 +80,14 @@ function orgDaSessao() {
   try { return sessionStorage.getItem('incentivabr_org') || ''; } catch { return ''; }
 }
 
+/**
+ * A logo_url aponta para uma das logos da própria IncentivaBR? Aí não é
+ * marca de cliente e a página fica com a variante que já escolheu.
+ */
+function ehLogoDaPlataforma(url) {
+  return /\/assets\/logo-incentivabr(-compact|-icon)?\.png$/i.test(String(url).split(/[?#]/)[0]);
+}
+
 /** Acrescenta `?org=` a um endereço, preservando o que já houver de query. */
 function comOrg(endereco) {
   const org = orgDaSessao();
@@ -329,8 +337,13 @@ const tenant = {
       el.textContent = brand.name;
     });
 
-    // Atualizar logotipos com classe .brand-logo
-    if (brand.logo_url) {
+    // Atualizar logotipos com classe .brand-logo — só quando a logo é de um
+    // cliente white-label. A da própria IncentivaBR cada página já traz na
+    // variante certa para o lugar (horizontal na barra, vertical nas telas
+    // de convite e de senha). Trocar pela logo_url do banco punha a versão
+    // quadrada na barra de 36px de altura: a logo abria grande e "encolhia"
+    // um instante depois, assim que esta resposta chegava.
+    if (brand.logo_url && !ehLogoDaPlataforma(brand.logo_url)) {
       document.querySelectorAll('.brand-logo').forEach(el => {
         if (el.tagName === 'IMG') el.src = brand.logo_url;
       });
