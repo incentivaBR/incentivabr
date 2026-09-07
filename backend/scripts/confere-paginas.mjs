@@ -93,22 +93,37 @@ for (const p of paginas) {
   }
   await page.waitForTimeout(400);
 
-  const info = await page.evaluate(() => ({
-    cspv: window.__cspv,
-    html: document.documentElement.outerHTML.length,
-    usaTailwind: !!document.querySelector('script[src*="cdn.tailwindcss.com"]'),
-    tailwindOk: !!window.tailwind,
-    usaFA: !!document.querySelector('link[href*="font-awesome"]'),
-    faOk: [...document.fonts].some(f => /Font Awesome/i.test(f.family) && f.status === 'loaded'),
-    usaMontserrat: !!document.querySelector('link[href*="fonts.googleapis"]'),
-    montserratOk: [...document.fonts].some(f => /Montserrat/i.test(f.family) && f.status === 'loaded')
-  }));
+  const info = await page.evaluate(async () => {
+    // O navegador só baixa uma fonte quando algum texto na tela a usa; uma
+    // página que declara a fonte sem exibir glifo dela no carregamento
+    // ficaria com status "unloaded" sem nada de errado. Forçar o load()
+    // prova o que interessa: a folha do CDN chegou (style-src) e o arquivo
+    // da fonte pode ser baixado (font-src).
+    const carrega = async (re) => {
+      const faces = [...document.fonts].filter(f => re.test(f.family));
+      if (!faces.length) return 'sem @font-face';       // a folha de estilo não chegou
+      await Promise.all(faces.slice(0, 4).map(f => f.load().catch(() => null)));
+      return faces.some(f => f.status === 'loaded') ? 'ok' : 'não baixou';
+    };
+    return {
+      cspv: window.__cspv,
+      html: document.documentElement.outerHTML.length,
+      usaTailwind: !!document.querySelector('script[src*="cdn.tailwindcss.com"]'),
+      tailwindOk: !!window.tailwind,
+      usaFA: !!document.querySelector('link[href*="font-awesome"]'),
+      fa: await carrega(/Font Awesome/i),
+      usaMontserrat: !!document.querySelector('link[href*="fonts.googleapis"]'),
+      montserrat: await carrega(/Montserrat/i)
+    };
+  });
+  info.faOk = info.fa === 'ok';
+  info.montserratOk = info.montserrat === 'ok';
 
   const recursos = [];
   if (!SEM_CDN) {
     if (info.usaTailwind && !info.tailwindOk) recursos.push('Tailwind não carregou');
-    if (info.usaFA && !info.faOk) recursos.push('Font Awesome não carregou');
-    if (info.usaMontserrat && !info.montserratOk) recursos.push('Montserrat não carregou');
+    if (info.usaFA && !info.faOk) recursos.push('Font Awesome não carregou: ' + info.fa);
+    if (info.usaMontserrat && !info.montserratOk) recursos.push('Montserrat não carregou: ' + info.montserrat);
   }
   if (info.html < 500) falhas.push(`página vazia (${info.html} bytes)`);
 
