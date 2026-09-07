@@ -189,6 +189,7 @@ const Layout = {
           <a href="politica-privacidade.html" class="dai-footer__link">Política de Privacidade</a>
           <a href="termos-uso.html" class="dai-footer__link">Termos de Uso</a>
         </div>
+        <p class="dai-footer__legal" data-so-cliente hidden><span class="brand-name">Esta instituição</span> opera esta página com a tecnologia IncentivaBR. Contato: <a class="dai-footer__link" data-tenant="contato_email" data-tenant-href="mailto:" href="#">—</a></p>
         <p class="dai-footer__legal">Plataforma de destinação de IR pela Lei Rouanet (Lei 8.313/1991). A plataforma não movimenta dinheiro e não substitui contador ou advogado.</p>
       </div>`;
 

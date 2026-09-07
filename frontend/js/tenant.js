@@ -349,6 +349,27 @@ const tenant = {
       });
     }
 
+    // Textos da página inicial do cliente (migration 039). A página marca o
+    // que aceita texto próprio com [data-tenant="hero_titulo"] etc. e fica
+    // com o texto da IncentivaBR enquanto o campo estiver vazio. Sempre por
+    // textContent: o superadmin digita o texto, e ele não vira HTML.
+    //
+    // [data-so-cliente] aparece só na página de um cliente white-label;
+    // [data-so-plataforma] só na da IncentivaBR. Os dois nascem como estão
+    // no HTML (o de cliente, `hidden`), e aqui só o lado certo fica visível.
+    const ehCliente = brand.eh_plataforma === false;
+    document.querySelectorAll('[data-so-cliente]').forEach(el => { el.hidden = !ehCliente; });
+    document.querySelectorAll('[data-so-plataforma]').forEach(el => { el.hidden = ehCliente; });
+    const textos = ehCliente && brand.textos ? brand.textos : {};
+    document.querySelectorAll('[data-tenant]').forEach(el => {
+      const v = textos[el.dataset.tenant];
+      if (v == null || v === '') return;
+      el.textContent = v;
+      // <a data-tenant="contato_email" data-tenant-href="mailto:"> vira link.
+      const prefixo = el.dataset.tenantHref;
+      if (prefixo != null && el.tagName === 'A') el.href = prefixo + v;
+    });
+
     // Expor simulation_mode globalmente
     window.SIMULATION_MODE = brand.simulation_mode === true;
 

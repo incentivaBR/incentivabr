@@ -2,6 +2,19 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### White label: a página inicial do cliente
+- Um cliente white-label recebia a cor e a logo dele sobre o discurso da IncentivaBR. A migration 039 dá três textos à organização (frase principal, parágrafo, quem somos), editados na tela de clientes do superadmin e devolvidos por `GET /api/config/brand` em `textos`, junto com `slug` e `eh_plataforma`. `tenant.js` escreve cada um em `[data-tenant="…"]` por `textContent`, e mostra `[data-so-cliente]` só na página de um cliente. Em branco, a página fica com o texto da IncentivaBR.
+- Na página do cliente, o projeto ativo dele vem no hero, com PRONAC e o botão "Destinar para este projeto" (`data-projeto`, `data-destinar`), e uma seção "Quem somos" com o e-mail de contato. O rodapé único ganha a linha "opera esta página com a tecnologia IncentivaBR".
+- `PUT /api/admin/orgs/:id` aceita os três textos, corta no limite (160, 400 e 2.000 caracteres) e apaga com string vazia sem mexer nos outros campos. `backend/tests/textos-tenant.test.mjs`.
+- Fica: domínio próprio por cliente é DNS e domínio na Railway (o middleware já resolve `custom_domain`); a logo do cliente ainda é gravada por `logo_url` na API, sem upload na tela.
+
+### TINA: resposta em texto, sem tags na tela
+- A persona mandava o modelo responder em HTML e o widget, desde o escape de HTML, mostra a resposta como texto: cada `<br>` e `<strong>` aparecia escrito. A persona passa a pedir texto simples com `**negrito**`, e o widget devolve só essa formatação depois de escapar.
+- A TINA afirmava "não há risco", "milhões fazem" e o código 41 da DIRPF como certeza. "Zero risco" saiu da persona, de `faq.html` e de `guia-ir-servidor.html`; "milhões de brasileiros" saiu das duas páginas. Regras novas: nunca "não há risco" ou "100% seguro"; nunca citar adesão ou quantidade fora da base; código da DIRPF como "confira no programa do ano". `nucleo.md` regenerado; guardas em `prompt-tina.test.mjs`.
+
+### Layout: a logo da barra não encolhe
+- `tenant.js` trocava a logo horizontal da barra pela `logo_url` da organização, que para a IncentivaBR é a versão quadrada gravada pela migration 012: a logo abria grande e encolhia. A troca vale só para logo de cliente white-label.
+
 ### Layout único, parte 2: uma paleta (risco 11)
 - Decisão: na tela, o azul primário é o navy #0F1E3D; o #273F77 do manual fica para logotipo e impresso (`brand/IDENTIDADE-VISUAL.md`).
 - `frontend/js/tema.js` é o único lugar onde a paleta do Tailwind é definida. Os 14 blocos `tailwind.config` copiados de página em página, com quatro paletas diferentes, viraram uma linha de `<script>`. `navy` era #273F77 na página inicial e em `para-associacoes` e #0F1E3D nas outras doze.

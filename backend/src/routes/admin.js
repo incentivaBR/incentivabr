@@ -23,6 +23,20 @@ function requireSuperadmin(req, res, next) {
 
 router.use(authenticateToken, requireSuperadmin);
 
+/**
+ * Texto livre que o superadmin digita e a página inicial do cliente mostra.
+ * Vai para a tela por textContent, então HTML não executa; o limite é para
+ * um campo de formulário não virar um artigo. `undefined` mantém o valor
+ * atual no COALESCE; string vazia apaga.
+ */
+export const LIMITE_TEXTOS = { hero_titulo: 160, hero_subtitulo: 400, sobre: 2000 };
+function textoDoCliente(valor, campo) {
+  if (valor === undefined) return undefined;
+  if (valor === null) return '';
+  const limpo = String(valor).trim();
+  return limpo.slice(0, LIMITE_TEXTOS[campo]);
+}
+
 // ─────────────────────────────────────────────────────────────
 // GET /api/admin/orgs — Lista todos os clientes (white-labels)
 // ─────────────────────────────────────────────────────────────
@@ -34,6 +48,7 @@ router.get('/orgs', async (req, res) => {
         o.plan_type, o.fund_type, o.fund_name, o.max_percentage,
         o.contact_email, o.contact_phone,
         o.primary_color, o.secondary_color, o.logo_url,
+        o.hero_titulo, o.hero_subtitulo, o.sobre,
         o.is_active, o.contracted_at, o.created_at,
         o.govbr_client_id,
         COUNT(DISTINCT u.id)  FILTER (WHERE u.organization_id = o.id) AS total_users,
@@ -65,6 +80,9 @@ router.get('/orgs', async (req, res) => {
         primary_color:  o.primary_color,
         secondary_color: o.secondary_color,
         logo_url:       o.logo_url,
+        hero_titulo:    o.hero_titulo,
+        hero_subtitulo: o.hero_subtitulo,
+        sobre:          o.sobre,
         is_active:      o.is_active,
         contracted_at:  o.contracted_at,
         created_at:     o.created_at,
@@ -95,7 +113,8 @@ router.post('/orgs', async (req, res) => {
       max_percentage = 6,
       contact_email, contact_phone,
       primary_color = '#0F1E3D',
-      secondary_color = '#EE985C'
+      secondary_color = '#EE985C',
+      hero_titulo, hero_subtitulo, sobre
     } = req.body;
 
     if (!name || !slug) {
@@ -112,13 +131,17 @@ router.post('/orgs', async (req, res) => {
         plan_type, fund_type, fund_name, max_percentage,
         contact_email, contact_phone,
         primary_color, secondary_color,
+        hero_titulo, hero_subtitulo, sobre,
         contracted_at, is_active
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW(),true)
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW(),true)
       RETURNING id, name, slug, plan_type, created_at
     `, [name, slug, custom_domain || null, website_url || null, cnpj || null,
         plan_type, fund_type, fund_name, max_percentage,
         contact_email || null, contact_phone || null,
-        primary_color, secondary_color]);
+        primary_color, secondary_color,
+        textoDoCliente(hero_titulo, 'hero_titulo') || null,
+        textoDoCliente(hero_subtitulo, 'hero_subtitulo') || null,
+        textoDoCliente(sobre, 'sobre') || null]);
 
     const org = result.rows[0];
 
@@ -158,6 +181,13 @@ router.put('/orgs/:id', async (req, res) => {
       govbr_client_id, govbr_client_secret, govbr_redirect_uri
     } = req.body;
 
+    // Os textos aceitam string vazia para apagar, e o COALESCE não distingue
+    // "apagar" de "não mexer". Cada um vai em dois parâmetros: se muda, e
+    // para o quê (NULL quando apaga).
+    const textos = ['hero_titulo', 'hero_subtitulo', 'sobre'].map(campo => {
+      const v = textoDoCliente(req.body[campo], campo);
+      return v === undefined ? [false, null] : [true, v || null];
+    });
     const result = await pool.query(`
       UPDATE organizations SET
         name             = COALESCE($1, name),
@@ -176,7 +206,10 @@ router.put('/orgs/:id', async (req, res) => {
         is_active        = COALESCE($14, is_active),
         govbr_client_id  = COALESCE($15, govbr_client_id),
         govbr_client_secret = COALESCE($16, govbr_client_secret),
-        govbr_redirect_uri  = COALESCE($17, govbr_redirect_uri)
+        govbr_redirect_uri  = COALESCE($17, govbr_redirect_uri),
+        hero_titulo      = CASE WHEN $19 THEN $20::text ELSE hero_titulo    END,
+        hero_subtitulo   = CASE WHEN $21 THEN $22::text ELSE hero_subtitulo END,
+        sobre            = CASE WHEN $23 THEN $24::text ELSE sobre          END
       WHERE id = $18
       RETURNING id, name, slug, plan_type, is_active
     `, [name, custom_domain, website_url, cnpj,
@@ -184,7 +217,8 @@ router.put('/orgs/:id', async (req, res) => {
         contact_email, contact_phone,
         primary_color, secondary_color, logo_url,
         is_active, govbr_client_id, govbr_client_secret, govbr_redirect_uri,
-        id]);
+        id,
+        ...textos.flat()]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Cliente não encontrado.' });

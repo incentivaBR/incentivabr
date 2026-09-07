@@ -68,16 +68,30 @@
         Não é favor. É lei.
       </div>
 
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-6 fade-up">
+      <!-- Num cliente white-label, tenant.js troca o título e o parágrafo
+           pelos textos cadastrados (data-tenant). Vazios, ficam estes. -->
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-6 fade-up" data-tenant="hero_titulo">
         Parte do IR que sai<br>do seu salário pode ir<br>
         <span style="color:#EE985C">para onde você acredita.</span>
       </h1>
 
-      <p class="text-white/55 text-lg leading-relaxed max-w-xl mx-auto mb-9 fade-up">
+      <p class="text-white/55 text-lg leading-relaxed max-w-xl mx-auto mb-9 fade-up" data-tenant="hero_subtitulo">
         E esse dinheiro <strong class="text-white">volta inteiro pra você</strong> — sem pagar nada a mais.<br>
         A maioria dos servidores tem esse direito e nunca usou.<br>
         Porque ninguém mostrou como.
       </p>
+
+      <!-- Página do cliente: o projeto dele vem primeiro. O título e o link
+           são preenchidos por tenant.js a partir do projeto ativo da
+           organização (data-projeto, data-destinar). -->
+      <div data-so-cliente hidden class="mx-auto max-w-xl mb-8 rounded-2xl p-5 text-left fade-up"
+           style="background:rgba(255,255,255,0.06);border:1px solid rgba(238,152,92,0.28)">
+        <p class="text-xs uppercase tracking-widest font-bold mb-1" style="color:#EE985C">Projeto apoiado por <span class="brand-name">esta instituição</span></p>
+        <p class="text-white font-bold text-lg leading-snug" data-projeto="titulo">Projeto em cadastro</p>
+        <p class="text-white/45 text-xs mt-1">PRONAC <span data-projeto="pronac">—</span> · aprovado pelo Ministério da Cultura</p>
+        <a data-destinar class="inline-block mt-4 font-bold px-6 py-3 rounded-xl text-sm text-white transition-all hover:scale-[1.02]"
+           style="background:linear-gradient(135deg,#EE985C,#e07a35)">Destinar para este projeto →</a>
+      </div>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center fade-up">
         <a href="calculadora-rapida.html"
@@ -91,6 +105,16 @@
         </a>
       </div>
       <p class="text-white/25 text-xs mt-4 fade-up">Sem cadastro. Resultado em menos de 1 minuto.</p>
+    </div>
+  </section>
+
+  <!-- ── QUEM SOMOS (só cliente white-label, com o texto "sobre" cadastrado) ── -->
+  <section data-so-cliente hidden class="py-14 px-4" style="background:rgba(255,255,255,0.03);border-top:1px solid rgba(255,255,255,0.06)">
+    <div class="max-w-3xl mx-auto text-center">
+      <p class="text-xs uppercase tracking-widest font-bold mb-3" style="color:#EE985C">Quem somos</p>
+      <h2 class="text-2xl sm:text-3xl font-black text-white mb-4 brand-name">Esta instituição</h2>
+      <p class="text-white/60 leading-relaxed whitespace-pre-line" data-tenant="sobre">Esta instituição ainda não escreveu a apresentação dela. O texto é cadastrado pela IncentivaBR na tela de clientes.</p>
+      <p class="text-white/40 text-sm mt-5">Contato: <a class="underline hover:text-white" data-tenant="contato_email" data-tenant-href="mailto:" href="#">—</a></p>
     </div>
   </section>
 
@@ -119,8 +143,8 @@
     </div>
   </section>
 
-  <!-- ── NÚMEROS DO PILOTO ── -->
-  <section class="py-16 px-4">
+  <!-- ── NÚMEROS DO PILOTO (história da IncentivaBR; some na página de um cliente) ── -->
+  <section class="py-16 px-4" data-so-plataforma>
     <div class="max-w-4xl mx-auto">
       <p class="text-white/30 text-xs text-center mb-6 uppercase tracking-widest fade-up">Piloto com servidores públicos do DF · Maio 2026</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
