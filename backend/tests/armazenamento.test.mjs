@@ -10,7 +10,8 @@ import crypto from 'crypto';
 
 process.env.NODE_ENV = 'test';
 
-const { criaArmazenamento, resolveChave, novaChave, estadoDoArmazenamento, configuracaoDoAmbiente } =
+const { criaArmazenamento, resolveChave, novaChave, estadoDoArmazenamento, configuracaoDoAmbiente,
+        verificaArmazenamento, usaArmazenamento } =
   await import('../src/services/armazenamento.js');
 const { identificaArquivo, extensaoPermitida } = await import('../src/lib/validaArquivo.js');
 
@@ -97,6 +98,7 @@ const clienteFalso = {
     if (nome === 'PutObjectCommand') { objetos.set(Key, { body: Buffer.from(cmd.input.Body), tipo: cmd.input.ContentType }); return {}; }
     const o = objetos.get(Key);
     if (nome === 'HeadObjectCommand') { if (!o) throw Object.assign(new Error('nf'), { name: 'NotFound' }); return {}; }
+    if (nome === 'DeleteObjectCommand') { objetos.delete(Key); return {}; }
     if (nome === 'GetObjectCommand') {
       if (!o) throw Object.assign(new Error('nk'), { name: 'NoSuchKey' });
       const { Readable } = await import('stream');
@@ -125,6 +127,38 @@ await teste('s3: guarda com ContentType e sha256, abre em stream', async () => {
 
 await teste('s3: chave inexistente devolve null, nao lanca', async () => {
   igual(await s3.abre('receipts/nao-existe.pdf'), null, 'abre');
+});
+
+// ── sonda: grava, le e apaga ───────────────────────────────────────────────
+await teste('sonda no backend local: ok e nao deixa arquivo para tras', async () => {
+  const v = await verificaArmazenamento(local);
+  igual(v.ok, true, 'ok: ' + (v.erro || ''));
+  igual(v.backend, 'local', 'backend');
+  const sobras = fs.existsSync(path.join(pasta, '_diagnostico')) ? fs.readdirSync(path.join(pasta, '_diagnostico')) : [];
+  igual(sobras.length, 0, 'arquivos de sonda restantes');
+});
+
+await teste('sonda no s3 falso: ok e apaga o objeto', async () => {
+  const antes = objetos.size;
+  const v = await verificaArmazenamento(s3);
+  igual(v.ok, true, 'ok: ' + (v.erro || ''));
+  igual(objetos.size, antes, 'objeto de sonda apagado');
+});
+
+await teste('sonda com chave recusada: erro nomeado, e o estado vira error', async () => {
+  const recusa = { async send() { throw Object.assign(new Error('The AWS Access Key Id you provided does not exist'), { name: 'InvalidAccessKeyId' }); } };
+  const quebrado = await criaArmazenamento({
+    cfg: { backend: 's3', bucket: 'b', endpoint: 'https://x', regiao: 'auto', completa: false }, cliente: recusa
+  });
+  usaArmazenamento(quebrado);
+  const v = await verificaArmazenamento();
+  igual(v.ok, false, 'ok');
+  if (!v.erro.startsWith('InvalidAccessKeyId')) throw new Error('erro sem o nome do SDK: ' + v.erro);
+  const e = estadoDoArmazenamento({ NODE_ENV: 'production', S3_BUCKET: 'b', S3_ACCESS_KEY_ID: 'a', S3_SECRET_ACCESS_KEY: 's' });
+  igual(e.status, 'error', 'status');
+  igual(e.verificado, false, 'verificado');
+  if (!e.aviso.includes('InvalidAccessKeyId')) throw new Error('aviso sem o motivo: ' + e.aviso);
+  usaArmazenamento(null);
 });
 
 // ── estado para o diagnostico ──────────────────────────────────────────────

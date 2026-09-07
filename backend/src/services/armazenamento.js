@@ -85,6 +85,11 @@ function backendLocal(pasta) {
     },
     async existe(chave) {
       try { await fs.promises.access(caminhoDe(chave)); return true; } catch { return false; }
+    },
+    async apaga(chave) {
+      const alvo = caminhoDe(chave);
+      await fs.promises.rm(alvo, { force: true });
+      await fs.promises.rm(alvo + '.tipo', { force: true });
     }
   };
 }
@@ -134,6 +139,9 @@ async function backendS3(cfg, clienteInjetado) {
         if (erro?.name === 'NotFound' || erro?.$metadata?.httpStatusCode === 404) return false;
         throw erro;
       }
+    },
+    async apaga(chave) {
+      await cliente.send(new comandos.DeleteObjectCommand({ Bucket, Key: chave }));
     }
   };
 }
@@ -176,7 +184,50 @@ export async function armazenamento() {
 }
 
 /** Só para testes: troca a instância do processo. */
-export function usaArmazenamento(a) { instancia = a; }
+export function usaArmazenamento(a) { instancia = a; ultimaVerificacao = null; }
+
+// ── sonda: o armazenamento funciona de verdade? ────────────────────────────
+//
+// Ter S3_BUCKET e as chaves definidas não prova nada: chave trocada, endpoint
+// com o nome do bucket no fim ou token sem permissão de escrita só aparecem
+// no primeiro upload de um servidor público. Então o servidor faz o upload
+// ele mesmo, na subida: grava um arquivo de sonda, lê de volta e apaga. O
+// resultado vai para /diagnostico e para o log.
+let ultimaVerificacao = null;
+
+export async function verificaArmazenamento(arm) {
+  const inicio = new Date().toISOString();
+  try {
+    arm = arm || await armazenamento();
+    const chave = `_diagnostico/sonda-${crypto.randomUUID()}.txt`;
+    const corpo = Buffer.from(`sonda ${inicio}`);
+    const gravado = await arm.guarda(chave, corpo, 'text/plain');
+
+    const lido = await arm.abre(chave);
+    if (!lido) throw new Error('gravou, mas não conseguiu ler de volta');
+    const partes = [];
+    await new Promise((res, rej) => {
+      lido.stream.on('data', p => partes.push(p));
+      lido.stream.on('end', res);
+      lido.stream.on('error', rej);
+    });
+    if (sha256(Buffer.concat(partes)) !== gravado.sha256) throw new Error('conteúdo lido difere do gravado');
+
+    await arm.apaga(chave);
+    ultimaVerificacao = { ok: true, em: inicio, backend: arm.nome };
+  } catch (erro) {
+    ultimaVerificacao = {
+      ok: false, em: inicio, backend: arm?.nome || null,
+      // Nome do erro do SDK (AccessDenied, NoSuchBucket, InvalidAccessKeyId…)
+      // é o que diagnostica; a mensagem completa pode trazer o endpoint.
+      erro: `${erro?.name || 'Erro'}: ${String(erro?.message || erro).slice(0, 200)}`
+    };
+  }
+  return ultimaVerificacao;
+}
+
+/** A última sonda, para o /diagnostico. null = ainda não rodou. */
+export function ultimaVerificacaoDoArmazenamento() { return ultimaVerificacao; }
 
 /**
  * Estado para o /diagnostico e para o aviso de boot. Em produção com backend
@@ -186,12 +237,21 @@ export function estadoDoArmazenamento(env = process.env) {
   const cfg = configuracaoDoAmbiente(env);
   const producao = env.NODE_ENV === 'production';
   if (cfg.backend === 's3') {
+    const v = ultimaVerificacao;
+    let status = cfg.completa ? 'ok' : 'error';
+    let aviso = cfg.completa ? null : 'S3_BUCKET definido sem as chaves de acesso';
+    if (cfg.completa && v && !v.ok) {
+      status = 'error';
+      aviso = `A sonda de gravação no bucket falhou: ${v.erro}. Confira S3_ENDPOINT (sem o nome do bucket no fim), as chaves e a permissão do token.`;
+    }
     return {
-      status: cfg.completa ? 'ok' : 'error',
+      status,
       backend: 's3',
       bucket: cfg.bucket,
       endpoint: cfg.endpoint,
-      aviso: cfg.completa ? null : 'S3_BUCKET definido sem as chaves de acesso'
+      verificado: v ? v.ok : null,
+      verificado_em: v?.em || null,
+      aviso
     };
   }
   return {
