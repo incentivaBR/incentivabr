@@ -57,6 +57,12 @@ BACKUP_PASSPHRASE=... DATABASE_URL=postgres://.../destino \
 
 Regras:
 
+- **Versão do cliente.** `pg_dump` e `pg_restore` precisam ser da mesma
+  versão do servidor ou mais novos. O Postgres da Railway está no 18 em
+  setembro de 2026; o workflow pergunta a versão ao servidor e instala o
+  cliente correspondente. Para restaurar na sua máquina, instale o
+  `postgresql-client-18` (ou mais novo) antes, senão o `pg_restore` recusa
+  o arquivo.
 - **Nunca aponte para o banco de produção sem ter certeza.** O restore usa
   `--clean --if-exists`: apaga e recria as tabelas do dump.
 - Para testar um backup, restaure num banco novo (na Railway, um segundo
