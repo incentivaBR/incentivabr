@@ -50,6 +50,9 @@ gpg --batch --yes --symmetric --cipher-algo AES256 \
 rm -f "$BRUTO"
 SHA=$(sha256sum "$CIFRADO" | cut -d' ' -f1)
 echo "   $(basename "$CIFRADO") sha256=$SHA"
+# No formato que `sha256sum -c` lê (o restore confere com ele). Vai para o
+# disco antes de subir: a aws cli recusa pipes e /dev/fd.
+echo "$SHA  $(basename "$CIFRADO")" > "$CIFRADO.sha256"
 
 if [ -n "${S3_BUCKET:-}" ]; then
   : "${S3_ACCESS_KEY_ID:?}"; : "${S3_SECRET_ACCESS_KEY:?}"
@@ -60,7 +63,7 @@ if [ -n "${S3_BUCKET:-}" ]; then
 
   echo "== enviando para s3://$S3_BUCKET/backups/"
   aws s3 cp "${EP[@]}" --only-show-errors "$CIFRADO" "s3://$S3_BUCKET/backups/$(basename "$CIFRADO")"
-  aws s3 cp "${EP[@]}" --only-show-errors <(echo "$SHA  $(basename "$CIFRADO")") "s3://$S3_BUCKET/backups/$(basename "$CIFRADO").sha256"
+  aws s3 cp "${EP[@]}" --only-show-errors "$CIFRADO.sha256" "s3://$S3_BUCKET/backups/$(basename "$CIFRADO").sha256"
 
   echo "== retenção: apagando dumps com mais de $RETENCAO_DIAS dias"
   LIMITE=$(date -u -d "-${RETENCAO_DIAS} days" +%Y-%m-%d)
