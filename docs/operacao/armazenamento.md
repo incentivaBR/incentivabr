@@ -51,9 +51,17 @@ comprovantes de 5 MB.
    S3_SECRET_ACCESS_KEY=...
    ```
 
-5. Redeploy. Confira em `/diagnostico` (com o `DIAG_TOKEN`) que
-   `services.armazenamento` está `ok` com `backend: s3`.
-6. Faça um upload de comprovante de teste e baixe-o pela tela de conferência.
+5. Redeploy. Na subida, o servidor testa o bucket sozinho: grava um arquivo
+   em `_diagnostico/`, lê de volta, confere o SHA-256 e apaga. Confira em
+   `/diagnostico` (com o `DIAG_TOKEN`) que `services.armazenamento` está `ok`
+   com `backend: s3` e `verificado: true`; sem o token, só o `status` aparece.
+   Se a sonda falhar, o status vira `error` e o `aviso` traz o nome do erro do
+   SDK: `InvalidAccessKeyId` ou
+   `SignatureDoesNotMatch` é chave errada; `NoSuchBucket` é nome do bucket ou
+   endpoint com o bucket no fim; `AccessDenied` é token sem permissão de
+   escrita. O mesmo motivo sai no log da Railway, em vermelho.
+6. Opcional: um upload de comprovante de teste, baixado pela tela de
+   conferência, confirma o caminho completo pelo navegador.
 
 Para AWS S3, troque o endpoint pela região (`S3_ENDPOINT` vazio,
 `S3_REGION=sa-east-1`) e use um usuário IAM com `s3:PutObject`, `s3:GetObject`

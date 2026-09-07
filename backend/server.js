@@ -13,7 +13,7 @@ import { escopoDaChaveResend } from './src/lib/resendEscopo.js';
 import { consumoDeHoje } from './src/lib/consumoIA.js';
 import { semeiaCasaAzul } from './src/config/semeiaCasaAzul.js';
 import { promoveSuperadmin, estadoDoSuperadmin } from './src/config/promoveSuperadmin.js';
-import { estadoDoArmazenamento } from './src/services/armazenamento.js';
+import { estadoDoArmazenamento, verificaArmazenamento } from './src/services/armazenamento.js';
 
 // ES modules: criar __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -432,6 +432,16 @@ app.listen(PORT, async () => {
   const arm = estadoDoArmazenamento();
   if (arm.status === 'error') console.error(`❌ ARMAZENAMENTO: ${arm.aviso}`);
   else console.log(`📦 Armazenamento: ${arm.backend}${arm.bucket ? ' (' + arm.bucket + ')' : ''}`);
+
+  // Sonda: grava, lê e apaga um arquivo no armazenamento configurado. É o
+  // que separa "variáveis definidas" de "bucket funcionando". Não bloqueia
+  // a subida; o resultado aparece no log e em /diagnostico.
+  if (arm.status !== 'error') {
+    verificaArmazenamento().then(v => {
+      if (v.ok) console.log(`📦 Armazenamento verificado: gravação e leitura no backend ${v.backend} ok`);
+      else console.error(`❌ ARMAZENAMENTO: sonda falhou no backend ${v.backend}: ${v.erro}`);
+    }).catch(e => console.error('❌ ARMAZENAMENTO: sonda não rodou:', e.message));
+  }
 
   // Deixa a Casa Azul demonstrável. Só age com SIMULATION_MODE=true, e é
   // idempotente — roda em todo boot sem duplicar nada.
