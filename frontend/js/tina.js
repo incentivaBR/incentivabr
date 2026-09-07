@@ -622,7 +622,13 @@ const TINA = (function() {
     }
   }
 
-  // Adicionar mensagem
+  // Texto vindo de fora (a pergunta digitada, a resposta do modelo) entra
+  // escapado: o que vai em innerHTML tem de ser HTML nosso. As respostas
+  // prontas de getResposta() são HTML escrito aqui e passam como estão.
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // Adicionar mensagem — `content` é HTML já seguro
   function addMessage(content, isUser = false) {
     const messages = document.getElementById('tinaMessages');
     if (!messages) return;
@@ -672,7 +678,7 @@ const TINA = (function() {
     const pergunta = input.value.trim();
     if (!pergunta) return;
 
-    addMessage(pergunta, true);
+    addMessage(esc(pergunta), true);
     input.value = '';
     showTyping();
 
@@ -690,12 +696,15 @@ const TINA = (function() {
 
       if (response.ok) {
         const data = await response.json();
-        const resposta = data.reply || getResposta(pergunta);
+        const resposta = data.reply;
+        if (!resposta) { addMessage(getResposta(pergunta)); return; }
         conversationHistory.push({ role: 'user', content: pergunta });
         conversationHistory.push({ role: 'assistant', content: resposta });
         // Mantém histórico enxuto
         if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
-        addMessage(resposta.replace(/\n/g, '<br>'));
+        // A resposta do modelo é texto, não HTML: escapa e só então troca
+        // quebra de linha por <br>.
+        addMessage(esc(resposta).replace(/\n/g, '<br>'));
       } else {
         addMessage(getResposta(pergunta));
       }

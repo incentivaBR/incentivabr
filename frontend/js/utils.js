@@ -118,7 +118,8 @@ const utils = {
     toast.innerHTML = `
       <div class="toast-content">
         <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
-        <span class="toast-message">${message}</span>
+        <span class="toast-message">${String(message ?? '').replace(/[&<>"']/g, c =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))}</span>
       </div>
     `;
 

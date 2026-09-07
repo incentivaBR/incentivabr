@@ -132,6 +132,10 @@
       ? new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })
       : '—';
 
+    // Os dados do titular e as mensagens do servidor viram HTML: escapados.
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
     function pinta(d) {
       dadosTitular = d;
       const c = d.consentimento_atual;
@@ -151,7 +155,7 @@
       if (c.revogado_em) linhas.push(['Consentimento revogado em', fmt(c.revogado_em)]);
 
       $('dados').innerHTML = linhas
-        .map(([r, v]) => `<div class="dado"><span>${r}</span><span>${v}</span></div>`)
+        .map(([r, v]) => `<div class="dado"><span>${r}</span><span>${esc(v)}</span></div>`)
         .join('');
 
       $('carregando').style.display = 'none';
@@ -223,7 +227,7 @@
         if (!resp.ok) throw new Error(r.message || 'Não foi possível eliminar.');
         $('conteudo').innerHTML =
           '<div class="card" style="text-align:center">' +
-          '<h1>Dados eliminados</h1><p class="sub">' + r.message + '</p>' +
+          '<h1>Dados eliminados</h1><p class="sub">' + esc(r.message) + '</p>' +
           '<a class="btn principal" href="index.html">Voltar ao início</a></div>';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (e) { mostra('erro', e.message); b.disabled = false; }
@@ -243,7 +247,7 @@
         pinta(d);
       } catch (e) {
         $('carregando').innerHTML =
-          '<h1>Não foi possível abrir</h1><p class="sub">' + e.message + '</p>' +
+          '<h1>Não foi possível abrir</h1><p class="sub">' + esc(e.message) + '</p>' +
           '<a class="btn principal" href="cadastro-avisos.html">Fazer o cadastro</a>';
       }
     })();
