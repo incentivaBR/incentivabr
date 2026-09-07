@@ -116,13 +116,30 @@ router.get('/brand', async (req, res) => {
     console.error('[config] falha ao ler o teto:', erro.message);
   }
 
+  // A IncentivaBR (`www`, ou nenhuma organização) é a plataforma; qualquer
+  // outra é um cliente white-label, e a página inicial muda de discurso.
+  const ehPlataforma = !org || org.slug === 'www';
+
   const brand = {
     name:          org?.name          || process.env.BRAND_NAME          || 'IncentivaBR',
+    slug:          org?.slug          || 'www',
+    eh_plataforma: ehPlataforma,
     logo_url:      org?.logo_url      || process.env.BRAND_LOGO_URL      || '/assets/logo-incentivabr.png',
     color_primary: org?.primary_color || process.env.BRAND_COLOR_PRIMARY || '#0F1E3D',
     color_accent:  org?.secondary_color || process.env.BRAND_COLOR_ACCENT || '#EE985C',
     domain:        process.env.BRAND_DOMAIN || 'incentivabr.com.br',
     simulation_mode: process.env.SIMULATION_MODE === 'true',
+
+    // Textos da página inicial do cliente (migration 039). tenant.js escreve
+    // cada um em [data-tenant="…"] com textContent, nunca como HTML. Para a
+    // plataforma vão vazios: a página fica com o texto da IncentivaBR.
+    textos: ehPlataforma ? null : {
+      hero_titulo:    org.hero_titulo    || null,
+      hero_subtitulo: org.hero_subtitulo || null,
+      sobre:          org.sobre          || null,
+      contato_email:  org.contact_email  || null,
+      site:           org.website_url    || null
+    },
 
     // Percentual sobre o IMPOSTO DEVIDO apurado na declaração — não sobre a
     // renda, nem sobre o imposto a pagar depois de retenções.

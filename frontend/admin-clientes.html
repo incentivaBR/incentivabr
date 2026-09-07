@@ -24,7 +24,7 @@
     .cartao .nota { font-size:12.5px; color:var(--fraco); margin:0 0 16px; line-height:1.6; }
     .grade { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
     label { display:block; font-size:12px; font-weight:700; margin:0 0 5px; }
-    input, select { width:100%; padding:10px 12px; border:1.5px solid var(--borda);
+    input, select, textarea { width:100%; font:inherit; resize:vertical; padding:10px 12px; border:1.5px solid var(--borda);
                     border-radius:9px; font-size:14px; font-family:inherit; }
     input:focus, select:focus { outline:none; border-color:var(--azul); }
     .dica { font-size:11.5px; color:var(--fraco); margin-top:4px; line-height:1.5; }
@@ -112,6 +112,40 @@
         <p class="nota">Escolha o cliente para vincular o projeto e convidar quem vai operar.</p>
         <label for="selOrg">Cliente</label>
         <select id="selOrg"></select>
+      </div>
+
+      <!-- ── Página inicial ───────────────────────────────────────── -->
+      <div class="cartao">
+        <h2>Página inicial do cliente</h2>
+        <p class="nota">
+          Com o endereço do cliente (<code>?org=</code> ou domínio próprio), a página
+          inicial mostra estes textos, o projeto vinculado e o e-mail de contato no
+          lugar do discurso da IncentivaBR. Em branco, fica o texto padrão. É texto
+          puro: o que for digitado aparece como está.
+        </p>
+        <form id="formTextos">
+          <div class="grade">
+            <div style="grid-column:1 / -1">
+              <label for="tTitulo">Frase principal</label>
+              <input id="tTitulo" maxlength="160" placeholder="Seu imposto pode sustentar o teatro inclusivo de Brasília.">
+              <p class="dica">Até 160 caracteres. É o título grande da página.</p>
+            </div>
+            <div style="grid-column:1 / -1">
+              <label for="tSubtitulo">Parágrafo abaixo da frase</label>
+              <textarea id="tSubtitulo" rows="3" maxlength="400" placeholder="Parte do IR que você já paga pode ir para o projeto da instituição, sem custo a mais."></textarea>
+              <p class="dica">Até 400 caracteres.</p>
+            </div>
+            <div style="grid-column:1 / -1">
+              <label for="tSobre">Quem somos</label>
+              <textarea id="tSobre" rows="6" maxlength="2000" placeholder="Apresentação da instituição, em um ou dois parágrafos."></textarea>
+              <p class="dica">Até 2.000 caracteres. Aparece numa seção própria, com o e-mail de contato do cadastro.</p>
+            </div>
+          </div>
+          <div class="linha-acoes">
+            <button class="btn" type="submit">Salvar textos</button>
+          </div>
+          <div id="avisoTextos" class="aviso erro" hidden></div>
+        </form>
       </div>
 
       <!-- ── Projeto ──────────────────────────────────────────────── -->
@@ -223,14 +257,42 @@
     }
 
     // ── Clientes ────────────────────────────────────────────────────
+    let clientes = [];
     async function carregaClientes(selecionar) {
       const d = await chamar('/api/admin/orgs');
+      clientes = d.orgs;
       const sel = el('selOrg');
       sel.innerHTML = d.orgs.map(o =>
         `<option value="${esc(o.id)}">${esc(o.name)} — ${esc(o.slug)}</option>`).join('');
       if (selecionar) sel.value = selecionar;
+      preencheTextos();
       await carregaConvites();
     }
+
+    // ── Página inicial ──────────────────────────────────────────────
+    function preencheTextos() {
+      const o = clientes.find(c => c.id === el('selOrg').value) || {};
+      el('tTitulo').value    = o.hero_titulo    || '';
+      el('tSubtitulo').value = o.hero_subtitulo || '';
+      el('tSobre').value     = o.sobre          || '';
+    }
+
+    el('formTextos').addEventListener('submit', async e => {
+      e.preventDefault();
+      try {
+        // String vazia apaga o campo; a rota trata "" como "limpar".
+        await chamar(`/api/admin/orgs/${el('selOrg').value}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            hero_titulo:    el('tTitulo').value.trim(),
+            hero_subtitulo: el('tSubtitulo').value.trim(),
+            sobre:          el('tSobre').value.trim()
+          })
+        });
+        avisar('avisoTextos', 'Textos salvos. Abra a página inicial com ?org= do cliente para conferir.', true);
+        await carregaClientes(el('selOrg').value);
+      } catch (erro) { avisar('avisoTextos', erro.message); }
+    });
 
     el('formCliente').addEventListener('submit', async e => {
       e.preventDefault();
@@ -339,7 +401,7 @@
       } catch (erro) { avisar('avisoConvite', erro.message); }
     });
 
-    el('selOrg').addEventListener('change', carregaConvites);
+    el('selOrg').addEventListener('change', () => { preencheTextos(); carregaConvites(); });
 
     // ── Início ──────────────────────────────────────────────────────
     (async () => {
