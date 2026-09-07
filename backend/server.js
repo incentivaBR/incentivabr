@@ -55,9 +55,38 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:3000'
 ];
 
-// Segurança HTTP — headers de proteção
+// Segurança HTTP — headers de proteção (Raio-X, risco 05)
+//
+// A CSP diz ao navegador de onde a página pode carregar cada coisa. O
+// frontend é HTML com script embutido e atributos onclick, por isso
+// script-src precisa de 'unsafe-inline'; o que a política fecha mesmo assim:
+// script de qualquer outro domínio, iframe de terceiros (frame-ancestors),
+// plugin (object-src), <base> trocado e formulário postando para fora.
+// Origens externas em uso: Tailwind pelo Play CDN, Font Awesome pelo cdnjs,
+// fontes do Google. Logo de tenant pode vir de qualquer https (img-src).
+// Conferida página a página no Chromium antes de entrar (tests/csp.test.mjs
+// garante o cabeçalho; a conferência visual está no PR da Onda 2).
+const CSP = {
+  'default-src':     ["'self'"],
+  'script-src':      ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com', 'https://cdnjs.cloudflare.com'],
+  'style-src':       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
+  'font-src':        ["'self'", 'data:', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
+  'img-src':         ["'self'", 'data:', 'blob:', 'https:'],
+  'connect-src':     ["'self'"],
+  'frame-src':       ["'none'"],
+  'frame-ancestors': ["'none'"],
+  'object-src':      ["'none'"],
+  'base-uri':        ["'self'"],
+  'form-action':     ["'self'"],
+  'upgrade-insecure-requests': []
+};
+export const CSP_HEADER = Object.entries(CSP)
+  .map(([k, v]) => (v.length ? `${k} ${v.join(' ')}` : k)).join('; ');
+
 app.use(helmet({
-  contentSecurityPolicy: false // desabilitado para não quebrar o frontend HTML existente
+  contentSecurityPolicy: { useDefaults: false, directives: CSP },
+  // O PDF do comprovante abre em nova aba a partir de blob:; COEP quebraria isso.
+  crossOriginEmbedderPolicy: false
 }));
 
 // CORS restrito aos domínios conhecidos

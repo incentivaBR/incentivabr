@@ -2,6 +2,11 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Escape de HTML e Content-Security-Policy (risco 05)
+- Todo texto que vem de fora e vira HTML passa por escape: resposta da TINA e pergunta digitada (`js/tina.js`), título e status da destinação e mensagens de erro (`dashboard.html`), dados do projeto vindos do SALIC (`destinar-rouanet.html`), nome de cliente e e-mail de convidado (`admin-clientes.html`), dados do titular (`minhas-preferencias.html`), título e mensagem dos toasts (`js/toast.js`, `js/utils.js`). `conferencia.html` e `projetos-rouanet.html` já escapavam.
+- `server.js` liga a Content-Security-Policy do helmet: script só da própria origem, do Tailwind Play CDN e do cdnjs; estilo e fonte do Google Fonts e do cdnjs; imagem de qualquer https (logo de tenant); `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `upgrade-insecure-requests`. `'unsafe-inline'` em script continua necessário porque as páginas têm script embutido e `onclick`. Conferido no Chromium, página a página, sem violação.
+- `backend/tests/csp.test.mjs` garante o cabeçalho e as origens.
+
 ### Segurança de conta (risco 05)
 - O JWT deixa de carregar o CPF. Leva só `userId`, `orgId`, `orgSlug` e os papéis; ninguém no backend lia o CPF do token, e o payload é legível por qualquer um que tenha o token.
 - Tokens de redefinição de senha e de verificação de e-mail entram no banco como SHA-256 (`backend/src/lib/tokens.js`, o mesmo mecanismo dos convites). O valor em claro só existe no e-mail. Migration 038 anula os que existiam em claro.

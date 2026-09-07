@@ -45,3 +45,31 @@ jobs:
       - run: npm test
         env:
           NODE_ENV: test
+
+  # Abre cada página num Chromium contra o servidor local com a CSP ligada.
+  # Falha se a política bloquear alguma coisa ou se Tailwind, Font Awesome ou
+  # Montserrat não carregarem. É o que impede uma CSP apertada demais (ou um
+  # CDN novo fora dela) de quebrar uma tela em produção sem ninguém ver.
+  paginas:
+    name: Páginas no Chromium (CSP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # O Playwright não é dependência do produto; entra só aqui.
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+
+      - run: node scripts/confere-paginas.mjs

@@ -681,8 +681,8 @@
           <div class="donation-header">
             <div class="donation-header-icon"><i class="fas fa-music"></i></div>
             <div class="donation-header-info">
-              <div class="donation-title">${titulo}</div>
-              <div class="donation-sub">PRONAC ${pronac} · Lei Rouanet · Art. 18</div>
+              <div class="donation-title">${esc(titulo)}</div>
+              <div class="donation-sub">PRONAC ${esc(pronac)} · Lei Rouanet · Art. 18</div>
             </div>
             <div class="donation-amount">
               <div class="donation-amount-val">${BRL(d.donation_amount)}</div>
@@ -708,7 +708,7 @@
               <div class="fiscal-val">
                 <span class="status-badge ${statusCls}">
                   <i class="fas ${isConfirmed ? 'fa-circle-check' : 'fa-clock'}"></i>
-                  ${statusLabel}
+                  ${esc(statusLabel)}
                 </span>
               </div>
             </div>
@@ -866,7 +866,7 @@
           <div class="empty-state">
             <i class="fas fa-exclamation-circle"></i>
             <h3>Erro ao carregar</h3>
-            <p>${err.message}</p>
+            <p>${esc(err.message)}</p>
           </div>
         `;
       }

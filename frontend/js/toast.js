@@ -421,8 +421,13 @@ const Toast = (function() {
 
     // Monta HTML
     const icon = icons[opts.type] || icons.info;
-    const title = opts.title ? `<div class="toast-title">${opts.title}</div>` : '';
-    const message = opts.message ? `<div class="toast-message">${opts.message}</div>` : '';
+    // Título e mensagem chegam como texto — muitas vezes a mensagem de erro
+    // que o servidor devolveu. Nenhum chamador passa HTML; escapar aqui fecha
+    // a porta para todos de uma vez.
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const title = opts.title ? `<div class="toast-title">${esc(opts.title)}</div>` : '';
+    const message = opts.message ? `<div class="toast-message">${esc(opts.message)}</div>` : '';
     const hasDismissBtn = opts.duration === 0;
 
     toast.innerHTML = `

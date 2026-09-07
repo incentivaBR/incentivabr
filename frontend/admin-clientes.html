@@ -202,6 +202,11 @@
       'Authorization': 'Bearer ' + (auth.getToken() || '')
     });
 
+    // Nome de cliente, e-mail de convidado: texto de fora, escapado antes de
+    // virar HTML.
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
     function avisar(id, texto, bom = false) {
       const a = el(id);
       a.textContent = texto;
@@ -222,7 +227,7 @@
       const d = await chamar('/api/admin/orgs');
       const sel = el('selOrg');
       sel.innerHTML = d.orgs.map(o =>
-        `<option value="${o.id}">${o.name} — ${o.slug}</option>`).join('');
+        `<option value="${esc(o.id)}">${esc(o.name)} — ${esc(o.slug)}</option>`).join('');
       if (selecionar) sel.value = selecionar;
       await carregaConvites();
     }
@@ -297,11 +302,11 @@
         const corpo = el('listaConvites');
         corpo.innerHTML = d.convites.map(c => `
           <tr>
-            <td><strong>${c.nome || '—'}</strong><br><span style="color:#8B96A8">${c.email}</span></td>
-            <td>${rotulo[c.role] || c.role}</td>
-            <td><span class="selo ${c.situacao}">${c.situacao}</span></td>
+            <td><strong>${esc(c.nome || '—')}</strong><br><span style="color:#8B96A8">${esc(c.email)}</span></td>
+            <td>${esc(rotulo[c.role] || c.role)}</td>
+            <td><span class="selo ${esc(c.situacao)}">${esc(c.situacao)}</span></td>
             <td>${c.situacao === 'pendente'
-              ? `<button class="btn perigo" data-revogar="${c.id}">Revogar</button>` : ''}</td>
+              ? `<button class="btn perigo" data-revogar="${esc(c.id)}">Revogar</button>` : ''}</td>
           </tr>`).join('');
         el('semConvites').hidden = d.convites.length > 0;
       } catch (erro) { avisar('avisoConvite', erro.message); }
