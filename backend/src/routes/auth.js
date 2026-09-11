@@ -153,12 +153,18 @@ router.post('/register', async (req, res) => {
     // SQL. E o campo a apontar na mensagem sai de uma comparação explícita —
     // com os dois lados nulos, `dup.cpf === cleanedCPF` dava verdadeiro e a
     // tela dizia "CPF já cadastrado" para quem repetiu o e-mail.
-    const dup = await client.query(
-      cleanedCPF
-        ? 'SELECT id, cpf, email FROM users WHERE cpf = $1 OR email = $2'
-        : 'SELECT id, cpf, email FROM users WHERE email = $2',
-      cleanedCPF ? [cleanedCPF, email.toLowerCase()] : [null, email.toLowerCase()]
-    );
+    // A versão sem CPF usa $1 e recebe UM parâmetro. Ela já mandou dois para
+    // uma consulta de um: o Postgres recusa a ligação ("bind message supplies
+    // 2 parameters, but prepared statement requires 1") e todo cadastro
+    // respondia 500. O pg-mem dos testes aceita a sobra, então o defeito só
+    // apareceu em produção — o teste passou a conferir a contagem.
+    const dup = cleanedCPF
+      ? await client.query(
+          'SELECT id, cpf, email FROM users WHERE cpf = $1 OR email = $2',
+          [cleanedCPF, email.toLowerCase()])
+      : await client.query(
+          'SELECT id, cpf, email FROM users WHERE email = $1',
+          [email.toLowerCase()]);
     if (dup.rows.length > 0) {
       const ehOCpf = !!cleanedCPF && dup.rows[0].cpf === cleanedCPF;
       return res.status(409).json({

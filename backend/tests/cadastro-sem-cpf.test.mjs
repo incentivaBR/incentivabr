@@ -60,9 +60,48 @@ db.public.none(`
 
 const pgMem = db.adapters.createPg();
 const poolFalso = new pgMem.Pool();
+
+/**
+ * O pg-mem e tolerante com os marcadores; o Postgres nao.
+ *
+ * Duas coisas que o pg-mem deixa passar e o Postgres recusa:
+ *
+ *   - parametro que a consulta nao usa. `WHERE email = $2` recebendo
+ *     [null, 'x@y.com'] faz o servidor tentar inferir o tipo de $1, que nao
+ *     aparece em lugar nenhum, e responder "could not determine data type of
+ *     parameter $1";
+ *   - contagem diferente do maior marcador.
+ *
+ * A primeira derrubou TODO cadastro sem CPF em producao enquanto o teste
+ * passava verde. Este envelope confere as duas antes de deixar a consulta
+ * correr, para a diferenca entre o banco dos testes e o de verdade nao voltar
+ * a esconder esse tipo de defeito.
+ */
+const confereParametros = (sql, params) => {
+  const texto = String(sql);
+  const usados = new Set([...texto.matchAll(/\$(\d+)/g)].map(m => Number(m[1])));
+  const maior = usados.size ? Math.max(...usados) : 0;
+  const recebidos = Array.isArray(params) ? params.length : 0;
+  const resumo = texto.replace(/\s+/g, ' ').trim().slice(0, 120);
+
+  if (recebidos !== maior) {
+    throw new Error(`consulta usa ate $${maior} e recebeu ${recebidos} parametro(s): ${resumo}`);
+  }
+  for (let i = 1; i <= recebidos; i++) {
+    if (!usados.has(i)) {
+      throw new Error(
+        `o parametro $${i} nao aparece na consulta — o Postgres nao consegue inferir o tipo dele: ${resumo}`);
+    }
+  }
+};
+const consulta = (sql, params, ...resto) => {
+  if (typeof sql === 'string') confereParametros(sql, params);
+  return poolFalso.query(sql, params, ...resto);
+};
+
 const { default: poolReal } = await import('../config/database.js');
-poolReal.query = (...a) => poolFalso.query(...a);
-poolReal.connect = async () => ({ query: (...a) => poolFalso.query(...a), release() {} });
+poolReal.query = (...a) => consulta(...a);
+poolReal.connect = async () => ({ query: (...a) => consulta(...a), release() {} });
 const q = async (sql, p) => (await poolFalso.query(sql, p)).rows;
 const [org] = await q(`SELECT * FROM organizations WHERE slug = 'www'`);
 
