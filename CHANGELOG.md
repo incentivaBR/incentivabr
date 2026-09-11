@@ -9,6 +9,7 @@
 - Confirmar não é exigido para entrar nem para destinar. É o que prova que a caixa é da pessoa, e é o que dá sentido à redefinição de senha; exigir travaria as contas que já existem.
 - `backend/src/lib/cpf.js` passa a ser o único lugar da limpeza, validação e máscara de CPF no backend — estavam em `routes/auth.js` e `routes/admin.js`. O navegador mantém a própria cópia em `js/utils.js`, que não importa este arquivo porque as páginas não têm etapa de build.
 - Corrigido de passagem: com e-mail repetido e nenhum CPF informado, a comparação antiga dava verdadeiro nos dois lados nulos e a tela dizia "CPF já cadastrado".
+- A tela de entrar dizia "CPF ou Email". Conta nova nasce sem CPF, então quem digitasse o número caía em "credenciais inválidas" sem entender por quê — um beco sem saída para justamente quem tinha acabado de se cadastrar. O rótulo passa a falar em e-mail; o campo continua aceitando os dois, para quem já informou o CPF ao destinar.
 - `backend/tests/cadastro-sem-cpf.test.mjs` e `backend/tests/cpf-na-destinacao.test.mjs`.
 
 ### Apagar conta de teste pela tela do superadmin

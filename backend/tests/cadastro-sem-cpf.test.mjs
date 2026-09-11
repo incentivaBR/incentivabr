@@ -192,6 +192,16 @@ await teste('a tela de cadastro nao pede mais CPF', () => {
   if (/api\.register\([^)]*\bcpf\b/.test(html)) throw new Error('o cadastro ainda envia cpf');
 });
 
+await teste('a tela de entrar nao promete CPF, que conta nova nao tem', () => {
+  const html = le('frontend/login.html');
+  const entrar = html.slice(html.indexOf('id="loginForm"'), html.indexOf('id="loginSenha"'));
+  if (/CPF ou Email/i.test(entrar)) throw new Error('o rotulo voltou a prometer CPF a todo mundo');
+  if (!/E-?mail/i.test(entrar)) throw new Error('o rotulo nao fala em e-mail');
+  // O campo continua aceitando os dois: quem ja informou o CPF ao destinar
+  // nao pode ficar de fora so porque o rotulo mudou.
+  if (!/includes\('@'\)/.test(html)) throw new Error('a tela deixou de aceitar CPF no lugar do e-mail');
+});
+
 await teste('existe a pagina que recebe o link de confirmacao', () => {
   const html = le('frontend/verificar-email.html');
   if (!html.includes('/api/auth/verify-email')) throw new Error('a pagina nao chama a rota');
