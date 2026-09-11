@@ -143,6 +143,34 @@ for (const p of paginas) {
   const navs = await page.evaluate(() => document.querySelectorAll('nav').length);
   if (navs > 1) falhas.push(`${navs} barras de navegação na página`);
 
+  // Um aviso que a pessoa não consegue ler é o mesmo que nenhum aviso.
+  //
+  // Em setembro de 2026, o `.toast` antigo de js/utils.js — estado base
+  // opacity: 0, à espera de um `.show` — mirava o mesmo elemento do
+  // js/toast.js e vencia nas duas propriedades que este não declarava. Nas
+  // duas páginas que carregam os dois arquivos (login e calculadora), o erro
+  // aparecia durante os 0,3s da animação de entrada e sumia. Ninguém
+  // conseguia ler por que o cadastro tinha falhado.
+  const aviso = await page.evaluate(async () => {
+    if (typeof Toast === 'undefined') return null;
+    Toast.error('conferência de visibilidade', 'Teste');
+    await new Promise(r => setTimeout(r, 500));      // depois da animação de 0,3s
+    const t = document.querySelector('.toast');
+    if (!t) return { erro: 'Toast.error não criou nenhum elemento' };
+    const cs = getComputedStyle(t), b = t.getBoundingClientRect();
+    return {
+      opacidade: Number(cs.opacity),
+      dentroDaTela: b.width > 0 && b.height > 0 && b.top >= 0 && b.left >= 0 &&
+                    b.right <= window.innerWidth && b.bottom <= window.innerHeight
+    };
+  });
+  if (aviso?.erro) falhas.push('aviso: ' + aviso.erro);
+  else if (aviso && aviso.opacidade < 0.9) {
+    falhas.push(`aviso do Toast fica invisível depois da animação (opacity ${aviso.opacidade})`);
+  } else if (aviso && !aviso.dentroDaTela) {
+    falhas.push('aviso do Toast fica fora da área visível da tela');
+  }
+
   const ruim = info.cspv.length || consoleCsp.length || falhas.length || recursos.length;
   if (ruim) comProblema++;
   const rotulo = v => (SEM_CDN ? '(sem CDN)' : (v ? 'ok' : 'FALHOU'));

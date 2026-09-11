@@ -409,21 +409,28 @@
 
       try {
         await api.register({ nome, cpf, email, phone, senha, accepted_terms: true });
-        Toast.success('Conta criada! Entrando automaticamente...', 'Bem-vindo!');
 
-        // Auto-login após cadastro
+        // Entrada automática depois do cadastro.
         try {
           const loginResp = await api.login({ email, senha });
           auth.setToken(loginResp.token);
           auth.setUser(loginResp.user);
+          Toast.success('Conta criada! Redirecionando...', 'Bem-vindo!');
           const redirect = utils.getQueryParam('redirect') || 'dashboard.html';
           setTimeout(() => window.location.href = redirect, 1000);
-        } catch {
-          // Fallback: redirecionar para aba de login com email preenchido
-          setTimeout(() => {
-            document.querySelector('.tab[data-tab="login"]').click();
-            document.getElementById('loginCpfEmail').value = email;
-          }, 800);
+        } catch (erroLogin) {
+          // A conta FOI criada; só a entrada automática falhou — o limite de
+          // tentativas, por exemplo, que cadastro e login dividem. Antes isto
+          // trocava de aba em silêncio: a pessoa não sabia que já tinha conta,
+          // tentava criar de novo e recebia "Email já cadastrado".
+          Toast.warning(
+            'Sua conta foi criada. A entrada automática não funcionou' +
+            (erroLogin?.message ? ' (' + erroLogin.message + ')' : '') +
+            '. Entre com o e-mail e a senha que você acabou de cadastrar.',
+            'Conta criada'
+          );
+          document.querySelector('.tab[data-tab="login"]').click();
+          document.getElementById('loginCpfEmail').value = email;
         }
       } catch (error) {
         Toast.error(error.message || 'Não foi possível criar sua conta. Tente novamente.', 'Erro no cadastro');

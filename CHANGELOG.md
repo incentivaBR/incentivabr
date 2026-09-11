@@ -2,6 +2,30 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### A calculadora não estima mais o IR devido por atalho
+- Enquanto a pessoa digitava o rendimento, `calculadora.html` mostrava um "limite estimado" a partir de **IR ≈ 18% dos rendimentos**. O atalho ignora a faixa isenta e a progressividade da tabela. Medido contra a conta real do backend, sem deduções:
+
+  | rendimento no ano | limite real | o que a prévia dizia | erro |
+  |---|---|---|---|
+  | R$ 36.000 | R$ 43,26 | R$ 388,80 | +799% |
+  | R$ 60.000 | R$ 338,77 | R$ 648,00 | +91% |
+  | R$ 96.000 | R$ 932,77 | R$ 1.036,80 | +11% |
+  | R$ 150.000 | R$ 1.823,77 | R$ 1.620,00 | −11% |
+  | R$ 240.000 | R$ 3.308,77 | R$ 2.592,00 | −22% |
+
+  O erro é maior justamente na faixa de renda da maior parte do público. A prévia a partir do rendimento saiu: o IR devido vem da tabela progressiva, que é do backend (`POST /api/calculator/ir`, no envio). A prévia do campo "IR devido" continua, porque ali é exata — 6% do que a pessoa digitou.
+- O cálculo dos 6% em si estava correto e continua: incide sobre o **imposto devido apurado na declaração**, nunca sobre o rendimento; o percentual vem de `tetos_deducao`; e a organização pode reduzir o teto, nunca aumentá-lo. `backend/tests/calculadora.test.mjs` passa a guardar as três coisas, mais a faixa isenta, a progressividade e o fato de a tela não escrever percentual à mão.
+
+### O aviso na tela não some mais, e o cadastro diz o que aconteceu
+- **Causa raiz.** `js/utils.js` injetava um `.toast` antigo (estado base `opacity: 0`, à espera de um `.show`) que mirava o mesmo elemento do `js/toast.js` e vencia nas duas propriedades que este não declarava. Nas duas páginas que carregam os dois arquivos, `login.html` e `calculadora.html`, todo aviso aparecia durante os 0,3s da animação de entrada e sumia. Ninguém conseguia ler por que o cadastro ou o login tinha falhado. As classes do aviso de reserva passam a ter nome próprio (`aviso-simples`), e o `js/toast.js` declara o estado visível e preserva o quadro final da animação (`both`), para não voltar a depender do que outra folha de estilo disser.
+- O aviso também trazia a largura somada ao recuo, e no celular a caixa passava da borda da tela levando o botão de fechar junto. `box-sizing: border-box` no próprio componente, que traz o próprio CSS e não deve depender do reset da página.
+- `scripts/confere-paginas.mjs` (job do CI no Chromium) passa a mostrar um aviso em cada página e falhar se ele ficar invisível ou fora da área visível depois da animação.
+- **Cadastro.** A resposta de sucesso mandava "verifique seu email para ativar a conta". O token de verificação é gerado e guardado como hash, mas o valor em claro não é enviado a ninguém e não existe página que o receba: a conta já entra pelo login. A mensagem passa a dizer isso.
+- A entrada automática depois do cadastro falhava em silêncio: a conta estava criada, a pessoa voltava para a aba de entrar sem saber, tentava de novo e recebia "Email já cadastrado". Agora a tela diz que a conta foi criada, repete o motivo da falha e pede para entrar.
+- `POST /api/auth/register` pedia a conexão FORA do `try`. Com o banco indisponível, a promessa do handler era rejeitada e o Express 4 não encaminha rejeição de função async para o tratador de erro: a requisição ficava sem resposta e a tela girava até o navegador desistir. Agora responde 500 em JSON.
+- O limitador de tentativas vale para entrar e para criar conta, que dividem a mesma cota de 10 a cada 15 minutos, mas a mensagem falava só em login e mandava quem tentou se cadastrar procurar problema onde não estava.
+- `backend/tests/cadastro-conta.test.mjs`.
+
 ### White label: a página inicial do cliente
 - Um cliente white-label recebia a cor e a logo dele sobre o discurso da IncentivaBR. A migration 039 dá três textos à organização (frase principal, parágrafo, quem somos), editados na tela de clientes do superadmin e devolvidos por `GET /api/config/brand` em `textos`, junto com `slug` e `eh_plataforma`. `tenant.js` escreve cada um em `[data-tenant="…"]` por `textContent`, e mostra `[data-so-cliente]` só na página de um cliente. Em branco, a página fica com o texto da IncentivaBR.
 - Na página do cliente, o projeto ativo dele vem no hero, com PRONAC e o botão "Destinar para este projeto" (`data-projeto`, `data-destinar`), e uma seção "Quem somos" com o e-mail de contato. O rodapé único ganha a linha "opera esta página com a tecnologia IncentivaBR".

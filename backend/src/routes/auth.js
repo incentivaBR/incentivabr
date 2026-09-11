@@ -92,8 +92,13 @@ async function logAudit(organizationId, userId, action, entityType, entityId, de
 // POST /api/auth/register
 // ─────────────────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
-  const client = await pool.connect();
+  // A conexão é pedida DENTRO do try. Fora dele, um banco indisponível
+  // rejeitava a promessa do próprio handler, e o Express 4 não encaminha
+  // rejeição de função async para o tratador de erro: a requisição ficava
+  // sem resposta e a tela girava até o navegador desistir.
+  let client;
   try {
+    client = await pool.connect();
     const { cpf, nome, email, phone, senha, accepted_terms } = req.body;
     const org = req.organization;
     const ip = getClientIP(req);
@@ -181,16 +186,22 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       status: 'success',
-      message: 'Cadastro realizado! Verifique seu email para ativar a conta.',
+      // Não prometer e-mail de ativação: o token de verificação é gerado e
+      // guardado como hash, mas o valor em claro não é enviado a ninguém e
+      // não existe página que o receba. A conta entra direto pelo login.
+      message: 'Conta criada! Você já pode entrar com seu e-mail e senha.',
       user: { id: user.id, nome: user.nome, email: user.email, cpf: user.cpf }
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    // Pode não haver conexão (falha no connect) nem transação aberta (erro
+    // antes do BEGIN): nenhum dos dois casos pode virar um segundo erro aqui
+    // e deixar a requisição sem resposta.
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('[Auth] Erro no registro:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno ao registrar.' });
   } finally {
-    client.release();
+    client?.release();
   }
 });
 
