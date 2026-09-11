@@ -30,6 +30,7 @@ import mecenatoRoutes from './src/routes/mecenato.js';
 import interessadosRoutes from './src/routes/interessados.js';
 import convitesRoutes from './src/routes/convites.js';
 import tenantMiddleware from './src/middleware/tenant.js';
+import { guardaDePaginasDaPlataforma } from './src/lib/paginasDaPlataforma.js';
 
 dotenv.config();
 
@@ -235,6 +236,10 @@ if (SITE_SENHA) {
 
 // Multi-tenant middleware (detecta organização pelo subdomínio/query param)
 app.use(tenantMiddleware);
+
+// Páginas que só a IncentivaBR mostra. Depois do tenant (para saber quem
+// pediu) e antes do estático (que já teria entregado o arquivo).
+app.use(guardaDePaginasDaPlataforma);
 
 // Servir arquivos estáticos do frontend
 const frontendPath = path.join(__dirname, '../frontend');
