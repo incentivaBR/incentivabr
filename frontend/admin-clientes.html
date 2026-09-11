@@ -226,6 +226,31 @@
           <p class="vazio" id="semConvites" hidden>Nenhum convite ainda.</p>
         </div>
       </div>
+
+      <!-- ── Contas cadastradas ───────────────────────────────────── -->
+      <div class="cartao">
+        <h2>Contas cadastradas</h2>
+        <p class="nota">
+          CPF e e-mail são únicos: quem está testando esbarra em "CPF já cadastrado"
+          na segunda tentativa. Aqui a conta de teste é apagada e os dois voltam a
+          ficar livres. Uma de cada vez. Conta de super-administrador não é apagada,
+          e conta com destinação registrada fora do modo simulação também não —
+          comprovante e recibo são registro fiscal.
+        </p>
+        <label for="buscaConta">Procurar por e-mail, nome ou CPF</label>
+        <div class="linha-acoes" style="margin-top:0">
+          <input id="buscaConta" placeholder="deixe em branco para ver as mais recentes" style="flex:1;min-width:220px">
+          <button class="btn leve" type="button" id="btnBuscaConta">Procurar</button>
+        </div>
+        <div style="margin-top:18px">
+          <table>
+            <thead><tr><th>Pessoa</th><th>CPF</th><th>Destinações</th><th></th></tr></thead>
+            <tbody id="listaContas"></tbody>
+          </table>
+          <p class="vazio" id="semContas" hidden>Nenhuma conta encontrada.</p>
+        </div>
+        <div id="avisoConta" class="aviso erro" hidden></div>
+      </div>
     </div>
   </div>
 
@@ -403,12 +428,48 @@
 
     el('selOrg').addEventListener('change', () => { preencheTextos(); carregaConvites(); });
 
+    // ── Contas cadastradas ──────────────────────────────────────────
+    async function carregaContas() {
+      const busca = el('buscaConta').value.trim();
+      try {
+        const d = await chamar('/api/admin/usuarios?busca=' + encodeURIComponent(busca));
+        el('listaContas').innerHTML = d.usuarios.map(u => `
+          <tr>
+            <td><strong>${esc(u.nome || '—')}</strong><br><span style="color:#8B96A8">${esc(u.email)}</span>
+                ${u.is_superadmin ? '<br><span class="selo aceito">super-admin</span>' : ''}</td>
+            <td style="font-variant-numeric:tabular-nums">${esc(u.cpf_mascarado)}</td>
+            <td>${u.destinacoes}</td>
+            <td>${u.is_superadmin ? ''
+              : `<button class="btn perigo" data-apagar="${esc(u.id)}" data-quem="${esc(u.email)}">Apagar</button>`}</td>
+          </tr>`).join('');
+        el('semContas').hidden = d.usuarios.length > 0;
+        el('avisoConta').hidden = true;
+      } catch (erro) { avisar('avisoConta', erro.message); }
+    }
+
+    el('btnBuscaConta').addEventListener('click', carregaContas);
+    el('buscaConta').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); carregaContas(); } });
+
+    el('listaContas').addEventListener('click', async e => {
+      const botao = e.target.closest('[data-apagar]');
+      if (!botao) return;
+      // Apagar conta não tem desfazer: a confirmação pede o e-mail na tela.
+      if (!confirm(`Apagar a conta de ${botao.dataset.quem}?\n\nO CPF e o e-mail voltam a ficar livres para um novo cadastro. Não há como desfazer.`)) return;
+      botao.disabled = true;
+      try {
+        const d = await chamar('/api/admin/usuarios/' + encodeURIComponent(botao.dataset.apagar), { method: 'DELETE' });
+        await carregaContas();
+        avisar('avisoConta', d.message, true);
+      } catch (erro) { botao.disabled = false; avisar('avisoConta', erro.message); }
+    });
+
     // ── Início ──────────────────────────────────────────────────────
     (async () => {
       if (!auth.getToken()) return location.href = 'login.html';
       try {
         await carregaClientes();
         el('conteudo').hidden = false;
+        carregaContas();   // depois de liberar a tela: falha aqui não tranca o resto
       } catch {
         // 403 aqui significa conta sem superadmin — dizer isso é melhor que
         // uma tela vazia sem explicação.

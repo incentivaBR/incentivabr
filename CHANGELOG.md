@@ -2,6 +2,12 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Apagar conta de teste pela tela do superadmin
+- CPF e e-mail são únicos, e não havia nenhum caminho no produto para desfazer um cadastro: quem estava experimentando a plataforma esbarrava em "CPF já cadastrado" na segunda tentativa e só sairia dali editando o banco à mão. `GET /api/admin/usuarios` (busca por e-mail, nome ou CPF, com ou sem pontuação) e `DELETE /api/admin/usuarios/:id`, com um cartão novo em `admin-clientes.html`.
+- Uma conta de cada vez; não existe rota que limpe a tabela. Três travas: conta de super-administrador nunca é apagada, porque apagar a única tranca o sistema por fora; conta com destinação registrada só sai em modo simulação, onde a destinação é exercício — fora dele, comprovante e recibo são registro fiscal de alguém; e a listagem devolve o CPF mascarado, porque o superadmin precisa reconhecer a conta, não ler o documento.
+- O `audit_log` guarda quem apagou, quando e de onde, sem o CPF. Ele sobrevive à exclusão: `users.id` entra nele com `ON DELETE SET NULL`.
+- `backend/tests/limpar-contas.test.mjs`.
+
 ### A calculadora não estima mais o IR devido por atalho
 - Enquanto a pessoa digitava o rendimento, `calculadora.html` mostrava um "limite estimado" a partir de **IR ≈ 18% dos rendimentos**. O atalho ignora a faixa isenta e a progressividade da tabela. Medido contra a conta real do backend, sem deduções:
 
