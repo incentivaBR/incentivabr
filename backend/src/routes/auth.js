@@ -6,6 +6,7 @@ import { authenticateToken } from '../middleware/auth.js';
 import { notifyWelcome } from '../services/notificationService.js';
 import { sendEmail } from '../services/emailService.js';
 import { geraToken, hashDoToken, expiraEmMinutos } from '../lib/tokens.js';
+import { limpaCPF, cpfValido } from '../lib/cpf.js';
 
 const router = express.Router();
 
@@ -34,35 +35,47 @@ let enviaRedefinicao = async ({ to, nome, link }) => sendEmail({
 });
 export function _trocaEnvioDeRedefinicao(fn) { enviaRedefinicao = fn; }
 
+// A confirmação de e-mail. O token era gerado e guardado como hash desde
+// sempre, mas o valor em claro era descartado na mesma linha: nenhuma
+// mensagem saía e não existia página que a recebesse. A conta ficava com
+// `email_verified = false` para sempre, e ninguém tinha como provar que é
+// dono da caixa — o que também é o que dá sentido à redefinição de senha.
+let enviaVerificacao = async ({ to, nome, link }) => sendEmail({
+  to,
+  subject: 'Confirme seu e-mail — IncentivaBR',
+  html: `
+    <p>Olá, <strong>${escapaHtml(nome)}</strong>!</p>
+    <p>Sua conta na IncentivaBR foi criada. Confirme que este e-mail é seu:</p>
+    <p><a href="${link}" style="background:#0F1E3D;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Confirmar meu e-mail</a></p>
+    <p>Este link expira em <strong>24 horas</strong> e só pode ser usado uma vez.</p>
+    <p>Se não foi você quem criou a conta, ignore esta mensagem.</p>
+    <hr>
+    <small>IncentivaBR — Incentivos Fiscais Simplificados</small>
+  `
+});
+export function _trocaEnvioDeVerificacao(fn) { enviaVerificacao = fn; }
+
+/**
+ * O endereço que abre a aplicação deste tenant, para montar links de e-mail.
+ * Mesma regra da redefinição: domínio próprio do cliente quando houver,
+ * senão o www — o apex responde com falha de TLS.
+ */
+function enderecoDoTenant(org) {
+  const base = org?.custom_domain
+    ? `https://${org.custom_domain}`
+    : (process.env.APP_URL || 'https://www.incentivabr.com.br');
+  const orgParam = org?.slug && !org?.custom_domain ? `&org=${encodeURIComponent(org.slug)}` : '';
+  return { base, orgParam };
+}
+
 // ─────────────────────────────────────────────────────────────
 // Utilitários de validação
 // ─────────────────────────────────────────────────────────────
 
-function cleanCPF(cpf) {
-  return cpf.replace(/\D/g, '');
-}
-
-function isValidCPF(cpf) {
-  const c = cleanCPF(cpf);
-  if (c.length !== 11) return false;
-  if (/^(\d)\1+$/.test(c)) return false; // ex: 111.111.111-11
-
-  // Dígito verificador 1
-  let sum = 0;
-  for (let i = 0; i < 9; i++) sum += parseInt(c[i]) * (10 - i);
-  let d1 = 11 - (sum % 11);
-  if (d1 >= 10) d1 = 0;
-  if (d1 !== parseInt(c[9])) return false;
-
-  // Dígito verificador 2
-  sum = 0;
-  for (let i = 0; i < 10; i++) sum += parseInt(c[i]) * (11 - i);
-  let d2 = 11 - (sum % 11);
-  if (d2 >= 10) d2 = 0;
-  if (d2 !== parseInt(c[10])) return false;
-
-  return true;
-}
+// Limpeza e validação de CPF vêm de lib/cpf.js — antes eram uma cópia aqui e
+// outra em frontend/js/utils.js.
+const cleanCPF = limpaCPF;
+const isValidCPF = cpfValido;
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -105,16 +118,23 @@ router.post('/register', async (req, res) => {
     const ua = req.headers['user-agent'];
 
     // Validações básicas
-    if (!cpf || !nome || !email || !senha) {
-      return res.status(400).json({ status: 'error', message: 'Campos obrigatórios: cpf, nome, email, senha.' });
+    //
+    // O CPF NÃO entra aqui. Ele é pedido no momento de registrar a
+    // destinação, que é quando serve para alguma coisa: vai no Recibo de
+    // Mecenato. Pedir documento na primeira tela, antes de a pessoa entender
+    // o que a plataforma faz, é atrito e é guardar dado sem finalidade
+    // imediata. Quem mandar o campo mesmo assim (uma integração antiga) tem
+    // ele aceito e validado — só não é mais obrigatório.
+    if (!nome || !email || !senha) {
+      return res.status(400).json({ status: 'error', message: 'Campos obrigatórios: nome, email, senha.' });
     }
     if (!accepted_terms) {
       return res.status(400).json({ status: 'error', message: 'Você deve aceitar os Termos de Uso e a Política de Privacidade.' });
     }
 
-    const cleanedCPF = cleanCPF(cpf);
+    const cleanedCPF = cpf ? cleanCPF(cpf) : null;
 
-    if (!isValidCPF(cleanedCPF)) {
+    if (cleanedCPF && !isValidCPF(cleanedCPF)) {
       return res.status(400).json({ status: 'error', message: 'CPF inválido.' });
     }
     if (!isValidEmail(email)) {
@@ -127,21 +147,30 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Nome deve ter no mínimo 3 caracteres.' });
     }
 
-    // Verificar duplicidade
+    // Verificar duplicidade.
+    //
+    // Sem CPF, a consulta é só pelo e-mail: `cpf = NULL` nunca é verdadeiro em
+    // SQL. E o campo a apontar na mensagem sai de uma comparação explícita —
+    // com os dois lados nulos, `dup.cpf === cleanedCPF` dava verdadeiro e a
+    // tela dizia "CPF já cadastrado" para quem repetiu o e-mail.
     const dup = await client.query(
-      'SELECT id, cpf, email FROM users WHERE cpf = $1 OR email = $2',
-      [cleanedCPF, email.toLowerCase()]
+      cleanedCPF
+        ? 'SELECT id, cpf, email FROM users WHERE cpf = $1 OR email = $2'
+        : 'SELECT id, cpf, email FROM users WHERE email = $2',
+      cleanedCPF ? [cleanedCPF, email.toLowerCase()] : [null, email.toLowerCase()]
     );
     if (dup.rows.length > 0) {
-      const campo = dup.rows[0].cpf === cleanedCPF ? 'CPF' : 'Email';
-      return res.status(409).json({ status: 'error', message: `${campo} já cadastrado.` });
+      const ehOCpf = !!cleanedCPF && dup.rows[0].cpf === cleanedCPF;
+      return res.status(409).json({
+        status: 'error',
+        message: ehOCpf ? 'CPF já cadastrado.' : 'Email já cadastrado.'
+      });
     }
 
-    // Token de verificação de email. Só o hash vai para o banco. O valor em
-    // claro ainda não é enviado a ninguém: o e-mail de boas-vindas não o
-    // inclui e não existe página que o receba. Fica gerado do jeito certo
-    // para quando o fluxo for ligado.
-    const { hash: emailTokenHash } = geraToken();
+    // Token de confirmação do e-mail. O banco fica só com o SHA-256; o valor
+    // em claro existe nesta variável e na caixa de entrada de quem se
+    // cadastrou, em nenhum outro lugar.
+    const { claro: emailTokenClaro, hash: emailTokenHash } = geraToken();
     const emailTokenExpiry = expiraEmMinutos(VALIDADE_VERIFICACAO_MIN);
 
     const senhaHash = await bcrypt.hash(senha, 10);
@@ -184,12 +213,22 @@ router.post('/register', async (req, res) => {
     notifyWelcome({ name: user.nome, email: user.email, phone: phone || null })
       .catch(() => {});
 
+    // A confirmação do e-mail. Falha de envio não derruba o cadastro — a
+    // conta já existe e o link pode ser pedido de novo em
+    // POST /api/auth/reenviar-verificacao.
+    const { base, orgParam } = enderecoDoTenant(org);
+    enviaVerificacao({
+      to: user.email,
+      nome: user.nome,
+      link: `${base}/verificar-email.html?t=${encodeURIComponent(emailTokenClaro)}${orgParam}`
+    }).catch(erro => console.error('[Auth] falha ao enviar confirmação de e-mail:', erro.message));
+
     res.status(201).json({
       status: 'success',
-      // Não prometer e-mail de ativação: o token de verificação é gerado e
-      // guardado como hash, mas o valor em claro não é enviado a ninguém e
-      // não existe página que o receba. A conta entra direto pelo login.
-      message: 'Conta criada! Você já pode entrar com seu e-mail e senha.',
+      // A mensagem diz o que de fato acontece: a confirmação sai por e-mail,
+      // e entrar não depende dela. Já prometeu "verifique seu email para
+      // ativar a conta" quando nenhuma mensagem saía.
+      message: 'Conta criada! Enviamos um e-mail para você confirmar o endereço. Você já pode entrar.',
       user: { id: user.id, nome: user.nome, email: user.email, cpf: user.cpf }
     });
 
@@ -485,6 +524,44 @@ router.post('/reset-password', async (req, res) => {
 
   } catch (error) {
     console.error('[Auth] Erro no reset-password:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/auth/reenviar-verificacao — pede o link de confirmação de novo
+//
+// Autenticada: quem pede é a própria pessoa, já dentro da conta. O token
+// anterior é substituído, então um link antigo que ficou na caixa de entrada
+// para de valer — é o que se espera de "me manda outro".
+// ─────────────────────────────────────────────────────────────
+router.post('/reenviar-verificacao', authenticateToken, async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT id, nome, email, email_verified FROM users WHERE id = $1', [req.user.userId]);
+    const user = r.rows[0];
+    if (!user) return res.status(404).json({ status: 'error', message: 'Conta não encontrada.' });
+
+    if (user.email_verified) {
+      return res.json({ status: 'success', message: 'Seu e-mail já está confirmado.' });
+    }
+
+    const { claro, hash } = geraToken();
+    await pool.query(
+      `UPDATE users SET email_verification_token = $1, email_verification_expires = $2 WHERE id = $3`,
+      [hash, expiraEmMinutos(VALIDADE_VERIFICACAO_MIN), user.id]
+    );
+
+    const { base, orgParam } = enderecoDoTenant(req.organization);
+    await enviaVerificacao({
+      to: user.email,
+      nome: user.nome,
+      link: `${base}/verificar-email.html?t=${encodeURIComponent(claro)}${orgParam}`
+    }).catch(erro => console.error('[Auth] falha ao reenviar confirmação:', erro.message));
+
+    res.json({ status: 'success', message: `Enviamos um novo link para ${user.email}.` });
+  } catch (error) {
+    console.error('[Auth] Erro ao reenviar verificacao:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno.' });
   }
 });

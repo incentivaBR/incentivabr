@@ -5,6 +5,7 @@ import { gerarComprovante } from '../services/pdfGenerator.js';
 import { notifyDestinationRegistered, notifyDestinationConfirmed, notifyAdminNewDonation, notifyProponenteMecenatoPendente } from '../services/notificationService.js';
 import { podeGerirOrganizacao } from '../lib/permissoes.js';
 import { saldoDisponivel, bloqueiaContribuinte } from '../lib/tetos.js';
+import { limpaCPF, cpfValido } from '../lib/cpf.js';
 
 const router = express.Router();
 
@@ -166,6 +167,42 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
 
     if (!fiscal_year || fiscal_year < 2024) {
       return res.status(400).json({ status: 'error', message: 'Ano fiscal inválido.' });
+    }
+
+    // O CPF é pedido AQUI, não no cadastro (migração 040).
+    //
+    // É neste ponto que ele serve para alguma coisa: vai no Recibo de
+    // Mecenato que o proponente emite, e é por ele que a Receita liga a
+    // dedução à pessoa. Quem já informou uma vez não informa de novo — o
+    // valor guardado na conta é o que vale.
+    const donoRes = await client.query('SELECT cpf FROM users WHERE id = $1', [userId]);
+    if (!donoRes.rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Conta não encontrada.' });
+    }
+    let cpfDoContribuinte = donoRes.rows[0].cpf || null;
+
+    if (!cpfDoContribuinte) {
+      const informado = limpaCPF(req.body.cpf || '');
+      if (!informado) {
+        return res.status(400).json({
+          status: 'error',
+          codigo: 'cpf_necessario',
+          message: 'Informe seu CPF: ele vai no Recibo de Mecenato e é por ele que a dedução é lançada na sua declaração.'
+        });
+      }
+      if (!cpfValido(informado)) {
+        return res.status(400).json({ status: 'error', codigo: 'cpf_invalido', message: 'CPF inválido. Confira os 11 dígitos.' });
+      }
+      const emUso = await client.query('SELECT id FROM users WHERE cpf = $1 AND id <> $2', [informado, userId]);
+      if (emUso.rows.length) {
+        return res.status(409).json({
+          status: 'error',
+          codigo: 'cpf_em_uso',
+          message: 'Este CPF já está em outra conta. Entre com ela ou fale com o suporte.'
+        });
+      }
+      await client.query('UPDATE users SET cpf = $1 WHERE id = $2', [informado, userId]);
+      cpfDoContribuinte = informado;
     }
 
     // O teto e o saldo são conferidos mais abaixo, DENTRO da transação e

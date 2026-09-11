@@ -7,6 +7,7 @@
 import express from 'express';
 import pool from '../../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { mascaraCPF } from '../lib/cpf.js';
 
 const router = express.Router();
 
@@ -399,11 +400,6 @@ router.get('/audit', async (req, res) => {
 // nenhum caminho no produto para desfazer. O CPF sai mascarado — o
 // superadmin precisa reconhecer a conta, não ler o documento de ninguém.
 // ─────────────────────────────────────────────────────────────
-const mascaraCPF = cpf => {
-  const c = String(cpf || '').replace(/\D/g, '');
-  return c.length === 11 ? `•••.•••.${c.slice(6, 9)}-${c.slice(9)}` : '—';
-};
-
 router.get('/usuarios', async (req, res) => {
   try {
     const busca = String(req.query.busca || '').trim();

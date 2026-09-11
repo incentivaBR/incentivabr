@@ -1,0 +1,14 @@
+-- Migration 040: o CPF deixa de ser exigido para criar conta
+-- Data: 2026-09-11
+--
+-- O CPF era obrigatório na primeira tela do cadastro, antes de a pessoa
+-- entender o que a plataforma faz. Ele só é necessário no momento de
+-- registrar a destinação, porque vai no Recibo de Mecenato — é lá que passa a
+-- ser pedido (POST /api/donations/rouanet).
+--
+-- Pedir documento antes da hora é atrito e é guardar dado sem finalidade
+-- imediata, o contrário do que a LGPD pede.
+--
+-- A restrição UNIQUE continua: no Postgres ela admite vários NULL, então
+-- contas sem CPF convivem e dois CPFs iguais continuam impossíveis.
+ALTER TABLE users ALTER COLUMN cpf DROP NOT NULL;
