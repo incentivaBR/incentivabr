@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O que é da IncentivaBR não aparece no site do cliente
+- A página inicial já trocava marca, cores e textos por tenant, mas três trechos continuavam falando pela IncentivaBR sob a marca do cliente: o cartão "Associação / ONG", que vende a plataforma white-label, e os números e depoimentos do piloto de maio de 2026. O cartão ofereceria ao público **dele** a tecnologia que ele já contratou; os depoimentos são de servidores do DF que usaram o piloto e, sob outra marca, passariam por depoimentos da base dele — o que não é verdade. Os três ganharam `data-so-plataforma`.
+- `para-associacoes.html` é a carta de vendas do white-label inteira, e esconder o link não faz o endereço sumir. `backend/src/lib/paginasDaPlataforma.js` lista as páginas que só a plataforma mostra, e a guarda roda **entre** o middleware de tenant e o `express.static`: no domínio do cliente, o arquivo não chega a sair daqui. Depois do estático o bloqueio não valeria nada, e o teste falha se alguém mudar essa ordem.
+- O redirecionamento leva o `?org=` junto. Sem isso, testar um cliente em desenvolvimento devolveria sempre a página da IncentivaBR e pareceria que o white-label não funciona.
+- `docs/operacao/separacao-white-label.md` diz, página a página, o que é da plataforma, o que é do cliente e o que serve aos dois — e registra os três pontos que dependem de contrato, não de código: de quem é a lista de avisos, quem é controlador dos dados nos termos e na política de privacidade, e o registro INPI no rodapé.
+- `backend/tests/separacao-white-label.test.mjs`.
+
 ### Portaria: o site inteiro atrás de uma senha enquanto não abre
 - O endereço estava aberto a qualquer pessoa e sem `robots.txt`: o Google podia indexar uma plataforma que fala de imposto, ainda em modo simulação e sem o parecer do tributarista. `SITE_SENHA` no painel põe o site inteiro atrás de uma senha; vazia, nada muda e o site segue aberto.
 - Ficam fora da portaria `/health` (é por ele que a Railway sabe que o processo subiu), `/diagnostico` (é o que o monitor de uptime lê) e `/robots.txt` (existe para os buscadores). Se qualquer um entrasse, o deploy seria marcado como falho, o monitor apitaria a cada 15 minutos, ou o bloqueio de indexação não seria lido.

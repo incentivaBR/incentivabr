@@ -271,7 +271,12 @@
           </a>
         </div>
 
-        <div class="rounded-2xl p-7 fade-up card-hover flex flex-col"
+        <!-- Este cartão vende a plataforma white-label para quem ainda não é
+             cliente. No site de um cliente ele apareceria para o público DELE,
+             oferecendo a mesma tecnologia que ele já contratou — a plataforma
+             passando na frente de quem a contratou. Só na página da
+             IncentivaBR. -->
+        <div data-so-plataforma class="rounded-2xl p-7 fade-up card-hover flex flex-col"
              style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
           <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
                style="background:rgba(238,152,92,0.15)">
@@ -363,8 +368,11 @@
     </div>
   </section>
 
-  <!-- ── PROVA SOCIAL ── -->
-  <section class="py-20 px-4" style="border-top:1px solid rgba(255,255,255,0.05)">
+  <!-- ── PROVA SOCIAL (piloto da IncentivaBR; some na página de um cliente) ──
+       Os depoimentos são de servidores do DF que usaram o piloto da
+       IncentivaBR em maio de 2026. No site de um cliente, sob a marca dele,
+       passariam por depoimentos da base dele — e não são. -->
+  <section data-so-plataforma class="py-20 px-4" style="border-top:1px solid rgba(255,255,255,0.05)">
     <div class="max-w-4xl mx-auto">
       <div class="text-center mb-14 fade-up">
         <div class="text-xs font-bold tracking-widest uppercase mb-3" style="color:#EE985C">O que dizem os primeiros usuários</div>
