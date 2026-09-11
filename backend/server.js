@@ -124,7 +124,10 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV === 'test',
-  message: { status: 'error', message: 'Muitas tentativas de login. Tente novamente em 15 minutos.' }
+  // O mesmo limitador vale para entrar e para criar conta, e as duas rotas
+  // dividem a mesma cota. Dizer só "login" mandava quem tentou se cadastrar
+  // procurar problema onde não estava.
+  message: { status: 'error', message: 'Muitas tentativas de entrar ou de criar conta. Tente novamente em 15 minutos.' }
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);

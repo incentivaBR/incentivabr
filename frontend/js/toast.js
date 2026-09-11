@@ -99,6 +99,10 @@ const Toast = (function() {
       }
 
       .toast {
+        /* O aviso traz o próprio CSS, então não pode depender do reset da
+           página: sem isto, a largura de 100% no celular somava o padding e
+           a caixa passava da borda da tela, levando o botão de fechar junto. */
+        box-sizing: border-box;
         pointer-events: auto;
         display: flex;
         align-items: flex-start;
@@ -109,7 +113,14 @@ const Toast = (function() {
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.12);
         max-width: 420px;
         min-width: 320px;
-        animation: toastSlideIn 0.3s ease-out;
+        /* O estado visível vai explícito, e a animação preserva o quadro
+           final (fill-mode both). Sem isso o aviso volta ao que outra folha
+           de estilo disser assim que os 0,3s de entrada terminam — foi o que
+           aconteceu com o .toast antigo de js/utils.js, que o deixava em
+           opacity 0. */
+        opacity: 1;
+        transform: translateX(0);
+        animation: toastSlideIn 0.3s ease-out both;
         position: relative;
         overflow: hidden;
         cursor: pointer;

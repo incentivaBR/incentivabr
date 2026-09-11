@@ -112,13 +112,14 @@ const utils = {
       return;
     }
 
-    // Fallback para toast simples
+    // Aviso de reserva. Classes com nome próprio (aviso-simples), nunca
+    // `toast`: as do toast.js miram o mesmo elemento e o deixavam invisível.
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `aviso-simples aviso-simples--${type}`;
     toast.innerHTML = `
-      <div class="toast-content">
-        <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
-        <span class="toast-message">${String(message ?? '').replace(/[&<>"']/g, c =>
+      <div class="aviso-simples__conteudo">
+        <span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+        <span>${String(message ?? '').replace(/[&<>"']/g, c =>
           ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))}</span>
       </div>
     `;
@@ -192,7 +193,17 @@ const utils = {
 // Adicionar estilos do toast e loading dinamicamente
 const style = document.createElement('style');
 style.textContent = `
-  .toast {
+  /* Aviso de reserva, usado só quando a página não carrega js/toast.js
+     (hoje: dashboard e destinar-rouanet).
+
+     O nome destas classes NÃO pode voltar a ser .toast. Enquanto era, este
+     bloco e o de js/toast.js miravam o mesmo elemento: o estado base daqui
+     (opacity: 0, à espera de um .show que o toast.js nunca acrescenta) vencia
+     nas duas propriedades que o toast.js não declarava. O aviso aparecia
+     durante os 0,3s da animação de entrada e sumia — em login.html e
+     calculadora.html, as duas páginas que carregam os dois arquivos.
+     Ninguém conseguia ler um erro de cadastro ou de login. */
+  .aviso-simples {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -206,11 +217,11 @@ style.textContent = `
     transition: all 0.3s ease;
     z-index: 10000;
   }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast-success { background: #4CAF50; }
-  .toast-error { background: #f44336; }
-  .toast-warning { background: #ff9800; }
-  .toast-content { display: flex; align-items: center; gap: 12px; }
+  .aviso-simples.show { transform: translateY(0); opacity: 1; }
+  .aviso-simples--success { background: #4CAF50; }
+  .aviso-simples--error { background: #f44336; }
+  .aviso-simples--warning { background: #ff9800; }
+  .aviso-simples__conteudo { display: flex; align-items: center; gap: 12px; }
 
   .loading-overlay {
     position: absolute;
