@@ -391,4 +391,155 @@ router.get('/audit', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin/usuarios — contas cadastradas, para limpar as de teste
+//
+// Existe porque CPF e e-mail são únicos: quem está experimentando a
+// plataforma esbarra em "CPF já cadastrado" na segunda tentativa e não tinha
+// nenhum caminho no produto para desfazer. O CPF sai mascarado — o
+// superadmin precisa reconhecer a conta, não ler o documento de ninguém.
+// ─────────────────────────────────────────────────────────────
+const mascaraCPF = cpf => {
+  const c = String(cpf || '').replace(/\D/g, '');
+  return c.length === 11 ? `•••.•••.${c.slice(6, 9)}-${c.slice(9)}` : '—';
+};
+
+router.get('/usuarios', async (req, res) => {
+  try {
+    const busca = String(req.query.busca || '').trim();
+    // A busca por CPF aceita com ou sem pontuação; por e-mail e nome, parte
+    // do texto. Sem busca, as contas mais recentes primeiro.
+    const cpfBuscado = busca.replace(/\D/g, '');
+    const filtros = [];
+    const params = [];
+    if (busca) {
+      params.push(`%${busca.toLowerCase()}%`);
+      filtros.push(`(LOWER(u.email) LIKE $${params.length} OR LOWER(u.nome) LIKE $${params.length})`);
+      if (cpfBuscado.length >= 3) {
+        params.push(`%${cpfBuscado}%`);
+        filtros.push(`u.cpf LIKE $${params.length}`);
+      }
+    }
+    const onde = filtros.length ? 'WHERE ' + filtros.join(' OR ') : '';
+    params.push(Math.min(parseInt(req.query.limit) || 50, 200));
+
+    const r = await pool.query(`
+      SELECT u.id, u.nome, u.email, u.cpf, u.is_superadmin, u.created_at,
+             o.name AS org_name
+      FROM users u
+      LEFT JOIN organizations o ON o.id = u.organization_id
+      ${onde}
+      ORDER BY u.created_at DESC
+      LIMIT $${params.length}
+    `, params);
+
+    // Contagem numa consulta à parte, não como subconsulta correlacionada:
+    // é o mesmo resultado e roda igual no Postgres e no pg-mem dos testes.
+    const contagem = await pool.query(
+      `SELECT user_id, COUNT(*) AS n FROM donations GROUP BY user_id`);
+    const porUsuario = new Map(contagem.rows.map(l => [l.user_id, parseInt(l.n) || 0]));
+
+    res.json({
+      status: 'success',
+      total: r.rows.length,
+      usuarios: r.rows.map(u => ({
+        id: u.id,
+        nome: u.nome,
+        email: u.email,
+        cpf_mascarado: mascaraCPF(u.cpf),
+        is_superadmin: u.is_superadmin === true,
+        org_name: u.org_name,
+        destinacoes: porUsuario.get(u.id) || 0,
+        created_at: u.created_at
+      }))
+    });
+  } catch (error) {
+    console.error('[Admin] Erro ao listar usuarios:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/admin/usuarios/:id — apaga UMA conta, com trava
+//
+// Uma de cada vez, de propósito: não existe rota que limpe a tabela. Duas
+// travas, e nenhuma delas é opcional:
+//
+//   1. Superadmin nunca é apagado. Apagar o único superadmin tranca o
+//      sistema por fora, e a saída seria editar o banco à mão.
+//   2. Conta com destinação só é apagada em modo simulação, onde a
+//      destinação é exercício. Fora dele, comprovante e recibo são registro
+//      fiscal de alguém e não somem por clique de administrador.
+//
+// O audit_log sobrevive: `users.id` entra nele com ON DELETE SET NULL, então
+// o histórico do que foi feito continua, sem apontar para a conta apagada.
+// ─────────────────────────────────────────────────────────────
+router.delete('/usuarios/:id', async (req, res) => {
+  const client = await pool.connect().catch(() => null);
+  if (!client) {
+    return res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+  try {
+    const { id } = req.params;
+
+    const alvo = await client.query(
+      `SELECT id, nome, email, is_superadmin, organization_id FROM users WHERE id = $1`, [id]);
+
+    if (!alvo.rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Conta não encontrada.' });
+    }
+    const u = alvo.rows[0];
+    const doacoes = await client.query(`SELECT id FROM donations WHERE user_id = $1`, [id]);
+    u.destinacoes = doacoes.rows.length;
+
+    if (u.is_superadmin) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Esta é uma conta de super-administrador e não pode ser apagada por aqui. ' +
+                 'Tire o papel de superadmin antes, se for mesmo o caso.'
+      });
+    }
+
+    const destinacoes = parseInt(u.destinacoes) || 0;
+    const simulacao = process.env.SIMULATION_MODE === 'true';
+    if (destinacoes > 0 && !simulacao) {
+      return res.status(409).json({
+        status: 'error',
+        message: `Esta conta tem ${destinacoes} destinação(ões) registrada(s) fora do modo simulação. ` +
+                 'Comprovante e recibo são registro fiscal: cancele as destinações antes de apagar a conta.'
+      });
+    }
+
+    await client.query('BEGIN');
+    // Em simulação, a destinação é exercício e sai junto — senão a chave
+    // estrangeira de donations.user_id recusa a exclusão.
+    if (destinacoes > 0) await client.query('DELETE FROM donations WHERE user_id = $1', [id]);
+    await client.query('DELETE FROM organization_users WHERE user_id = $1', [id]);
+    await client.query('DELETE FROM users WHERE id = $1', [id]);
+    await client.query('COMMIT');
+
+    // Quem apagou, quando e de onde. Sem CPF e sem o id apagado como FK.
+    await pool.query(
+      `INSERT INTO audit_log (organization_id, user_id, action, entity_type, entity_id, details, ip_address, user_agent)
+       VALUES ($1, $2, 'user.deleted', 'user', $3, $4, $5, $6)`,
+      [u.organization_id, req.user.userId, id,
+       JSON.stringify({ email: u.email, destinacoes_removidas: destinacoes, simulacao }),
+       req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || null,
+       req.headers['user-agent'] || null]
+    ).catch(() => {});
+
+    res.json({
+      status: 'success',
+      message: `Conta de ${u.nome || u.email} apagada. O CPF e o e-mail ficam livres para um novo cadastro.`,
+      destinacoes_removidas: destinacoes
+    });
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[Admin] Erro ao apagar usuario:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno ao apagar a conta.' });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
