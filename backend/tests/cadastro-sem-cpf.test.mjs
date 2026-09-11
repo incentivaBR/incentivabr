@@ -231,6 +231,37 @@ await teste('a tela de cadastro nao pede mais CPF', () => {
   if (/api\.register\([^)]*\bcpf\b/.test(html)) throw new Error('o cadastro ainda envia cpf');
 });
 
+await teste('o cadastro manda UMA mensagem, que ja e a de boas-vindas', async () => {
+  const doCadastro = enviados.filter(m => m.to === 'maria@exemplo.gov.br');
+  if (doCadastro.length !== 1) throw new Error(doCadastro.length + ' mensagens no cadastro');
+  if (doCadastro[0].boasVindas !== true) throw new Error('a mensagem do cadastro nao traz as boas-vindas');
+  // O e-mail separado de boas-vindas saia do notificationService. Se voltar,
+  // quem se cadastra recebe duas mensagens na mesma hora de novo.
+  const servico = le('backend/src/services/notificationService.js');
+  const bloco = servico.slice(servico.indexOf('export async function notifyWelcome'),
+                              servico.indexOf('export async function notifyDestinationRegistered'));
+  if (/sendWelcomeEmail/.test(bloco)) throw new Error('o e-mail separado de boas-vindas voltou');
+});
+
+await teste('todo botao de e-mail leva estilo na tag, nao por classe', () => {
+  // A classe `.button` do bloco <style> nao sobrevive inteira no Gmail: o
+  // fundo escuro chegava e a cor branca do texto nao. Sete mensagens saiam
+  // com texto escuro sobre fundo escuro, inclusive o convite de gestor.
+  const servico = le('backend/src/services/emailService.js');
+  const comClasse = servico.split('\n').filter(l => /<a [^>]*class="button"/.test(l));
+  if (comClasse.length) throw new Error('botao por classe em ' + comClasse.length + ' ponto(s)');
+  if (!/export const botaoEmail/.test(servico)) throw new Error('o helper do botao sumiu');
+  if (!/color:#ffffff/.test(servico)) throw new Error('o botao nao fixa a cor do texto');
+
+  const auth = le('backend/src/routes/auth.js');
+  const links = auth.split('\n').filter(l => /<a href="\$\{link\}"/.test(l));
+  for (const l of links) {
+    if (!/style="\$\{BOTAO\}"|color:#?ffffff|color:white/.test(l)) {
+      throw new Error('botao sem cor de texto na tag: ' + l.trim().slice(0, 80));
+    }
+  }
+});
+
 await teste('a tela de entrar nao promete CPF, que conta nova nao tem', () => {
   const html = le('frontend/login.html');
   const entrar = html.slice(html.indexOf('id="loginForm"'), html.indexOf('id="loginSenha"'));

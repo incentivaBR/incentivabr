@@ -1,18 +1,16 @@
 import * as emailService from './emailService.js';
 import * as whatsappService from './whatsappService.js';
 
-// Notificar boas-vindas (email + whatsapp)
+/**
+ * Boas-vindas por WhatsApp.
+ *
+ * O e-mail saiu daqui: era uma segunda mensagem, na mesma hora da confirmação
+ * de endereço, dizendo quase a mesma coisa. As duas viraram uma só, composta
+ * em `routes/auth.js`, que é onde nasce o link de confirmação.
+ */
 export async function notifyWelcome(user) {
   const results = { email: null, whatsapp: null };
 
-  // Email
-  try {
-    results.email = await emailService.sendWelcomeEmail(user);
-  } catch (err) {
-    console.error('❌ Erro email boas-vindas:', err.message);
-  }
-
-  // WhatsApp (se tiver telefone)
   if (user.phone) {
     results.whatsapp = whatsappService.sendWelcomeWhatsApp(user.phone, user.name);
   }
