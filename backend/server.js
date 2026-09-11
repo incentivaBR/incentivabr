@@ -151,6 +151,88 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─────────────────────────────────────────────────────────────
+// Portaria: o site inteiro atrás de uma senha, enquanto não abre
+//
+// Sem isto, qualquer pessoa com o endereço usa tudo e o Google indexa —
+// numa plataforma que fala de imposto, ainda em modo simulação e sem o
+// parecer do tributarista, isso é promessa que não se pode cumprir.
+//
+// Ligada por SITE_SENHA no painel. Vazia, o site fica aberto, que é o
+// comportamento de sempre: a portaria não muda nada até alguém pedir.
+//
+// Fora da portaria ficam /health, que é como a Railway sabe que o processo
+// subiu, e /diagnostico, que é o que o monitor de uptime lê. Se a portaria
+// os cobrisse, o deploy seria marcado como falho e o monitor apitaria a
+// cada quinze minutos.
+//
+// Por que um cookie, e não só a senha do navegador: as chamadas de API
+// mandam `Authorization: Bearer <token>`, que SUBSTITUI o cabeçalho da
+// senha do site. Com a portaria olhando só esse cabeçalho, a pessoa
+// entraria na página e toda chamada de dados seria recusada. O cookie
+// viaja junto de qualquer jeito e resolve isso.
+// ─────────────────────────────────────────────────────────────
+const SITE_SENHA = (process.env.SITE_SENHA || '').trim();
+const FORA_DA_PORTARIA = new Set(['/health', '/diagnostico']);
+const COOKIE_PORTARIA = 'incentivabr_portaria';
+
+// O selo deriva da própria senha: trocar a senha invalida todo cookie já
+// entregue, sem precisar de lista de sessões.
+const seloDaPortaria = SITE_SENHA
+  ? crypto.createHmac('sha256', SITE_SENHA).update('portaria-v1').digest('hex')
+  : null;
+
+const igualSemVazarTempo = (a, b) => {
+  const ha = crypto.createHash('sha256').update(String(a)).digest();
+  const hb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ha, hb);
+};
+
+// robots.txt acompanha a portaria: fechada, ninguém indexa; aberta, o
+// arquivo some e o site volta a ser indexável. Assim não fica um
+// "Disallow: /" esquecido para trás no dia da abertura.
+//
+// Fica ANTES da portaria, e tem de ficar: um robots.txt atrás de senha não é
+// lido por buscador nenhum, e o arquivo existe exatamente para eles.
+app.get('/robots.txt', (req, res) => {
+  if (!SITE_SENHA) return res.status(404).end();
+  res.type('text/plain').send('User-agent: *\nDisallow: /\n');
+});
+
+if (SITE_SENHA) {
+  console.log('🔒 Portaria ligada: o site exige senha (SITE_SENHA).');
+  app.use((req, res, next) => {
+    if (FORA_DA_PORTARIA.has(req.path)) return next();
+
+    const cookies = String(req.headers.cookie || '');
+    const selo = cookies.split(';')
+      .map(p => p.trim().split('='))
+      .find(([nome]) => nome === COOKIE_PORTARIA)?.[1];
+    if (selo && igualSemVazarTempo(selo, seloDaPortaria)) return next();
+
+    const [tipo, credencial] = String(req.headers.authorization || '').split(' ');
+    if (tipo === 'Basic' && credencial) {
+      // "usuario:senha" — o usuário não importa, só a senha.
+      const senha = Buffer.from(credencial, 'base64').toString('utf8').split(':').slice(1).join(':');
+      if (senha && igualSemVazarTempo(senha, SITE_SENHA)) {
+        res.cookie(COOKIE_PORTARIA, seloDaPortaria, {
+          httpOnly: true, sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 30 * 24 * 60 * 60 * 1000
+        });
+        return next();
+      }
+    }
+
+    // Cabeçalho HTTP é ASCII. O travessão do nome bonito derrubava a
+    // resposta inteira com "Invalid character in header content" — e o
+    // visitante recebia 500 em vez do pedido de senha.
+    res.set('WWW-Authenticate', 'Basic realm="IncentivaBR - acesso restrito"');
+    res.status(401).type('text/plain; charset=utf-8')
+       .send('IncentivaBR — em preparação. Esta versão está aberta apenas a quem tem a senha de acesso.');
+  });
+}
+
 // Multi-tenant middleware (detecta organização pelo subdomínio/query param)
 app.use(tenantMiddleware);
 

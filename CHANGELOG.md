@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Portaria: o site inteiro atrás de uma senha enquanto não abre
+- O endereço estava aberto a qualquer pessoa e sem `robots.txt`: o Google podia indexar uma plataforma que fala de imposto, ainda em modo simulação e sem o parecer do tributarista. `SITE_SENHA` no painel põe o site inteiro atrás de uma senha; vazia, nada muda e o site segue aberto.
+- Ficam fora da portaria `/health` (é por ele que a Railway sabe que o processo subiu), `/diagnostico` (é o que o monitor de uptime lê) e `/robots.txt` (existe para os buscadores). Se qualquer um entrasse, o deploy seria marcado como falho, o monitor apitaria a cada 15 minutos, ou o bloqueio de indexação não seria lido.
+- Depois de acertar a senha, um cookie sustenta a sessão por 30 dias. É o que faz a API continuar funcionando: as chamadas mandam `Authorization: Bearer <token>`, que substitui o cabeçalho da senha do site — sem o cookie, a pessoa entraria na página e toda chamada de dados seria recusada. O selo do cookie deriva da senha, então trocá-la invalida tudo que já foi entregue.
+- `robots.txt` acompanha a portaria: fechada, `Disallow: /`; aberta, o arquivo some. Assim não sobra um bloqueio esquecido no dia da abertura.
+- `backend/tests/portaria.test.mjs` e `docs/operacao/portaria.md`.
+
 ### Uma mensagem só no cadastro, e botão de e-mail legível
 - Quem criava conta recebia **duas** mensagens na mesma hora: as boas-vindas e a confirmação do endereço, dizendo quase a mesma coisa. Viraram uma só, composta em `routes/auth.js`, onde nasce o link: a confirmação primeiro, porque é a ação, e o convite para calcular depois. `notifyWelcome` fica só com o WhatsApp; `sendWelcomeEmail` saiu.
 - **O botão do e-mail de boas-vindas estava ilegível.** Ele era estilizado pela classe `.button` de um bloco `<style>`, e o Gmail descarta parte desse bloco: o fundo escuro chegava e a cor branca do texto não, deixando texto escuro sobre fundo escuro. Valia para **sete** mensagens, incluindo o convite de gestor e a confirmação de cadastro de interessado, onde o botão é a única saída.
