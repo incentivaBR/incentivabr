@@ -824,6 +824,20 @@
             Na próxima etapa aparecem os dados da Conta de Captação do projeto. A transferência é feita por você, no seu banco — depois é só anexar o comprovante aqui.
           </p>
 
+          <!-- O CPF é pedido aqui, não no cadastro: é aqui que ele serve.
+               Aparece só para quem ainda não informou; depois da primeira
+               destinação, o valor fica na conta e o bloco some. -->
+          <div id="blocoCpf" hidden style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:14px 16px;margin:0 0 14px">
+            <label for="cpfDestinacao" style="display:block;font-size:13px;font-weight:700;color:#33415C;margin-bottom:6px">Seu CPF</label>
+            <input id="cpfDestinacao" maxlength="14" inputmode="numeric" autocomplete="off"
+                   placeholder="000.000.000-00"
+                   style="width:100%;padding:11px 13px;border:1.5px solid #DCE3F0;border-radius:9px;font-size:15px;font-family:inherit">
+            <p style="font-size:12px;color:#7C4A14;margin:8px 0 0;line-height:1.6">
+              Ele vai no Recibo de Mecenato que o proponente emite, e é por ele que a
+              dedução é lançada na sua declaração. Pedimos uma vez só.
+            </p>
+          </div>
+
           <div style="display:flex;gap:10px">
             <button class="btn-secondary" style="margin-top:0" onclick="goTo(2)">
               <i class="fas fa-arrow-left"></i> Voltar
@@ -1357,6 +1371,10 @@
 
       if (!pronacFinal) { toast('PRONAC não encontrado. Volte e selecione o projeto.', 'error'); return; }
 
+      // Só viaja quando a conta ainda não tem CPF; o servidor recusa em
+      // branco e devolve `codigo: cpf_necessario`, que reabre este bloco.
+      const cpfInformado = document.getElementById('cpfDestinacao')?.value.replace(/\D/g, '') || '';
+
       showLoading('Registrando destinação...');
       try {
         const qs = orgParam ? `?org=${orgParam}` : '';
@@ -1368,11 +1386,20 @@
             projeto_titulo:  tituloFinal,
             ir_devido:       state.ir_devido,
             donation_amount: state.valor,
-            fiscal_year:     new Date().getFullYear()
+            fiscal_year:     new Date().getFullYear(),
+            ...(cpfInformado ? { cpf: cpfInformado } : {})
           })
         });
         const data = await res.json();
-        if (data.status !== 'success') throw new Error(data.message);
+        if (data.status !== 'success') {
+          // Falta o CPF, ou o que veio não serve: abre o bloco e põe o foco
+          // nele, em vez de só mostrar um erro que não diz onde resolver.
+          if (['cpf_necessario', 'cpf_invalido', 'cpf_em_uso'].includes(data.codigo)) {
+            const bloco = document.getElementById('blocoCpf');
+            if (bloco) { bloco.hidden = false; document.getElementById('cpfDestinacao').focus(); }
+          }
+          throw new Error(data.message);
+        }
 
         state.donationId = data.donation.id;
         preencherPagamento(data.donation);
@@ -1571,6 +1598,20 @@
 
     // ── Carregar dados iniciais ─────────────────────────────────
     async function init() {
+      // Quem ainda não informou o CPF vê o campo já na etapa de confirmação,
+      // em vez de descobrir que falta só ao tentar registrar. O servidor
+      // continua sendo quem decide: se esta informação estiver velha, a
+      // resposta reabre o bloco.
+      const blocoCpf = document.getElementById('blocoCpf');
+      if (blocoCpf && !auth.getUser()?.cpf) {
+        blocoCpf.hidden = false;
+        const campo = document.getElementById('cpfDestinacao');
+        ['input', 'keyup'].forEach(evt => campo.addEventListener(evt, function () {
+          const el = this;
+          requestAnimationFrame(() => { if (window.utils?.maskCPF) utils.maskCPF(el); });
+        }));
+      }
+
       showLoading('Carregando projeto...');
       try {
         const qs = orgParam ? `?org=${orgParam}` : '';

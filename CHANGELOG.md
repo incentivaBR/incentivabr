@@ -2,6 +2,15 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Cadastro sem CPF, e a confirmação de e-mail ligada
+- **O CPF sai da criação de conta** (migration 040: `users.cpf` deixa de ser `NOT NULL`; a restrição `UNIQUE` fica, e no Postgres ela admite vários `NULL`). Ele era obrigatório na primeira tela, antes de a pessoa entender o que a plataforma faz. Passa a ser pedido em `POST /api/donations/rouanet`, que é onde serve: vai no Recibo de Mecenato que o proponente emite. Pedir documento antes da hora é atrito e é guardar dado sem finalidade imediata.
+- O assistente de destinação mostra o campo a quem ainda não informou e some depois da primeira vez. A rota valida o dígito verificador, recusa CPF que já esteja em outra conta — senão duas contas apontariam para o mesmo contribuinte e o teto de 6% seria conferido pela metade — e devolve `codigo` (`cpf_necessario`, `cpf_invalido`, `cpf_em_uso`) para a tela reabrir o campo em vez de mostrar um erro sem saída.
+- **A confirmação de e-mail passa a ser enviada.** O token era gerado e guardado como hash desde sempre, mas o valor em claro era descartado na mesma linha: nenhuma mensagem saía e não existia página que a recebesse. Agora o e-mail sai no cadastro, `frontend/verificar-email.html` recebe o link, e `POST /api/auth/reenviar-verificacao` manda outro — trocando o token, então o link antigo para de valer. O painel avisa quem ainda não confirmou, com botão de reenviar.
+- Confirmar não é exigido para entrar nem para destinar. É o que prova que a caixa é da pessoa, e é o que dá sentido à redefinição de senha; exigir travaria as contas que já existem.
+- `backend/src/lib/cpf.js` passa a ser o único lugar da limpeza, validação e máscara de CPF no backend — estavam em `routes/auth.js` e `routes/admin.js`. O navegador mantém a própria cópia em `js/utils.js`, que não importa este arquivo porque as páginas não têm etapa de build.
+- Corrigido de passagem: com e-mail repetido e nenhum CPF informado, a comparação antiga dava verdadeiro nos dois lados nulos e a tela dizia "CPF já cadastrado".
+- `backend/tests/cadastro-sem-cpf.test.mjs` e `backend/tests/cpf-na-destinacao.test.mjs`.
+
 ### Apagar conta de teste pela tela do superadmin
 - CPF e e-mail são únicos, e não havia nenhum caminho no produto para desfazer um cadastro: quem estava experimentando a plataforma esbarrava em "CPF já cadastrado" na segunda tentativa e só sairia dali editando o banco à mão. `GET /api/admin/usuarios` (busca por e-mail, nome ou CPF, com ou sem pontuação) e `DELETE /api/admin/usuarios/:id`, com um cartão novo em `admin-clientes.html`.
 - Uma conta de cada vez; não existe rota que limpe a tabela. Três travas: conta de super-administrador nunca é apagada, porque apagar a única tranca o sistema por fora; conta com destinação registrada só sai em modo simulação, onde a destinação é exercício — fora dele, comprovante e recibo são registro fiscal de alguém; e a listagem devolve o CPF mascarado, porque o superadmin precisa reconhecer a conta, não ler o documento.

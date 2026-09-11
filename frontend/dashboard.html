@@ -358,6 +358,25 @@
 
   <div class="page">
 
+    <!-- Confirmação do e-mail. Some sozinho depois que a pessoa confirma. -->
+    <div id="avisoEmail" hidden
+         style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:14px 16px;margin:0 0 18px;
+                display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+      <i class="fas fa-envelope" style="color:#C2410C;margin-top:3px"></i>
+      <div style="flex:1;min-width:220px">
+        <strong style="color:#7C2D12;font-size:14px">Confirme seu e-mail</strong>
+        <p id="textoAvisoEmail" style="margin:4px 0 0;font-size:13px;color:#7C4A14;line-height:1.6">
+          Enviamos um link para o endereço do seu cadastro. Confirmar prova que a caixa é sua
+          e é o que faz a redefinição de senha valer alguma coisa.
+        </p>
+      </div>
+      <button id="btnReenviarEmail" type="button"
+              style="border:1.5px solid #FDBA74;background:#fff;color:#7C2D12;border-radius:9px;
+                     padding:9px 16px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">
+        Reenviar
+      </button>
+    </div>
+
     <!-- Banner de confirmação / vazio -->
     <div class="confirm-banner" id="confirmBanner" style="display:none">
       <div class="confirm-icon"><i class="fas fa-circle-check"></i></div>
@@ -431,6 +450,39 @@
       const el = document.getElementById('navUserName');
       if (el && firstName) el.textContent = firstName;
     }
+
+    // ── Confirmação do e-mail ───────────────────────────────────
+    //
+    // `email_verified` vem no login e fica no localStorage. Quem confirmou
+    // numa aba não vê o aviso na outra até entrar de novo — o custo disso é
+    // um aviso a mais, nunca um a menos, que é o lado certo de errar.
+    (function avisoDeEmail() {
+      const caixa = document.getElementById('avisoEmail');
+      if (!caixa || user?.email_verified !== false) return;
+      caixa.hidden = false;
+
+      document.getElementById('btnReenviarEmail').addEventListener('click', async (ev) => {
+        const botao = ev.currentTarget;
+        botao.disabled = true;
+        botao.textContent = 'Enviando...';
+        try {
+          const resp = await fetch('/api/auth/reenviar-verificacao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (auth.getToken() || '') }
+          });
+          const dados = await resp.json().catch(() => ({}));
+          // Texto do servidor por textContent, nunca como HTML.
+          document.getElementById('textoAvisoEmail').textContent =
+            dados.message || 'Se o endereço estiver certo, o link chega em instantes.';
+          botao.remove();
+        } catch {
+          document.getElementById('textoAvisoEmail').textContent =
+            'Não conseguimos enviar agora. Tente de novo em instantes.';
+          botao.disabled = false;
+          botao.textContent = 'Reenviar';
+        }
+      });
+    })();
 
     function BRL(v) {
       return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(v || 0);

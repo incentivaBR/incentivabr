@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar e-mail</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/tenant.js"></script>
+  <style>
+    :root { --primary-color:#0F1E3D; --secondary-color:#EE985C; --shadow-md:0 4px 16px rgba(13,27,62,.14); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#F6F8FC; font-family:'Montserrat',system-ui,sans-serif; }
+    .wrap { max-width:520px; margin:0 auto; padding:48px 20px 60px; }
+    .card { background:#fff; border-radius:16px; padding:36px 32px; box-shadow:var(--shadow-md); }
+    .marca-topo { text-align:center; margin-bottom:22px; }
+    .marca-topo img { height:52px; width:auto; }
+    h1 { font-size:22px; font-weight:800; color:#1a1a2e; margin:0 0 8px; text-align:center; }
+    .sub { color:#5A6784; font-size:14.5px; line-height:1.65; text-align:center; margin:0 0 24px; }
+    .selo { font-size:44px; text-align:center; line-height:1; margin-bottom:14px; }
+    .btn { display:block; width:100%; margin-top:22px; padding:14px; border:none; border-radius:10px;
+           background:var(--primary-color); color:#fff; font-size:15px; font-weight:700;
+           font-family:inherit; cursor:pointer; text-align:center; text-decoration:none; }
+    .centro { text-align:center; }
+    a { color:var(--primary-color); }
+    .prazo { font-size:12.5px; color:#8B96A8; margin-top:18px; text-align:center; line-height:1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="marca-topo"><img class="brand-logo" src="assets/logo-incentivabr.png" alt=""></div>
+
+    <div class="card">
+      <div id="conferindo">
+        <h1>Confirmando seu e-mail…</h1>
+        <p class="sub">Um instante.</p>
+      </div>
+
+      <!-- Sem token no endereço: alguém abriu a página à mão. -->
+      <div id="semToken" hidden>
+        <h1>Link incompleto</h1>
+        <p class="sub">Este endereço não traz o código de confirmação. Abra o link que veio no
+          e-mail. Se ele expirou, entre na sua conta e peça outro.</p>
+        <a class="btn" id="linkLoginSem" href="login.html">Ir para o login</a>
+      </div>
+
+      <div id="pronto" hidden>
+        <div class="selo">✅</div>
+        <h1>E-mail confirmado</h1>
+        <p class="sub" id="textoPronto">Obrigado. Agora sabemos que este endereço é seu.</p>
+        <a class="btn" id="linkEntrar" href="login.html">Entrar na minha conta</a>
+      </div>
+
+      <div id="falhou" hidden>
+        <h1>Não deu para confirmar</h1>
+        <p class="sub" id="textoFalhou"></p>
+        <a class="btn" id="linkLoginFalhou" href="login.html">Ir para o login</a>
+        <p class="prazo">O link vale por 24 horas e só pode ser usado uma vez. Depois de entrar
+          na conta, você pode pedir um novo.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Texto que vem do servidor entra por textContent, nunca como HTML.
+    const mostra = id => {
+      for (const bloco of ['conferindo', 'semToken', 'pronto', 'falhou']) {
+        document.getElementById(bloco).hidden = bloco !== id;
+      }
+    };
+
+    (async () => {
+      const token = new URLSearchParams(location.search).get('t');
+      if (!token) return mostra('semToken');
+
+      try {
+        const resp = await fetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const dados = await resp.json().catch(() => ({}));
+
+        if (resp.ok && dados.status === 'success') {
+          if (dados.message) document.getElementById('textoPronto').textContent = dados.message;
+          return mostra('pronto');
+        }
+        document.getElementById('textoFalhou').textContent =
+          dados.message || 'O link é inválido ou já foi usado.';
+        mostra('falhou');
+      } catch {
+        document.getElementById('textoFalhou').textContent =
+          'Não conseguimos falar com o servidor agora. Tente de novo em instantes.';
+        mostra('falhou');
+      }
+    })();
+  </script>
+</body>
+</html>
+
+<!-- incentivabr-legal -->

@@ -56,12 +56,25 @@ teste('o rotulo neutro existe, e e o unico visivel de inicio', () => {
   }
 });
 
-teste('so aplicaModo mexe no hidden dos trechos', () => {
+teste('so aplicaModo decide os trechos marcados com data-modo', () => {
   // Se outro ponto do codigo comecar a ligar/desligar esses trechos, a decisao
   // deixa de ter um dono unico e volta a ser possivel divergir do servidor.
-  const donos = [...html.matchAll(/(\w+)\.hidden\s*=/g)].map(m => m[1]);
-  const inesperados = donos.filter(d => d !== 'el');
-  if (inesperados.length) throw new Error(`mexem em .hidden: ${inesperados.join(', ')}`);
+  //
+  // A guarda contava qualquer `.hidden =` da pagina. Era um proxy largo
+  // demais: passou a acusar blocos sem nenhuma relacao com modo — o do CPF,
+  // que a etapa de confirmacao mostra a quem ainda nao informou. O que
+  // precisa de dono unico e a SELECAO de [data-modo], e e isso que se mede.
+  const selecoes = [...html.matchAll(/\[data-modo\]/g)].map(m => m.index);
+  if (selecoes.length !== 1) {
+    throw new Error(`[data-modo] e selecionado em ${selecoes.length} pontos; so aplicaModo pode`);
+  }
+  const inicio = html.indexOf('function aplicaModo');
+  if (inicio < 0) throw new Error('aplicaModo sumiu da pagina');
+  const proximaFuncao = html.indexOf('\n    function ', inicio + 1);
+  const fim = proximaFuncao < 0 ? html.length : proximaFuncao;
+  if (selecoes[0] < inicio || selecoes[0] > fim) {
+    throw new Error('[data-modo] e selecionado fora de aplicaModo');
+  }
 });
 
 teste('o aceite de producao diz o que de fato acontece', () => {

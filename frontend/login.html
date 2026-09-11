@@ -148,11 +148,8 @@
           <label class="block text-sm font-semibold text-gray-700 mb-2">Nome completo *</label>
           <input type="text" id="regNome" class="field" placeholder="Seu nome completo" required>
         </div>
-        <div class="mb-4">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">CPF *</label>
-          <input type="text" id="regCpf" class="field" placeholder="000.000.000-00"
-                 maxlength="14" inputmode="numeric" autocomplete="off" required>
-        </div>
+        <!-- Sem CPF aqui, de propósito. Ele é pedido na hora de destinar,
+             que é quando serve: vai no Recibo de Mecenato. -->
         <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
           <input type="email" id="regEmail" class="field" placeholder="seu@email.com" required>
@@ -307,14 +304,6 @@
       }
     });
 
-    const cpfField = document.getElementById('regCpf');
-    ['input', 'keyup'].forEach(evt => {
-      cpfField.addEventListener(evt, function() {
-        const el = this;
-        requestAnimationFrame(() => utils.maskCPF(el));
-      });
-    });
-
     const phoneField = document.getElementById('regPhone');
     ['input', 'keyup'].forEach(evt => {
       phoneField.addEventListener(evt, function() {
@@ -370,7 +359,6 @@
       hideAlert();
 
       const nome = document.getElementById('regNome').value.trim();
-      const cpf = utils.cleanCPF(document.getElementById('regCpf').value);
       const email = document.getElementById('regEmail').value.trim();
       const phone = document.getElementById('regPhone').value.replace(/\D/g, '');
       const senha = document.getElementById('regSenha').value;
@@ -380,10 +368,6 @@
 
       if (nome.length < 3) {
         Toast.warning('Preencha seu nome completo (mínimo 3 caracteres).', 'Nome obrigatório');
-        return;
-      }
-      if (!utils.isValidCPF(cpf)) {
-        Toast.warning('O CPF informado não é válido. Verifique os 11 dígitos e tente novamente.', 'CPF inválido');
         return;
       }
       if (!utils.isValidEmail(email)) {
@@ -408,7 +392,7 @@
       setLoading(btn, true);
 
       try {
-        await api.register({ nome, cpf, email, phone, senha, accepted_terms: true });
+        await api.register({ nome, email, phone, senha, accepted_terms: true });
 
         // Entrada automática depois do cadastro.
         try {
