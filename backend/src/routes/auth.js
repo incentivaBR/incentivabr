@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { notifyWelcome } from '../services/notificationService.js';
-import { sendEmail } from '../services/emailService.js';
+import { sendEmail, getEmailTemplate, getAppUrl } from '../services/emailService.js';
 import { geraToken, hashDoToken, expiraEmMinutos } from '../lib/tokens.js';
 import { limpaCPF, cpfValido } from '../lib/cpf.js';
 
@@ -35,24 +35,55 @@ let enviaRedefinicao = async ({ to, nome, link }) => sendEmail({
 });
 export function _trocaEnvioDeRedefinicao(fn) { enviaRedefinicao = fn; }
 
-// A confirmação de e-mail. O token era gerado e guardado como hash desde
-// sempre, mas o valor em claro era descartado na mesma linha: nenhuma
-// mensagem saía e não existia página que a recebesse. A conta ficava com
-// `email_verified = false` para sempre, e ninguém tinha como provar que é
-// dono da caixa — o que também é o que dá sentido à redefinição de senha.
-let enviaVerificacao = async ({ to, nome, link }) => sendEmail({
-  to,
-  subject: 'Confirme seu e-mail — IncentivaBR',
-  html: `
+// A confirmação de e-mail, que é também as boas-vindas.
+//
+// O token era gerado e guardado como hash desde sempre, mas o valor em claro
+// era descartado na mesma linha: nenhuma mensagem saía e não existia página
+// que a recebesse. A conta ficava com `email_verified = false` para sempre, e
+// ninguém tinha como provar que é dono da caixa — o que também é o que dá
+// sentido à redefinição de senha.
+//
+// As boas-vindas viviam num segundo e-mail, disparado no mesmo instante e
+// dizendo quase a mesma coisa. Duas mensagens de uma vez é ruído para quem
+// acabou de se cadastrar, então aqui é uma só: a confirmação primeiro, que é
+// a ação, e o convite para calcular depois.
+//
+// O botão leva estilo DIRETO na tag. O e-mail antigo estilava por classe num
+// bloco `<style>`, e o Gmail descartava parte dele: o fundo escuro chegava e a
+// cor branca do texto não, deixando o botão ilegível.
+const BOTAO = 'background:#0F1E3D;color:#ffffff;padding:13px 26px;border-radius:8px;' +
+              'text-decoration:none;display:inline-block;font-weight:bold';
+
+let enviaVerificacao = async ({ to, nome, link, boasVindas = false, org = null }) => {
+  const confirmacao = `
     <p>Olá, <strong>${escapaHtml(nome)}</strong>!</p>
-    <p>Sua conta na IncentivaBR foi criada. Confirme que este e-mail é seu:</p>
-    <p><a href="${link}" style="background:#0F1E3D;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Confirmar meu e-mail</a></p>
+    <p>${boasVindas
+        ? 'Sua conta na IncentivaBR foi criada. Confirme que este e-mail é seu:'
+        : 'Aqui está um novo link para confirmar o seu e-mail:'}</p>
+    <p><a href="${link}" style="${BOTAO}">Confirmar meu e-mail</a></p>
     <p>Este link expira em <strong>24 horas</strong> e só pode ser usado uma vez.</p>
-    <p>Se não foi você quem criou a conta, ignore esta mensagem.</p>
-    <hr>
-    <small>IncentivaBR — Incentivos Fiscais Simplificados</small>
-  `
-});
+    <p>Se não foi você quem ${boasVindas ? 'criou a conta' : 'pediu este link'}, ignore esta mensagem.</p>`;
+
+  const depoisDeConfirmar = `
+    <hr style="border:0;border-top:1px solid #E3E9F4;margin:26px 0">
+    <p style="margin:0 0 10px"><strong>Depois de confirmar, você pode:</strong></p>
+    <ul style="margin:0 0 16px;padding-left:20px;line-height:1.8">
+      <li>Calcular quanto do seu IR devido pode ser destinado</li>
+      <li>Escolher um projeto cultural aprovado pela Lei Rouanet</li>
+      <li>Registrar a destinação e guardar o comprovante</li>
+    </ul>
+    <div style="background:#EEF2FF;padding:15px;border-radius:8px;margin:0 0 18px;line-height:1.65">
+      <strong>Não custa nada a mais.</strong><br>
+      É imposto que você já deve. O que muda é o destino de uma parte dele.
+    </div>
+    <p><a href="${getAppUrl()}/calculadora.html" style="${BOTAO}">Calcular quanto posso destinar</a></p>`;
+
+  return sendEmail({
+    to,
+    subject: boasVindas ? 'Bem-vindo à IncentivaBR — confirme seu e-mail' : 'Confirme seu e-mail — IncentivaBR',
+    html: getEmailTemplate(confirmacao + (boasVindas ? depoisDeConfirmar : ''), org)
+  });
+};
 export function _trocaEnvioDeVerificacao(fn) { enviaVerificacao = fn; }
 
 /**
@@ -219,14 +250,17 @@ router.post('/register', async (req, res) => {
     notifyWelcome({ name: user.nome, email: user.email, phone: phone || null })
       .catch(() => {});
 
-    // A confirmação do e-mail. Falha de envio não derruba o cadastro — a
+    // A mensagem de boas-vindas, que é também a confirmação do endereço: uma
+    // só, não duas na mesma hora. Falha de envio não derruba o cadastro — a
     // conta já existe e o link pode ser pedido de novo em
     // POST /api/auth/reenviar-verificacao.
     const { base, orgParam } = enderecoDoTenant(org);
     enviaVerificacao({
       to: user.email,
       nome: user.nome,
-      link: `${base}/verificar-email.html?t=${encodeURIComponent(emailTokenClaro)}${orgParam}`
+      link: `${base}/verificar-email.html?t=${encodeURIComponent(emailTokenClaro)}${orgParam}`,
+      boasVindas: true,
+      org
     }).catch(erro => console.error('[Auth] falha ao enviar confirmação de e-mail:', erro.message));
 
     res.status(201).json({
@@ -562,7 +596,8 @@ router.post('/reenviar-verificacao', authenticateToken, async (req, res) => {
     await enviaVerificacao({
       to: user.email,
       nome: user.nome,
-      link: `${base}/verificar-email.html?t=${encodeURIComponent(claro)}${orgParam}`
+      link: `${base}/verificar-email.html?t=${encodeURIComponent(claro)}${orgParam}`,
+      org: req.organization
     }).catch(erro => console.error('[Auth] falha ao reenviar confirmação:', erro.message));
 
     res.json({ status: 'success', message: `Enviamos um novo link para ${user.email}.` });

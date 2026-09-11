@@ -90,7 +90,7 @@ export const URL_CANONICA = 'https://www.incentivabr.com.br';
  * ambiente sem NODE_ENV definido mandaria todo link de e-mail para a máquina de
  * quem recebe, que é o pior desfecho possível para uma falha silenciosa.
  */
-const getAppUrl = () => {
+export const getAppUrl = () => {
   // trim() antes de qualquer coisa: espaco colado sem querer num painel de
   // variaveis vira %20 no link e quebra a URL inteira. Aconteceu em producao —
   // o valor era "https://www.incentivabr.com.br   " e o e-mail saia apontando
@@ -123,6 +123,22 @@ const getFromAddress = () => {
 };
 
 /**
+ * O botão de ação de uma mensagem, com estilo DIRETO na tag.
+ *
+ * Existe porque a classe `.button` do bloco `<style>` não sobrevive inteira no
+ * Gmail: o fundo escuro chegava e a cor branca do texto não, deixando texto
+ * escuro sobre fundo escuro. Sete mensagens saíam assim — inclusive o convite
+ * de gestor e a confirmação de cadastro, onde o botão é a única saída.
+ *
+ * Não volte a usar `class="button"`.
+ */
+export const botaoEmail = (href, texto, org = null) => {
+  const cor = org?.primary_color || process.env.BRAND_COLOR_PRIMARY || '#0F1E3D';
+  return `<a href="${href}" style="display:inline-block;background:${cor};color:#ffffff;` +
+         `padding:13px 26px;border-radius:8px;text-decoration:none;font-weight:bold;margin:18px 0">${texto}</a>`;
+};
+
+/**
  * @param {string} content
  * @param {Object} [org]
  * @param {string} [accessToken] - token do interessado. Informe SEMPRE que o
@@ -130,7 +146,18 @@ const getFromAddress = () => {
  *   ganhar o link de cancelamento em um clique (LGPD, art. 8º §5º). E-mail de
  *   comunicação sem saída é o que transforma consentimento em armadilha.
  */
-function getEmailTemplate(content, org = null, accessToken = null) {
+/**
+ * A moldura de marca das mensagens: cabeçalho com o nome da organização,
+ * o conteúdo no meio, rodapé com o endereço.
+ *
+ * Exportada porque `routes/auth.js` compõe as mensagens de conta — criação e
+ * redefinição de senha — e elas precisam da mesma moldura das demais.
+ *
+ * Atenção ao estilar botão aqui dentro: o Gmail descarta parte do bloco
+ * `<style>`, e a `.button` chegava com o fundo aplicado e a cor do texto não,
+ * deixando texto escuro sobre fundo escuro. Botão leva estilo direto na tag.
+ */
+export function getEmailTemplate(content, org = null, accessToken = null) {
   const orgName       = org?.name           || process.env.BRAND_NAME          || 'IncentivaBR';
   const primaryColor  = org?.primary_color  || process.env.BRAND_COLOR_PRIMARY || '#0F1E3D';
   const appUrl        = getAppUrl();
@@ -145,7 +172,8 @@ function getEmailTemplate(content, org = null, accessToken = null) {
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: ${primaryColor}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .button { display: inline-block; background: ${primaryColor}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        /* Sem .button aqui: o Gmail descarta parte deste bloco e o texto do
+           botao sumia no fundo. Use o helper botaoEmail(), que estila na tag. */
         .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
         .highlight { background: #EEF2FF; padding: 15px; border-radius: 5px; margin: 15px 0; }
       </style>
@@ -232,39 +260,10 @@ export async function sendEmail({ to, subject, html }) {
   }
 }
 
-export async function sendWelcomeEmail(user, org = null) {
-  if (!resendClient && !transporter) {
-    console.warn('📧 Serviço de email não inicializado.');
-    return null;
-  }
-
-  const content = `
-    <h2>Bem-vindo(a), ${user.name}! 🎉</h2>
-    <p>Sua conta foi criada com sucesso na plataforma IncentivaBR.</p>
-    <ul>
-      <li>✅ Calcular quanto do seu IR pode destinar</li>
-      <li>✅ Conhecer projetos sociais que transformam vidas</li>
-      <li>✅ Destinar seu imposto para causas que você acredita</li>
-    </ul>
-    <div class="highlight">
-      <strong>💡 Sabia que?</strong><br>
-      Destinar parte do seu IR não custa nada a mais! É um direito seu escolher para onde vai o seu imposto.
-    </div>
-    <a href="${getAppUrl()}/calculadora.html" class="button">Calcular meu potencial</a>
-  `;
-
-  const brandName = process.env.BRAND_NAME || 'IncentivaBR';
-  try {
-    await doSend({
-      to: user.email,
-      subject: `Bem-vindo ao ${brandName}!`,
-      html: getEmailTemplate(content, org)
-    });
-    console.log('📧 Email de boas-vindas enviado para:', user.email);
-  } catch (error) {
-    console.error('❌ Erro email boas-vindas:', error.message);
-  }
-}
+// O e-mail de boas-vindas era enviado aqui, separado do de confirmação: quem
+// criava conta recebia duas mensagens na mesma hora dizendo quase a mesma
+// coisa. As duas viraram uma só, composta em `routes/auth.js`, onde nasce o
+// link de confirmação.
 
 export async function sendDestinationRegisteredEmail(user, donation, project, org = null) {
   if (!resendClient && !transporter) return null;
@@ -278,7 +277,7 @@ export async function sendDestinationRegisteredEmail(user, donation, project, or
       <strong>Valor:</strong> ${valor}<br>
       <strong>Status:</strong> ⏳ Aguardando confirmação do depósito
     </div>
-    <a href="${getAppUrl()}/dashboard.html" class="button">Ver minhas destinações</a>
+    ${botaoEmail(`${getAppUrl()}/dashboard.html`, 'Ver minhas destinações', org)}
   `;
 
   try {
@@ -305,7 +304,7 @@ export async function sendDestinationConfirmedEmail(user, donation, project, org
       <strong>Status:</strong> ✅ Confirmado
     </div>
     <p>Acesse seu dashboard para baixar os documentos.</p>
-    <a href="${getAppUrl()}/dashboard.html" class="button">Baixar documentos</a>
+    ${botaoEmail(`${getAppUrl()}/dashboard.html`, 'Baixar documentos', org)}
     <p style="margin-top: 20px; color: #00A859; font-weight: bold;">
       🎉 Obrigado por transformar seu imposto em impacto social!
     </p>
@@ -335,7 +334,7 @@ export async function sendNewDonationToAdminEmail(adminEmail, user, donation, pr
       <strong>Valor:</strong> ${valor}<br>
       <strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}
     </div>
-    <a href="${getAppUrl()}/admin.html" class="button">Acessar Painel Admin</a>
+    ${botaoEmail(`${getAppUrl()}/admin.html`, 'Acessar Painel Admin', org)}
   `;
 
   try {
@@ -381,7 +380,7 @@ export async function sendMecenatoPendenteEmail(org, user, donation, project) {
     <p>Estes são os campos exigidos pelo modelo do Ministério da Cultura. Emita o
     recibo em três vias — Ministério, instituição e destinador — e anexe a via do
     destinador na plataforma: ele baixa direto da conta dele.</p>
-    <a href="${getAppUrl()}/dashboard.html" class="button">Anexar recibo</a>
+    ${botaoEmail(`${getAppUrl()}/dashboard.html`, 'Anexar recibo', org)}
     <p style="margin-top:18px;color:#666;font-size:13px">
       O destinador foi informado de que o recibo costuma sair em até ${prazo} dias úteis.
     </p>
@@ -424,7 +423,7 @@ export async function sendConfirmacaoCadastroEmail(org, user, confirmToken) {
     <p>${saudacao}</p>
     <p>Voce pediu para receber avisos sobre destinacao de Imposto de Renda.
     Para valer, falta so confirmar — e um clique:</p>
-    <a href="${link}" class="button">Confirmar meu cadastro</a>
+    ${botaoEmail(`${link}`, 'Confirmar meu cadastro', org)}
     <p style="margin-top:18px;color:#666;font-size:13px">
       Nao foi voce? Entao ignore esta mensagem. Sem esse clique o cadastro nao
       se completa e voce nao recebera mais nada de nossa parte.
@@ -464,7 +463,7 @@ export async function sendGerenciarPreferenciasEmail(org, user, accessToken) {
     <p>Recebemos um pedido de cadastro com este e-mail, que ja esta na nossa
     lista. Nada foi alterado.</p>
     <p>Para mudar o que voce recebe — ou para sair da lista — use o link abaixo:</p>
-    <a href="${base}" class="button">Gerenciar minhas preferencias</a>
+    ${botaoEmail(`${base}`, 'Gerenciar minhas preferencias', org)}
     <p style="margin-top:18px;color:#666;font-size:13px">
       Se nao foi voce quem pediu, nao ha nada a fazer: nenhuma preferencia sua
       foi modificada.
@@ -514,7 +513,7 @@ export async function sendConviteGestorEmail(org, convite, tokenClaro, quemConvi
       <li><strong>confirmar</strong> cada destinação, o que dispara a emissão do
           Recibo de Mecenato em nome do destinador.</li>
     </ul>
-    <a href="${link}" class="button">Criar minha senha e entrar</a>
+    ${botaoEmail(`${link}`, 'Criar minha senha e entrar', org)}
     <p style="margin-top:18px;color:#666;font-size:13px">
       Este link vale por 48 horas e só pode ser usado uma vez. Depois disso,
       peça um novo a quem te convidou.

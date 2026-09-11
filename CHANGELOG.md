@@ -2,6 +2,12 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Uma mensagem só no cadastro, e botão de e-mail legível
+- Quem criava conta recebia **duas** mensagens na mesma hora: as boas-vindas e a confirmação do endereço, dizendo quase a mesma coisa. Viraram uma só, composta em `routes/auth.js`, onde nasce o link: a confirmação primeiro, porque é a ação, e o convite para calcular depois. `notifyWelcome` fica só com o WhatsApp; `sendWelcomeEmail` saiu.
+- **O botão do e-mail de boas-vindas estava ilegível.** Ele era estilizado pela classe `.button` de um bloco `<style>`, e o Gmail descarta parte desse bloco: o fundo escuro chegava e a cor branca do texto não, deixando texto escuro sobre fundo escuro. Valia para **sete** mensagens, incluindo o convite de gestor e a confirmação de cadastro de interessado, onde o botão é a única saída.
+- `botaoEmail()` passa a ser o único jeito de escrever botão de e-mail, com estilo direto na tag e a cor da organização. A regra `.button` saiu do template para não convidar à volta, e o teste falha se um `<a class="button">` reaparecer.
+- `getEmailTemplate` e `getAppUrl` viraram exportados: as mensagens de conta são compostas em `routes/auth.js` e precisam da mesma moldura de marca das demais.
+
 ### Cadastro sem CPF, e a confirmação de e-mail ligada
 - **O CPF sai da criação de conta** (migration 040: `users.cpf` deixa de ser `NOT NULL`; a restrição `UNIQUE` fica, e no Postgres ela admite vários `NULL`). Ele era obrigatório na primeira tela, antes de a pessoa entender o que a plataforma faz. Passa a ser pedido em `POST /api/donations/rouanet`, que é onde serve: vai no Recibo de Mecenato que o proponente emite. Pedir documento antes da hora é atrito e é guardar dado sem finalidade imediata.
 - O assistente de destinação mostra o campo a quem ainda não informou e some depois da primeira vez. A rota valida o dígito verificador, recusa CPF que já esteja em outra conta — senão duas contas apontariam para o mesmo contribuinte e o teto de 6% seria conferido pela metade — e devolve `codigo` (`cpf_necessario`, `cpf_invalido`, `cpf_em_uso`) para a tela reabrir o campo em vez de mostrar um erro sem saída.
