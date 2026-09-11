@@ -2,6 +2,20 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### A calculadora não estima mais o IR devido por atalho
+- Enquanto a pessoa digitava o rendimento, `calculadora.html` mostrava um "limite estimado" a partir de **IR ≈ 18% dos rendimentos**. O atalho ignora a faixa isenta e a progressividade da tabela. Medido contra a conta real do backend, sem deduções:
+
+  | rendimento no ano | limite real | o que a prévia dizia | erro |
+  |---|---|---|---|
+  | R$ 36.000 | R$ 43,26 | R$ 388,80 | +799% |
+  | R$ 60.000 | R$ 338,77 | R$ 648,00 | +91% |
+  | R$ 96.000 | R$ 932,77 | R$ 1.036,80 | +11% |
+  | R$ 150.000 | R$ 1.823,77 | R$ 1.620,00 | −11% |
+  | R$ 240.000 | R$ 3.308,77 | R$ 2.592,00 | −22% |
+
+  O erro é maior justamente na faixa de renda da maior parte do público. A prévia a partir do rendimento saiu: o IR devido vem da tabela progressiva, que é do backend (`POST /api/calculator/ir`, no envio). A prévia do campo "IR devido" continua, porque ali é exata — 6% do que a pessoa digitou.
+- O cálculo dos 6% em si estava correto e continua: incide sobre o **imposto devido apurado na declaração**, nunca sobre o rendimento; o percentual vem de `tetos_deducao`; e a organização pode reduzir o teto, nunca aumentá-lo. `backend/tests/calculadora.test.mjs` passa a guardar as três coisas, mais a faixa isenta, a progressividade e o fato de a tela não escrever percentual à mão.
+
 ### O aviso na tela não some mais, e o cadastro diz o que aconteceu
 - **Causa raiz.** `js/utils.js` injetava um `.toast` antigo (estado base `opacity: 0`, à espera de um `.show`) que mirava o mesmo elemento do `js/toast.js` e vencia nas duas propriedades que este não declarava. Nas duas páginas que carregam os dois arquivos, `login.html` e `calculadora.html`, todo aviso aparecia durante os 0,3s da animação de entrada e sumia. Ninguém conseguia ler por que o cadastro ou o login tinha falhado. As classes do aviso de reserva passam a ter nome próprio (`aviso-simples`), e o `js/toast.js` declara o estado visível e preserva o quadro final da animação (`both`), para não voltar a depender do que outra folha de estilo disser.
 - O aviso também trazia a largura somada ao recuo, e no celular a caixa passava da borda da tela levando o botão de fechar junto. `box-sizing: border-box` no próprio componente, que traz o próprio CSS e não deve depender do reset da página.

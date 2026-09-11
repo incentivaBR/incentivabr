@@ -373,11 +373,18 @@
       if (!el) return;
       el.addEventListener('input', function() {
         utils.maskCurrency(this);
-        if (id === 'rendimentos') {
-          // Estimativa rápida: IR ≈ 18% dos rendimentos → limite Rouanet = 6%
-          const rend = utils.parseCurrency(this.value);
-          showPreview(Math.round(rend * 0.18 * (window.TETO_FRACAO || 0.06) * 100) / 100);
-        }
+        // Sem prévia a partir do rendimento.
+        //
+        // Havia aqui um "IR ≈ 18% dos rendimentos" que ignorava a faixa
+        // isenta e a progressividade da tabela. Para quem ganha R$ 36.000 no
+        // ano, o limite real é R$ 43,26 e a prévia anunciava R$ 388,80 —
+        // nove vezes mais, justo na faixa de renda da maior parte do público.
+        // Acima de R$ 150.000 ela errava para menos.
+        //
+        // O IR devido sai da tabela progressiva, e quem a tem é o backend
+        // (POST /api/calculator/ir, no envio do formulário). Um número
+        // inventado numa tela sobre regra fiscal custa mais do que a espera
+        // de um clique.
       });
     });
 
