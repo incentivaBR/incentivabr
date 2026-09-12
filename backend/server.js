@@ -189,6 +189,32 @@ const igualSemVazarTempo = (a, b) => {
   return crypto.timingSafeEqual(ha, hb);
 };
 
+// Com a portaria ligada, toda página responde 401 e o navegador abre a janela
+// de senha — de fora, indistinguível de site fora do ar. Perguntaram "por que
+// o domínio caiu?" e a resposta só dava para deduzir: o /diagnostico dizia
+// banco, migrations, armazenamento e e-mail, e não dizia isto.
+//
+// Vai na parte pública da rota de propósito: quem está trancado do lado de
+// fora é justamente quem precisa da resposta. Não vaza nada que o 401 já não
+// entregue — que o site pede senha. A senha, nem o tamanho dela, nunca sai.
+function estadoDaPortaria() {
+  const crua = process.env.SITE_SENHA || '';
+  const estado = {
+    status: 'ok',   // nunca 'error': portaria ligada é escolha, não defeito
+    ligada: Boolean(SITE_SENHA),
+    explicacao: SITE_SENHA
+      ? 'fechada — todo endereço pede senha, menos /health, /diagnostico e /robots.txt'
+      : 'aberta — o site responde a qualquer visitante'
+  };
+  // A senha é lida com .trim(), então uma variável só de espaço liga nada e
+  // não avisa: a pessoa preenche no painel, o site segue aberto e parece que
+  // a portaria está quebrada.
+  if (crua.length > 0 && SITE_SENHA.length === 0) {
+    estado.aviso = 'SITE_SENHA existe mas só tem espaço: a portaria segue aberta';
+  }
+  return estado;
+}
+
 // robots.txt acompanha a portaria: fechada, ninguém indexa; aberta, o
 // arquivo some e o site volta a ser indexável. Assim não fica um
 // "Disallow: /" esquecido para trás no dia da abertura.
@@ -374,6 +400,11 @@ app.get('/diagnostico', async (req, res) => {
   // local é erro: somem no próximo deploy (Raio-X, risco 02).
   diagnostico.services.armazenamento = estadoDoArmazenamento();
 
+  // Se o site está aberto ao público ou atrás da senha. Fora de `services`
+  // porque o monitor de uptime reprova qualquer serviço com status 'error', e
+  // portaria ligada não é falha — é o estado que pedimos.
+  diagnostico.portaria = estadoDaPortaria();
+
   // Status do serviço de email
   const emailStatus = getEmailStatus();
   diagnostico.services.email = {
@@ -450,6 +481,7 @@ app.get('/diagnostico', async (req, res) => {
     status: 'ok',
     uptime: diagnostico.uptime,
     commit: diagnostico.build.commit,
+    portaria: diagnostico.portaria,
     services: Object.fromEntries(
       Object.entries(diagnostico.services).map(([nome, s]) => [nome, { status: s.status }])
     ),
