@@ -126,11 +126,46 @@ await teste('cookie inventado nao passa', async () => {
   if (r.status !== 401) throw new Error('status ' + r.status);
 });
 
+await teste('o /diagnostico diz que a portaria esta fechada', async () => {
+  // Com a portaria ligada, toda pagina responde 401 e de fora isso e
+  // indistinguivel de site fora do ar. Sem este campo, a resposta a "por que
+  // o dominio caiu?" so dava para deduzir.
+  const d = await (await fetch(BASE + '/diagnostico')).json();
+  if (!d.portaria) throw new Error('nao veio o bloco portaria');
+  if (d.portaria.ligada !== true) throw new Error('ligada: ' + d.portaria.ligada);
+});
+
+await teste('o /diagnostico nao entrega a senha do site', async () => {
+  const texto = JSON.stringify(await (await fetch(BASE + '/diagnostico')).json());
+  if (texto.includes(SENHA)) throw new Error('a senha do site saiu no diagnostico');
+  // Nem o tamanho: com ele, quem for tentar por forca bruta comeca sabendo
+  // quantos caracteres procurar.
+  if (new RegExp('"(tamanho|comprimento|length)"\\s*:').test(texto)) {
+    throw new Error('saiu o tamanho da senha');
+  }
+});
+
 await teste('com a portaria ligada, o robots.txt bloqueia todo mundo', async () => {
   const r = await fetch(BASE + '/robots.txt');
   if (r.status !== 200) throw new Error('status ' + r.status);
   const txt = await r.text();
   if (!/User-agent:\s*\*/.test(txt) || !/Disallow:\s*\//.test(txt)) throw new Error('conteudo: ' + txt);
+});
+
+servidor.kill();
+await new Promise(r => setTimeout(r, 400));
+
+// ── SITE_SENHA so com espaco: a armadilha silenciosa ────────────────────────
+// A senha e lida com .trim(). Uma variavel so de espaco liga nada: a pessoa
+// preenche no painel, o site segue aberto e parece que a portaria quebrou.
+servidor = await sobe({ SITE_SENHA: '   ' });
+
+await teste('senha so de espaco deixa o site aberto, e o diagnostico avisa', async () => {
+  const r = await fetch(BASE + '/index.html');
+  if (r.status !== 200) throw new Error('trancou com senha vazia: status ' + r.status);
+  const d = await (await fetch(BASE + '/diagnostico')).json();
+  if (d.portaria.ligada !== false) throw new Error('ligada: ' + d.portaria.ligada);
+  if (!d.portaria.aviso) throw new Error('nao avisou que a variavel esta so com espaco');
 });
 
 servidor.kill();

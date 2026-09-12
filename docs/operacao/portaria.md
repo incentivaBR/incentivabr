@@ -21,6 +21,23 @@ do navegador pedindo usuário e senha:
 Acertando uma vez, o navegador guarda um cookie e não pergunta de novo por
 30 dias, naquele aparelho.
 
+## Como saber se ela está ligada
+
+Com a portaria ligada, **toda** página responde 401. De fora, isso é
+indistinguível de site fora do ar — e foi o que aconteceu: "por que o domínio
+caiu?" quando o domínio estava de pé, fechado por senha.
+
+Dois endereços respondem isso sem senha:
+
+```
+/diagnostico   → "portaria": { "ligada": true, "explicacao": "fechada — …" }
+/robots.txt    → "Disallow: /" quando fechada; erro 404 quando aberta
+```
+
+O `/diagnostico` nunca mostra a senha, nem o tamanho dela. Se `SITE_SENHA`
+existir mas tiver só espaço, ele avisa: a senha é lida com `trim()`, então uma
+variável só de espaço liga nada e o site segue aberto.
+
 ## Desligar
 
 Apague a variável `SITE_SENHA` (ou deixe vazia). O site volta a ficar aberto,

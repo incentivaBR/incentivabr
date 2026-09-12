@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O `/diagnostico` diz se a portaria está fechada
+- Com a portaria ligada, toda página responde 401 e o navegador abre a janela de senha. De fora é indistinguível de site fora do ar — e foi exatamente o que aconteceu: "por que o domínio caiu?" com o domínio de pé, fechado por senha. O `/diagnostico` dizia banco, migrations, armazenamento e e-mail, e não dizia isto; a resposta só dava para deduzir.
+- Novo bloco `portaria` (`ligada`, `explicacao`) na parte **pública** da rota, de propósito: quem está trancado do lado de fora é justamente quem precisa da resposta. Não revela nada que o 401 já não entregue. A senha, nem o tamanho dela, nunca sai — o teste falha se saírem.
+- Fica **fora** de `services`: o monitor de uptime reprova qualquer serviço com status `error`, e portaria fechada é o estado que pedimos, não defeito.
+- `SITE_SENHA` é lida com `trim()`, então uma variável só com espaço liga nada: a pessoa preenche no painel, o site segue aberto e parece que a portaria quebrou. Agora o diagnóstico avisa.
+- Casos novos em `backend/tests/portaria.test.mjs` e `backend/tests/diagnostico.test.mjs`.
+
 ### O que é da IncentivaBR não aparece no site do cliente
 - A página inicial já trocava marca, cores e textos por tenant, mas três trechos continuavam falando pela IncentivaBR sob a marca do cliente: o cartão "Associação / ONG", que vende a plataforma white-label, e os números e depoimentos do piloto de maio de 2026. O cartão ofereceria ao público **dele** a tecnologia que ele já contratou; os depoimentos são de servidores do DF que usaram o piloto e, sob outra marca, passariam por depoimentos da base dele — o que não é verdade. Os três ganharam `data-so-plataforma`.
 - `para-associacoes.html` é a carta de vendas do white-label inteira, e esconder o link não faz o endereço sumir. `backend/src/lib/paginasDaPlataforma.js` lista as páginas que só a plataforma mostra, e a guarda roda **entre** o middleware de tenant e o `express.static`: no domínio do cliente, o arquivo não chega a sair daqui. Depois do estático o bloqueio não valeria nada, e o teste falha se alguém mudar essa ordem.

@@ -74,6 +74,17 @@ await teste('sem token, o status de cada servico continua visivel', async () => 
   }
 });
 
+// Este servidor sobe sem SITE_SENHA. O caso da portaria ligada esta em
+// portaria.test.mjs, que ja sobe os dois cenarios.
+await teste('sem token, diz que o site esta aberto ao publico', async () => {
+  const { corpo } = await pegar();
+  if (!corpo.portaria) throw new Error('nao veio o bloco portaria');
+  if (corpo.portaria.ligada !== false) throw new Error('ligada: ' + corpo.portaria.ligada);
+  // Se entrasse em `services` com status de erro, o monitor de uptime
+  // reprovaria o site por estar fechado — que e o estado que pedimos.
+  if ('portaria' in corpo.services) throw new Error('a portaria entrou em services');
+});
+
 await teste('token errado nao abre', async () => {
   const { corpo } = await pegar({ 'x-diagnostico-token': 'chute' });
   if (corpo.build) throw new Error('abriu com token errado');
