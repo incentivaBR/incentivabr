@@ -97,6 +97,7 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 | Um sistema só, dois papéis: a organização `www` é a IncentivaBR (plataforma); qualquer outra é um cliente white-label, com cores, logo, projeto, gestores e textos da página inicial próprios (migration 039). A página marca `[data-tenant]` e `[data-so-cliente]`; `tenant.js` preenche por `textContent`. Não há segundo repositório nem segundo deploy para white label | set/2026 | `backend/src/routes/config.js` (`eh_plataforma`, `textos`), `frontend/js/tenant.js`, `frontend/admin-clientes.html`, `backend/tests/textos-tenant.test.mjs` |
 | CPF não é pedido para criar conta (migration 040); entra no registro da destinação, que é onde serve — vai no Recibo de Mecenato. Validação e máscara só em `lib/cpf.js`. A confirmação de e-mail é enviada de verdade e não trava entrar nem destinar | set/2026 | `backend/src/lib/cpf.js`, `backend/src/routes/donations.js`, `frontend/verificar-email.html`, `backend/tests/cadastro-sem-cpf.test.mjs` |
 | No site do cliente, o **cliente é controlador** e a IncentivaBR é operadora (LGPD art. 5º VI/VII). O Encarregado divulgado é o do controlador (art. 41 §1º), por tenant (migration 041). Fonte única em `lib/papeisLgpd.js` → `/api/config/brand` (`privacidade`) → `[data-privacidade]`. Página não nomeia controlador à mão | set/2026 | `backend/src/lib/papeisLgpd.js`, `docs/juridico/papeis-lgpd.md`, `docs/juridico/mapa-de-dados-pessoais.md`, `backend/tests/papeis-lgpd.test.mjs` |
+| A lista de avisos é do cliente: `subscribers.organization_id` escopa, `podeGerirOrganizacao` autoriza depois do tenant, e `access_token` nunca sai — é credencial, não identificador | set/2026 | `backend/src/routes/interessados.js`, `backend/tests/lista-interessados.test.mjs`, `docs/operacao/fluxo-das-paginas.md` |
 | Página que só a plataforma mostra é recusada no servidor, entre o tenant e o estático — esconder o link não faz o endereço sumir. Hoje só `para-associacoes.html` | set/2026 | `backend/src/lib/paginasDaPlataforma.js`, `docs/operacao/separacao-white-label.md`, `backend/tests/separacao-white-label.test.mjs` |
 | Textos fiscais têm uma fonte só: `lib/textosFiscais.js` → `/api/config/brand` (`fiscal`) → `[data-fiscal]` nas páginas e resumo no prompt da TINA. Página não escreve percentual à mão; códigos da DIRPF estão marcados como não confirmados em fonte primária | set/2026 | `backend/src/lib/textosFiscais.js`, `frontend/js/tenant.js`, `backend/tests/textos-fiscais.test.mjs` |
 
@@ -112,6 +113,7 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 | `GET /api/donations/conferencia` | fila de conferência do gestor (confirmar ou recusar com motivo) |
 | `/api/mecenato` | recibo de mecenato anexado pelo proponente |
 | `/api/chat` | TINA |
+| `GET /api/interessados/lista`, `/lista.csv` | lista de avisos da organização (gestor); sem `access_token`, sem anonimizado, CSV sem fórmula |
 | `/api/convites`, `/api/admin`, `/api/interessados`, `/api/config` | convites de gestor, superadmin, LGPD de interessados, marca por tenant |
 
 ## Modo simulação
