@@ -2,6 +2,17 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### No site do cliente, quem responde pelos dados é o cliente
+- Decisão: no site de um cliente white-label, **o cliente é o controlador e a IncentivaBR é operadora** (LGPD, art. 5º VI e VII). Isso não é rótulo de contrato — muda o que a página tem de dizer, e as páginas diziam errado. Registrado em `docs/juridico/papeis-lgpd.md`, com o que o anexo de operador precisa conter.
+- **A Política de Privacidade não carregava o `tenant.js`.** Sob a marca do cliente, ela continuava afirmando que a controladora é a IncentivaBR — justamente o documento em que isso não pode estar errado.
+- **O Encarregado divulgado passa a ser o do controlador** (art. 41 §1º). Era uma constante única da IncentivaBR: o titular do cliente era mandado reclamar com quem não responde por ele. Migration 041 dá `encarregado_nome` e `encarregado_email` à organização, e a tela de clientes preenche. Sem preenchimento, a página cai no contato da organização e depois no Encarregado da plataforma — nunca sem canal, mas `encarregado_completo: false` acusa, porque uma Política com o canal errado é um problema que não pode passar despercebido.
+- `backend/src/lib/papeisLgpd.js` é a fonte única disso; `GET /api/config/brand` devolve em `privacidade`; `tenant.js` escreve nos `[data-privacidade]` por `textContent`. Nenhuma página nomeia controlador à mão.
+- Nos **Termos**, três cláusulas estavam erradas na página do cliente: o serviço aparecia como prestado pela IncentivaBR; a propriedade intelectual dizia que a marca da plataforma é da IncentivaBR — ou seja, que a marca do cliente é dela; e as seções 5 e 6 faziam a IncentivaBR prometer e limitar responsabilidade perante um usuário que não é dela. **Cláusula que limita responsabilidade nomeando quem não presta o serviço não protege ninguém.** Os Termos passam a falar em `prestador` e `fornecedor`, não em controlador e operador: eles tratam de quem presta o serviço e de quem é a tecnologia, não de dados.
+- A eleição de foro de Brasília/DF ficou restrita ao site da IncentivaBR. Eleger essa comarca na página de um cliente mandaria o usuário **dele** litigar onde nenhum dos dois está.
+- `POLITICA_VERSAO` sobe para `2026-09`, e um teste falha se a versão do HTML divergir da constante — senão a prova do consentimento (art. 8º §2º) aponta para um documento que não existe.
+- `docs/juridico/mapa-de-dados-pessoais.md`: o que o sistema coleta, onde fica, quem vê e para onde sai, levantado do código. Inclui o que ele **não** coleta e é conferível: a calculadora não grava nada, a TINA não recebe nome nem CPF, e as conversas não são gravadas.
+- `backend/tests/papeis-lgpd.test.mjs`, e `backend/tests/apoio/dentroDe.mjs` para as guardas que precisam saber se um trecho está dentro de um bloco marcado.
+
 ### O `/diagnostico` diz se a portaria está fechada
 - Com a portaria ligada, toda página responde 401 e o navegador abre a janela de senha. De fora é indistinguível de site fora do ar — e foi exatamente o que aconteceu: "por que o domínio caiu?" com o domínio de pé, fechado por senha. O `/diagnostico` dizia banco, migrations, armazenamento e e-mail, e não dizia isto; a resposta só dava para deduzir.
 - Novo bloco `portaria` (`ligada`, `explicacao`) na parte **pública** da rota, de propósito: quem está trancado do lado de fora é justamente quem precisa da resposta. Não revela nada que o 401 já não entregue. A senha, nem o tamanho dela, nunca sai — o teste falha se saírem.

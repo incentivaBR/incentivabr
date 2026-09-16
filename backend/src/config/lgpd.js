@@ -15,7 +15,7 @@
  * os antigos continuam apontando para a que a pessoa realmente leu — que é o
  * ponto de guardar isso.
  */
-export const POLITICA_VERSAO = '2026-08';
+export const POLITICA_VERSAO = '2026-09';
 
 /**
  * Encarregado pelo Tratamento de Dados Pessoais (art. 41 da LGPD).

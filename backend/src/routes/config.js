@@ -2,6 +2,7 @@ import express from 'express';
 import pool from '../../config/database.js';
 import { tetoDoMecanismo } from '../lib/tetos.js';
 import { textosFiscais } from '../lib/textosFiscais.js';
+import { papeisDaPrivacidade } from '../lib/papeisLgpd.js';
 
 const router = express.Router();
 
@@ -145,7 +146,14 @@ router.get('/brand', async (req, res) => {
     // renda, nem sobre o imposto a pagar depois de retenções.
     teto_percentual: teto?.percentual ?? null,
     teto_base_legal: teto?.base_legal ?? null,
-    fiscal
+    fiscal,
+
+    // Quem responde pelos dados neste site, e quem é o Encarregado a divulgar
+    // (art. 41 §1º). Na IncentivaBR é ela mesma; no site de um cliente é o
+    // cliente, e a IncentivaBR entra como operadora. `tenant.js` escreve isto
+    // nos [data-privacidade] da Política e dos Termos — nenhuma página nomeia
+    // controlador à mão.
+    privacidade: papeisDaPrivacidade(org)
   };
 
   res.json(brand);

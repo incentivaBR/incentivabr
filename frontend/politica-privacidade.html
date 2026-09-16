@@ -9,6 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!--
+    Esta página não carregava o tenant.js. Sob a marca de um cliente, ela
+    continuava dizendo que a controladora é a IncentivaBR — justamente o
+    documento em que isso não pode estar errado.
+  -->
+  <script src="js/tenant.js"></script>
   <style>
     :root {
       --primary-color: #0F1E3D;
@@ -55,19 +61,54 @@
         consentimento guarda a versão que a pessoa leu; se a versão não
         acompanhar o texto, a prova aponta para um documento que já não existe.
       -->
-      <p>Última atualização: Agosto de 2026 <span style="color:#8B96A8">(versão 2026-08)</span></p>
+      <p>Última atualização: Setembro de 2026 <span style="color:#8B96A8">(versão <span data-privacidade="politica_versao">2026-09</span>)</span></p>
     </div>
 
     <div class="legal-content">
       <h2>1. Introdução</h2>
       <p>
-        O <strong>IncentivaBR</strong> tem o compromisso de proteger a privacidade e os dados pessoais
-        de seus usuários, em conformidade com a <strong>Lei Geral de Proteção de Dados Pessoais (LGPD — Lei n.º 13.709/2018)</strong>.
+        Esta Política descreve como seus dados pessoais são coletados, usados, armazenados e
+        protegidos quando você utiliza esta plataforma de destinação via
+        <strong>Lei Rouanet (Lei 8.313/1991)</strong>, em conformidade com a
+        <strong>Lei Geral de Proteção de Dados Pessoais (LGPD — Lei n.º 13.709/2018)</strong>.
       </p>
-      <p>
-        Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas
-        informações pessoais quando você utiliza nossa plataforma de destinação via <strong>Lei Rouanet (Lei 8.313/1991)</strong>.
-      </p>
+
+      <!--
+        Quem responde pelos dados muda conforme o site. Na IncentivaBR, ela
+        mesma; no site de um cliente white-label, o cliente é o controlador e a
+        IncentivaBR é operadora. Os dois blocos abaixo são a MESMA informação
+        vista dos dois lados — tenant.js mostra um e esconde o outro, e os
+        nomes vêm de [data-privacidade], nunca escritos à mão.
+      -->
+      <h3 style="font-size:16px;color:var(--primary-color);margin:26px 0 12px">1.1. Quem responde pelos seus dados</h3>
+
+      <div data-so-plataforma>
+        <p>
+          O <strong>IncentivaBR</strong> é o <strong>controlador</strong> dos seus dados pessoais
+          (art. 5º, VI, da LGPD): é quem decide para que eles são tratados e responde por esse
+          tratamento perante você e perante a Autoridade Nacional de Proteção de Dados.
+        </p>
+      </div>
+
+      <div data-so-cliente hidden>
+        <p>
+          <strong><span data-privacidade="controlador">Esta instituição</span></strong> é o
+          <strong>controlador</strong> dos seus dados pessoais (art. 5º, VI, da LGPD): é quem
+          decide para que eles são tratados e responde por esse tratamento perante você e
+          perante a Autoridade Nacional de Proteção de Dados.
+        </p>
+        <p>
+          O <strong><span data-privacidade="operador">IncentivaBR</span></strong> é o
+          <strong>operador</strong> (art. 5º, VII): fornece a tecnologia desta plataforma e trata
+          seus dados <strong>por conta e sob instruções</strong> de
+          <span data-privacidade="controlador">esta instituição</span>, nos limites do contrato
+          entre as duas. O operador não usa seus dados para finalidades próprias.
+        </p>
+        <p>
+          Na prática: para exercer qualquer direito desta Política, procure
+          <span data-privacidade="controlador">esta instituição</span>, pelo contato da seção 10.
+        </p>
+      </div>
 
       <h2>2. Dados que Coletamos</h2>
       <p>Para fornecer nossos serviços, coletamos os seguintes dados pessoais:</p>
@@ -127,6 +168,12 @@
         exigir</li>
         <li><strong>Obrigações legais:</strong> Quando exigido por lei, ordem judicial ou autoridade competente</li>
         <li><strong>Prestadores de serviço:</strong> Empresas que auxiliam na operação da plataforma (hospedagem, envio de e-mails), sempre sob acordos de confidencialidade</li>
+        <!-- No site de um cliente, o operador é um compartilhamento e tem de
+             estar na lista: omitir quem trata os dados é o tipo de omissão que
+             o art. 9º I não admite. -->
+        <li data-so-cliente hidden><strong>Com o <span data-privacidade="operador">IncentivaBR</span>, operador desta
+        plataforma:</strong> os dados desta Política são tratados nos servidores dele, por conta e sob
+        instruções de <span data-privacidade="controlador">esta instituição</span></li>
       </ul>
 
       <div class="highlight-box">
@@ -191,10 +238,23 @@
           objetiva. Só o e-mail não cumpre a exigência: falta quem é.
         -->
         <h3><i class="fas fa-envelope"></i> Encarregado pelo Tratamento de Dados Pessoais</h3>
-        <p><strong>Encarregado:</strong> Adacto Artur Dornas de Oliveira</p>
-        <p><strong>E-mail:</strong> privacidade@incentivabr.com.br</p>
-        <p><strong>Endereço:</strong> Brasília — DF</p>
-        <p>Para dúvidas, solicitações ou exercício de seus direitos relacionados a esta política, entre em contato conosco.</p>
+        <!--
+          O Encarregado divulgado é o do CONTROLADOR. No site de um cliente,
+          mostrar o Encarregado da IncentivaBR mandaria o titular reclamar com
+          quem não responde por ele. Os dois campos vêm de [data-privacidade],
+          preenchidos por tenant.js a partir do cadastro da organização.
+        -->
+        <p><strong>Encarregado:</strong> <span data-privacidade="encarregado_nome">Adacto Artur Dornas de Oliveira</span></p>
+        <p><strong>E-mail:</strong> <a data-privacidade="encarregado_email" data-privacidade-href="mailto:"
+           href="mailto:privacidade@incentivabr.com.br">privacidade@incentivabr.com.br</a></p>
+        <p data-so-plataforma><strong>Endereço:</strong> Brasília — DF</p>
+        <p>Para dúvidas, solicitações ou exercício de seus direitos relacionados a esta política, entre em contato.</p>
+        <p data-so-cliente hidden style="margin-top:14px">
+          Questões sobre a <strong>tecnologia</strong> da plataforma podem ser encaminhadas ao
+          operador, <span data-privacidade="operador">IncentivaBR</span>, mas os seus direitos como
+          titular são exercidos junto a <span data-privacidade="controlador">esta instituição</span>,
+          que é quem responde por eles.
+        </p>
         <p style="margin-top:14px">
           Se você recebe nossas comunicações, o link presente em cada mensagem permite
           consultar, corrigir, exportar ou eliminar seus dados <strong>diretamente</strong>,

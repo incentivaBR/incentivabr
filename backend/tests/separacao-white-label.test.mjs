@@ -28,6 +28,7 @@ import {
   ehPaginaDaPlataforma,
   guardaDePaginasDaPlataforma
 } from '../src/lib/paginasDaPlataforma.js';
+import { dentroDe } from './apoio/dentroDe.mjs';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.join(AQUI, '../..');
@@ -98,35 +99,9 @@ await teste('a guarda roda depois do tenant e antes do estatico', () => {
 });
 
 // ── a pagina inicial ────────────────────────────────────────────────────────
-// Percorre as tags mantendo a pilha de elementos abertos, para responder se um
-// trecho esta DENTRO de um bloco marcado. Comparar posicoes no texto nao
-// bastaria: a marca pode estar num bloco que ja fechou antes do trecho.
-const VAZIAS = new Set(['area','base','br','col','embed','hr','img','input','link','meta','source','track','wbr']);
-
-const dentroDe = (html, marca, alvo) => {
-  // O conteudo de <script>/<style> vira espaco do mesmo tamanho: assim um `<`
-  // de javascript nao entra na conta e as posicoes continuam valendo.
-  const texto = html.replace(/(<(script|style)\b[^>]*>)([\s\S]*?)(<\/\2>)/gi,
-    (_m, abre, _tag, dentro, fecha) => abre + ' '.repeat(dentro.length) + fecha);
-  const posicao = texto.indexOf(alvo);
-  if (posicao < 0) throw new Error('nao achei no HTML: ' + alvo);
-
-  const pilha = [];
-  const tags = /<(\/?)([a-z0-9-]+)([^>]*?)(\/?)>/gi;
-  let m;
-  while ((m = tags.exec(texto)) !== null) {
-    if (m.index >= posicao) break;
-    const [, barra, nome, atributos, fechaSozinha] = m;
-    if (barra) {
-      const i = pilha.map(e => e.nome).lastIndexOf(nome.toLowerCase());
-      if (i >= 0) pilha.length = i;
-    } else if (!VAZIAS.has(nome.toLowerCase()) && !fechaSozinha) {
-      pilha.push({ nome: nome.toLowerCase(), marcado: new RegExp('\\b' + marca + '\\b').test(atributos) });
-    }
-  }
-  return pilha.some(e => e.marcado);
-};
-
+// `dentroDe` responde se um trecho esta sob um bloco marcado, percorrendo as
+// tags como o navegador faz. Vive em tests/apoio porque a guarda dos papeis
+// de LGPD faz a mesma pergunta sobre a Politica de Privacidade.
 const inicial = fs.readFileSync(path.join(FRONTEND, 'index.html'), 'utf8');
 
 await teste('o cartao que vende o white-label so aparece na IncentivaBR', () => {

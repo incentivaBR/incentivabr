@@ -140,6 +140,26 @@
               <textarea id="tSobre" rows="6" maxlength="2000" placeholder="Apresentação da instituição, em um ou dois parágrafos."></textarea>
               <p class="dica">Até 2.000 caracteres. Aparece numa seção própria, com o e-mail de contato do cadastro.</p>
             </div>
+
+            <div style="grid-column:1 / -1;border-top:1px solid rgba(128,128,128,0.18);padding-top:16px;margin-top:6px">
+              <h3 style="font-size:15px;margin:0 0 6px">Encarregado de dados do cliente</h3>
+              <p class="nota" style="margin-top:0">
+                No site do cliente, quem responde pelos dados dos destinadores é o <strong>cliente</strong>:
+                ele é o controlador e a IncentivaBR é operadora. O art. 41 §1º da LGPD exige que o
+                Encarregado do controlador seja divulgado — é o que a Política de Privacidade dele
+                vai mostrar. Em branco, a página cai no contato da organização e, na falta dele, no
+                Encarregado da IncentivaBR: funciona, mas manda o titular reclamar com quem não
+                responde por ele. <strong>Preencha antes de o cliente entrar no ar.</strong>
+              </p>
+            </div>
+            <div>
+              <label for="tEncNome">Nome do Encarregado</label>
+              <input id="tEncNome" maxlength="160" placeholder="Maria de Souza">
+            </div>
+            <div>
+              <label for="tEncEmail">E-mail do Encarregado</label>
+              <input id="tEncEmail" type="email" maxlength="200" placeholder="privacidade@instituicao.org.br">
+            </div>
           </div>
           <div class="linha-acoes">
             <button class="btn" type="submit">Salvar textos</button>
@@ -300,6 +320,8 @@
       el('tTitulo').value    = o.hero_titulo    || '';
       el('tSubtitulo').value = o.hero_subtitulo || '';
       el('tSobre').value     = o.sobre          || '';
+      el('tEncNome').value   = o.encarregado_nome  || '';
+      el('tEncEmail').value  = o.encarregado_email || '';
     }
 
     el('formTextos').addEventListener('submit', async e => {
@@ -309,9 +331,11 @@
         await chamar(`/api/admin/orgs/${el('selOrg').value}`, {
           method: 'PUT',
           body: JSON.stringify({
-            hero_titulo:    el('tTitulo').value.trim(),
-            hero_subtitulo: el('tSubtitulo').value.trim(),
-            sobre:          el('tSobre').value.trim()
+            hero_titulo:       el('tTitulo').value.trim(),
+            hero_subtitulo:    el('tSubtitulo').value.trim(),
+            sobre:             el('tSobre').value.trim(),
+            encarregado_nome:  el('tEncNome').value.trim(),
+            encarregado_email: el('tEncEmail').value.trim()
           })
         });
         avisar('avisoTextos', 'Textos salvos. Abra a página inicial com ?org= do cliente para conferir.', true);

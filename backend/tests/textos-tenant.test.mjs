@@ -33,6 +33,7 @@ db.public.none(`
     contact_email TEXT, contact_phone TEXT,
     primary_color TEXT, secondary_color TEXT, logo_url TEXT,
     hero_titulo TEXT, hero_subtitulo TEXT, sobre TEXT,
+    encarregado_nome TEXT, encarregado_email TEXT,
     is_active BOOLEAN DEFAULT true, contracted_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW(),
     govbr_client_id TEXT, govbr_client_secret TEXT, govbr_redirect_uri TEXT,
     incentive_group_code TEXT, mecenato_prazo_dias INT
@@ -107,6 +108,35 @@ await teste('o cliente recebe os textos dele, o contato e o site', async () => {
   if (b.textos.sobre !== 'Somos uma associação de Brasília.') throw new Error('sobre: ' + b.textos.sobre);
   if (b.textos.contato_email !== 'contato@casazul.org.br') throw new Error('contato: ' + b.textos.contato_email);
   if (b.textos.site !== 'https://casazul.org.br') throw new Error('site: ' + b.textos.site);
+});
+
+await teste('a rota diz quem responde pelos dados, de cada lado', async () => {
+  // Sem isto, a Politica de Privacidade servida sob a marca do cliente
+  // continuaria dizendo que a controladora e a IncentivaBR.
+  const www_ = await (await fetch(`${BASE}/api/config/brand`)).json();
+  if (www_.privacidade?.controlador !== 'IncentivaBR') throw new Error('plataforma: ' + JSON.stringify(www_.privacidade));
+  if (www_.privacidade.operador !== null) throw new Error('inventou operador na plataforma');
+
+  const cli = await (await fetch(`${BASE}/api/config/brand?org=casa-azul`)).json();
+  if (cli.privacidade?.controlador !== 'Casa Azul') throw new Error('cliente: ' + JSON.stringify(cli.privacidade));
+  if (cli.privacidade.operador !== 'IncentivaBR') throw new Error('sem operador no cliente');
+  // Sem Encarregado proprio, cai no contato da organizacao — e acusa.
+  if (cli.privacidade.encarregado_email !== 'contato@casazul.org.br') {
+    throw new Error('encarregado: ' + cli.privacidade.encarregado_email);
+  }
+  if (cli.privacidade.encarregado_completo !== false) throw new Error('nao acusou Encarregado faltando');
+});
+
+await teste('o superadmin grava o Encarregado do cliente, e a rota passa a devolve-lo', async () => {
+  const r = await fetch(`${BASE}/api/admin/orgs/${casa.id}`, {
+    method: 'PUT', headers: cab,
+    body: JSON.stringify({ encarregado_nome: 'Maria de Souza', encarregado_email: 'privacidade@casazul.org.br' })
+  });
+  if (r.status !== 200) throw new Error('status ' + r.status + ' ' + await r.text());
+  const cli = await (await fetch(`${BASE}/api/config/brand?org=casa-azul`)).json();
+  if (cli.privacidade.encarregado_nome !== 'Maria de Souza') throw new Error('nome: ' + cli.privacidade.encarregado_nome);
+  if (cli.privacidade.encarregado_email !== 'privacidade@casazul.org.br') throw new Error('email: ' + cli.privacidade.encarregado_email);
+  if (cli.privacidade.encarregado_completo !== true) throw new Error('continuou acusando incompleto');
 });
 
 await teste('o superadmin grava os tres textos, e o excesso e cortado no limite', async () => {
