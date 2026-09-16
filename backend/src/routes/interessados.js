@@ -22,6 +22,8 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import pool from '../../config/database.js';
 import { POLITICA_VERSAO, ENCARREGADO } from '../config/lgpd.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { podeGerirOrganizacao } from '../lib/permissoes.js';
 import * as emailService from '../services/emailService.js';
 
 const router = express.Router();
@@ -451,5 +453,166 @@ router.delete('/meus-dados/:token', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Erro ao eliminar os dados.' });
   }
 });
+
+// ───────────────────────────────────────────────────────────────────────────
+// A lista da organização
+//
+// `organization_id` guarda quem captou cada inscrição desde a migration 027,
+// e a decisão de setembro de 2026 é que a lista é do CLIENTE: se a
+// IncentivaBR é operadora, captar leads no site dele para a base dela seria
+// decidir finalidade própria sobre a base dele — que é o que transforma
+// operador em controlador de fato (docs/juridico/papeis-lgpd.md).
+//
+// Só que não existia rota que lesse essa tabela. A lista era do cliente no
+// banco e não era dele em lugar nenhum: promessa correta e não entregável.
+//
+// Regras que o desenho abaixo cumpre, e o motivo de cada uma:
+//
+//   - escopo pela organização, sempre. O gestor da Casa Azul não enxerga
+//     quem se cadastrou pela Orquestra;
+//   - `access_token` e `confirm_token` NUNCA saem. Não são identificadores:
+//     são credenciais. O primeiro autentica o link de um clique que consulta,
+//     corrige e elimina os dados da pessoa, sem login. Exportar a lista com
+//     ele dentro entrega, junto, a chave da conta de cada inscrito;
+//   - quem pediu eliminação não volta na lista (`anonymized_at`);
+//   - o telefone só sai para quem consentiu WhatsApp, porque foi só para isso
+//     que ele foi pedido (art. 6º I, finalidade);
+//   - cada exportação vira registro. Dado pessoal saindo do sistema em lote é
+//     exatamente o que precisa deixar rastro.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** O que a lista mostra de cada inscrito, e nada além disso. */
+const COLUNAS_DA_LISTA = `
+  s.id, s.email, s.nome, s.orgao,
+  s.consent_prazos, s.consent_projetos, s.consent_whatsapp,
+  CASE WHEN s.consent_whatsapp THEN s.phone ELSE NULL END AS phone,
+  s.confirmed_at, s.revoked_at, s.created_at, s.last_interaction_at`;
+
+/**
+ * Em que pé está cada inscrito. Sem isto, a lista mistura quem pode receber
+ * mensagem com quem nunca confirmou e com quem pediu para sair — e quem
+ * exporta para disparar e-mail não tem como saber a diferença.
+ */
+const situacao = s =>
+  s.revoked_at   ? 'revogado'
+  : !s.confirmed_at ? 'pendente'
+  : 'ativo';
+
+/**
+ * De quem é a lista que este pedido pode ler.
+ *
+ * Devolve `{ orgId, incluiSemDono }` ou `null` quando não pode.
+ * `incluiSemDono` existe porque inscrição anterior aos tenants pode ter
+ * `organization_id` nulo; essa fica com a plataforma, nunca com um cliente.
+ */
+async function escopoDaLista(req) {
+  const orgId = req.organization?.id || req.user?.orgId || null;
+  if (!orgId) return null;
+  if (!(await podeGerirOrganizacao(req.user.userId, orgId, req.user))) return null;
+  const ehPlataforma = (req.organization?.slug || req.user?.orgSlug) === 'www';
+  return { orgId, incluiSemDono: ehPlataforma };
+}
+
+const consultaDaLista = ({ orgId, incluiSemDono }) => ({
+  sql: `SELECT ${COLUNAS_DA_LISTA}
+          FROM subscribers s
+         WHERE s.anonymized_at IS NULL
+           AND (s.organization_id = $1${incluiSemDono ? ' OR s.organization_id IS NULL' : ''})
+         ORDER BY s.created_at DESC`,
+  params: [orgId]
+});
+
+const semPermissao = res => res.status(403).json({
+  status: 'error',
+  message: 'Sem permissão para ver os interessados desta organização.'
+});
+
+// GET /api/interessados/lista — a lista em JSON
+router.get('/lista', authenticateToken, async (req, res) => {
+  try {
+    const escopo = await escopoDaLista(req);
+    if (!escopo) return semPermissao(res);
+
+    const { sql, params } = consultaDaLista(escopo);
+    const { rows } = await pool.query(sql, params);
+    const lista = rows.map(s => ({ ...s, situacao: situacao(s) }));
+
+    res.json({
+      status: 'success',
+      total: lista.length,
+      // O resumo é o que a tela mostra primeiro: exportar uma lista de 400
+      // para descobrir que 380 nunca confirmaram é descobrir tarde.
+      resumo: {
+        ativos:    lista.filter(s => s.situacao === 'ativo').length,
+        pendentes: lista.filter(s => s.situacao === 'pendente').length,
+        revogados: lista.filter(s => s.situacao === 'revogado').length
+      },
+      interessados: lista
+    });
+  } catch (erro) {
+    console.error('Erro ao listar interessados:', erro.message);
+    res.status(500).json({ status: 'error', message: 'Erro ao listar os interessados.' });
+  }
+});
+
+// GET /api/interessados/lista.csv — a mesma lista, para abrir em planilha
+router.get('/lista.csv', authenticateToken, async (req, res) => {
+  try {
+    const escopo = await escopoDaLista(req);
+    if (!escopo) return semPermissao(res);
+
+    const { sql, params } = consultaDaLista(escopo);
+    const { rows } = await pool.query(sql, params);
+
+    // Campo que começa com = + - @ é lido como fórmula pelo Excel e pelo
+    // Sheets. Um nome digitado como `=HYPERLINK(...)` viraria fórmula ao
+    // abrir o arquivo — injeção que vem de fora e executa na máquina de quem
+    // abre. O apóstrofo à frente neutraliza, e some na exibição.
+    const campo = v => {
+      if (v == null) return '';
+      const texto = String(v);
+      const seguro = /^[=+\-@\t\r]/.test(texto) ? "'" + texto : texto;
+      return '"' + seguro.replace(/"/g, '""') + '"';
+    };
+    const data = d => (d ? new Date(d).toISOString().slice(0, 10) : '');
+
+    const cabecalho = ['email', 'nome', 'orgao', 'situacao', 'avisos_de_prazo',
+                       'projetos_novos', 'whatsapp', 'telefone', 'confirmado_em', 'cadastrado_em'];
+    const linhas = rows.map(s => [
+      s.email, s.nome, s.orgao, situacao(s),
+      s.consent_prazos ? 'sim' : 'não',
+      s.consent_projetos ? 'sim' : 'não',
+      s.consent_whatsapp ? 'sim' : 'não',
+      s.phone, data(s.confirmed_at), data(s.created_at)
+    ].map(campo).join(','));
+
+    await registraExportacaoEmLote(req, escopo.orgId, rows.length);
+
+    // BOM: sem ele o Excel no Windows abre "João" como "JoÃ£o".
+    res.type('text/csv; charset=utf-8')
+       .set('Content-Disposition', 'attachment; filename="interessados.csv"')
+       .send('﻿' + [cabecalho.join(','), ...linhas].join('\r\n') + '\r\n');
+  } catch (erro) {
+    console.error('Erro ao exportar interessados:', erro.message);
+    res.status(500).json({ status: 'error', message: 'Erro ao exportar os interessados.' });
+  }
+});
+
+/**
+ * Dado pessoal saindo em lote deixa rastro: quem exportou, de qual
+ * organização, quantas linhas, quando e de onde.
+ */
+async function registraExportacaoEmLote(req, orgId, quantidade) {
+  try {
+    await pool.query(
+      `INSERT INTO audit_log (organization_id, user_id, action, entity_type, details, ip_address, user_agent)
+       VALUES ($1, $2, 'interessados.exportados', 'subscribers', $3, $4, $5)`,
+      [orgId, req.user.userId, JSON.stringify({ quantidade }),
+       req.ip || null, req.get('user-agent') || null]
+    );
+  } catch (erro) {
+    console.error('[lgpd] falha ao registrar exportação da lista:', erro.message);
+  }
+}
 
 export default router;

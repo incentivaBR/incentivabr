@@ -2,6 +2,19 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### A lista de avisos do cliente passa a ser legível
+- `subscribers.organization_id` guarda quem captou cada inscrição desde a migration 027, e a decisão de setembro é que **a lista é do cliente**. Só que não existia rota que lesse a tabela: a lista era dele no banco e não era dele em lugar nenhum — promessa correta e não entregável.
+- `GET /api/interessados/lista` (JSON, com resumo de ativos, pendentes e revogados) e `GET /api/interessados/lista.csv` (para planilha). Escopo sempre pela organização, conferido por `podeGerirOrganizacao` **depois** de o tenant ser resolvido — senão bastava trocar o `?org=` do endereço para ler a base de qualquer cliente.
+- **`access_token` e `confirm_token` nunca saem.** Não são identificadores, são credenciais: o primeiro autentica o link de um clique que consulta, corrige e elimina os dados da pessoa, sem login. Exportar a lista com ele dentro entregaria, junto, a chave da conta de cada inscrito.
+- Quem pediu eliminação não volta na lista; o telefone só sai de quem consentiu WhatsApp, porque foi só para isso que ele foi pedido; cada inscrito vem com a situação, senão quem exporta para disparar e-mail não distingue quem confirmou de quem nunca confirmou.
+- **O CSV neutraliza fórmula.** Nome digitado num formulário aberto como `=HYPERLINK(...)` é executado pelo Excel e pelo Sheets ao abrir o arquivo. E leva BOM, senão o Excel no Windows abre "João" como "JoÃ£o".
+- Exportação em lote entra no `audit_log` com quem, quantas linhas, quando e de onde. A leitura em tela não — um registro por abertura de tela transforma o log em ruído.
+- `backend/tests/lista-interessados.test.mjs`.
+
+### O fluxo das páginas, levantado dos links
+- `docs/operacao/fluxo-das-paginas.md`: os quatro fluxos (destinador, gestor, superadmin, público), as páginas que só chegam por link de e-mail e os nove atalhos de endereço. Levantado lendo os links entre os arquivos, não a memória de quem escreveu.
+- Resultado: **nenhuma página órfã de verdade** — as 34 estão em um dos grupos. E o dashboard é o eixo: é dele que gestor e superadmin alcançam as telas de operação, sempre com o acesso decidido pela rota, nunca por uma cópia da regra na tela.
+
 ### No site do cliente, quem responde pelos dados é o cliente
 - Decisão: no site de um cliente white-label, **o cliente é o controlador e a IncentivaBR é operadora** (LGPD, art. 5º VI e VII). Isso não é rótulo de contrato — muda o que a página tem de dizer, e as páginas diziam errado. Registrado em `docs/juridico/papeis-lgpd.md`, com o que o anexo de operador precisa conter.
 - **A Política de Privacidade não carregava o `tenant.js`.** Sob a marca do cliente, ela continuava afirmando que a controladora é a IncentivaBR — justamente o documento em que isso não pode estar errado.
