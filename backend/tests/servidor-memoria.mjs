@@ -30,7 +30,11 @@ db.public.none(`
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT, slug TEXT, contact_email TEXT, contact_whatsapp TEXT,
     contact_person TEXT, mecenato_prazo_dias INT DEFAULT 10,
-    primary_color TEXT, secondary_color TEXT, logo_url TEXT
+    primary_color TEXT, secondary_color TEXT, logo_url TEXT,
+    -- Encarregado de dados do cliente (migration 041). Fica vazio de
+    -- proposito: e como um cliente novo entra, e e o caminho de reserva da
+    -- Politica que precisa ser visto funcionando.
+    encarregado_nome TEXT, encarregado_email TEXT
   );
   CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -132,7 +136,11 @@ const { default: salicRoutes }     = await import('../src/routes/salic.js');
 const app = express();
 app.use(express.json());
 app.use((req, _res, next) => {
+  // Este servidor finge SEMPRE o site do cliente: e para isso que ele existe.
+  // O contato entra porque e o degrau de reserva do Encarregado enquanto o
+  // cliente nao preenche o dele — e o estado real de um cliente recem-criado.
   req.organization = { id: orgId, name: 'Casa Azul Felipe Augusto', slug: 'casa-azul',
+                       contact_email: 'contato@casazul.org.br',
                        primary_color: '#273F77', secondary_color: '#EE985C' };
   next();
 });

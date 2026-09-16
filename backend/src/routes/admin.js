@@ -30,7 +30,12 @@ router.use(authenticateToken, requireSuperadmin);
  * um campo de formulário não virar um artigo. `undefined` mantém o valor
  * atual no COALESCE; string vazia apaga.
  */
-export const LIMITE_TEXTOS = { hero_titulo: 160, hero_subtitulo: 400, sobre: 2000 };
+export const LIMITE_TEXTOS = {
+  hero_titulo: 160, hero_subtitulo: 400, sobre: 2000,
+  // Encarregado de dados do cliente (migration 041). É ele que a Política de
+  // Privacidade divulga no site dele, porque é ele o controlador (art. 41 §1º).
+  encarregado_nome: 160, encarregado_email: 200
+};
 function textoDoCliente(valor, campo) {
   if (valor === undefined) return undefined;
   if (valor === null) return '';
@@ -50,6 +55,7 @@ router.get('/orgs', async (req, res) => {
         o.contact_email, o.contact_phone,
         o.primary_color, o.secondary_color, o.logo_url,
         o.hero_titulo, o.hero_subtitulo, o.sobre,
+        o.encarregado_nome, o.encarregado_email,
         o.is_active, o.contracted_at, o.created_at,
         o.govbr_client_id,
         COUNT(DISTINCT u.id)  FILTER (WHERE u.organization_id = o.id) AS total_users,
@@ -185,7 +191,8 @@ router.put('/orgs/:id', async (req, res) => {
     // Os textos aceitam string vazia para apagar, e o COALESCE não distingue
     // "apagar" de "não mexer". Cada um vai em dois parâmetros: se muda, e
     // para o quê (NULL quando apaga).
-    const textos = ['hero_titulo', 'hero_subtitulo', 'sobre'].map(campo => {
+    const textos = ['hero_titulo', 'hero_subtitulo', 'sobre',
+                    'encarregado_nome', 'encarregado_email'].map(campo => {
       const v = textoDoCliente(req.body[campo], campo);
       return v === undefined ? [false, null] : [true, v || null];
     });
@@ -208,9 +215,11 @@ router.put('/orgs/:id', async (req, res) => {
         govbr_client_id  = COALESCE($15, govbr_client_id),
         govbr_client_secret = COALESCE($16, govbr_client_secret),
         govbr_redirect_uri  = COALESCE($17, govbr_redirect_uri),
-        hero_titulo      = CASE WHEN $19 THEN $20::text ELSE hero_titulo    END,
-        hero_subtitulo   = CASE WHEN $21 THEN $22::text ELSE hero_subtitulo END,
-        sobre            = CASE WHEN $23 THEN $24::text ELSE sobre          END
+        hero_titulo       = CASE WHEN $19 THEN $20::text ELSE hero_titulo       END,
+        hero_subtitulo    = CASE WHEN $21 THEN $22::text ELSE hero_subtitulo    END,
+        sobre             = CASE WHEN $23 THEN $24::text ELSE sobre             END,
+        encarregado_nome  = CASE WHEN $25 THEN $26::text ELSE encarregado_nome  END,
+        encarregado_email = CASE WHEN $27 THEN $28::text ELSE encarregado_email END
       WHERE id = $18
       RETURNING id, name, slug, plan_type, is_active
     `, [name, custom_domain, website_url, cnpj,

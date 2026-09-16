@@ -55,18 +55,36 @@
 
     <div class="legal-header">
       <h1><i class="fas fa-file-contract"></i> Termos de Uso</h1>
-      <p>Última atualização: Maio de 2026</p>
+      <p>Última atualização: Setembro de 2026</p>
     </div>
 
     <div class="legal-content">
       <h2>1. O que é esta plataforma</h2>
       <p>
-        O <strong>IncentivaBR</strong> é um serviço digital que facilita a destinação de parte do
+        Este é um serviço digital que facilita a destinação de parte do
         Imposto de Renda devido por pessoas físicas para projetos culturais aprovados pelo
         <strong>Ministério da Cultura (MinC)</strong> e cadastrados no sistema <strong>SALIC</strong>,
         conforme a <strong>Lei 8.313/1991 (Lei Rouanet)</strong>.
       </p>
-      <p>Nossa plataforma oferece ferramentas para:</p>
+
+      <!--
+        Quem oferece o serviço muda conforme o site. Dizer "o IncentivaBR é o
+        serviço" na página de um cliente contradiz o contrato: lá quem presta é
+        o cliente, sobre tecnologia licenciada. tenant.js mostra um bloco e
+        esconde o outro.
+      -->
+      <p data-so-plataforma>
+        O serviço é prestado pelo <strong>IncentivaBR</strong>, que também é o responsável pela
+        tecnologia desta plataforma.
+      </p>
+      <p data-so-cliente hidden>
+        O serviço é prestado por <strong><span data-privacidade="prestador">esta instituição</span></strong>,
+        sobre a tecnologia da plataforma <strong><span data-privacidade="fornecedor">IncentivaBR</span></strong>,
+        licenciada para esse fim. A sua relação, para tudo o que estes Termos tratam, é com
+        <span data-privacidade="prestador">esta instituição</span>.
+      </p>
+
+      <p>Esta plataforma oferece ferramentas para:</p>
       <ul>
         <li>Calcular o valor máximo que você pode destinar com base no seu IR (limite de <span data-fiscal="teto_pct">6%</span>)</li>
         <li>Conhecer o projeto cultural apoiado (via SALIC)</li>
@@ -102,7 +120,12 @@
       </ul>
 
       <h2>5. Responsabilidades da Plataforma</h2>
-      <p>O IncentivaBR se compromete a:</p>
+      <!--
+        Quem assume estes compromissos é quem presta o serviço. No site de um
+        cliente, era a IncentivaBR prometendo em nome dele a um usuário que
+        não é dela.
+      -->
+      <p><span data-privacidade="prestador">O IncentivaBR</span> se compromete a:</p>
       <ul>
         <li>Manter a plataforma disponível e funcional</li>
         <li>Proteger seus dados pessoais conforme a LGPD</li>
@@ -121,7 +144,12 @@
       </div>
 
       <h2>6. Limitações de Responsabilidade</h2>
-      <p>O IncentivaBR <strong>não se responsabiliza</strong> por:</p>
+      <!--
+        Cláusula que limita responsabilidade nomeando quem não presta o
+        serviço não protege ninguém: o limite tem de recair sobre quem é parte
+        da relação com o usuário.
+      -->
+      <p><span data-privacidade="prestador">O IncentivaBR</span> <strong>não se responsabiliza</strong> por:</p>
       <ul>
         <li>Informações incorretas ou incompletas fornecidas pelo usuário</li>
         <li>Erros de cálculo decorrentes de dados incorretos informados</li>
@@ -141,9 +169,21 @@
       </div>
 
       <h2>7. Propriedade Intelectual</h2>
-      <p>
+      <!--
+        Na página de um cliente, "a marca desta plataforma" é a marca DELE, e o
+        código é da IncentivaBR. O texto único dizia que tudo é da plataforma —
+        o que, sob a marca do cliente, dizia que a marca dele é da IncentivaBR.
+      -->
+      <p data-so-plataforma>
         Esta plataforma, incluindo sua marca, logotipo, design, código-fonte, textos e demais
         conteúdos, são protegidos por direitos de propriedade intelectual.
+      </p>
+      <p data-so-cliente hidden>
+        A marca, o logotipo e os textos de
+        <strong><span data-privacidade="prestador">esta instituição</span></strong> pertencem a ela.
+        O código-fonte, o design e a tecnologia desta plataforma pertencem ao
+        <strong><span data-privacidade="fornecedor">IncentivaBR</span></strong> e são usados sob licença.
+        Uns e outros são protegidos por direitos de propriedade intelectual.
       </p>
       <p>É proibido:</p>
       <ul>
@@ -171,15 +211,25 @@
       <h2>10. Legislação Aplicável</h2>
       <p>
         Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil.
+      </p>
+      <!--
+        A eleição de foro é da IncentivaBR e vale para o site dela. Na página
+        de um cliente, eleger Brasília/DF mandaria o usuário DELE litigar na
+        comarca de um terceiro. Se o cliente quiser eleger foro, isso entra no
+        contrato e vira campo do cadastro — não se inventa aqui.
+      -->
+      <p data-so-plataforma>
         Fica eleito o foro da comarca de Brasília/DF para dirimir quaisquer controvérsias.
       </p>
 
       <h2>11. Contato</h2>
       <div class="contact-box">
         <h3><i class="fas fa-envelope"></i> Dúvidas sobre os Termos</h3>
-        <p><strong>E-mail:</strong> contato@IncentivaBR.com.br</p>
-        <p><strong>Endereço:</strong> Brasília — DF</p>
-        <p>Para dúvidas, sugestões ou reclamações sobre estes Termos de Uso, entre em contato conosco.</p>
+        <p><strong>E-mail:</strong>
+          <a data-tenant="contato_email" data-tenant-href="mailto:"
+             href="mailto:contato@incentivabr.com.br">contato@incentivabr.com.br</a></p>
+        <p data-so-plataforma><strong>Endereço:</strong> Brasília — DF</p>
+        <p>Para dúvidas, sugestões ou reclamações sobre estes Termos de Uso, entre em contato.</p>
       </div>
     </div>
   </div>

@@ -417,6 +417,36 @@ const tenant = {
       });
     }
 
+    // Quem responde pelos dados neste site (backend/src/lib/papeisLgpd.js).
+    //
+    // Na IncentivaBR, ela mesma é a controladora. No site de um cliente, o
+    // controlador é o cliente e a IncentivaBR é operadora — e o Encarregado
+    // divulgado tem de ser o do controlador (art. 41 §1º), senão a página
+    // manda o titular reclamar com quem não responde por ele.
+    //
+    // Sempre por textContent, e o e-mail vira mailto: pelo mesmo caminho dos
+    // demais links do tenant: é texto digitado por gente, não HTML.
+    if (brand.privacidade) {
+      window.PRIVACIDADE = brand.privacidade;
+      const p = brand.privacidade;
+      const valores = {
+        controlador:       p.controlador || '',
+        operador:          p.operador || '',
+        prestador:         p.prestador || '',
+        fornecedor:        p.fornecedor || '',
+        encarregado_nome:  p.encarregado_nome || '',
+        encarregado_email: p.encarregado_email || '',
+        politica_versao:   p.politica_versao || ''
+      };
+      document.querySelectorAll('[data-privacidade]').forEach(el => {
+        const v = valores[el.dataset.privacidade];
+        if (v == null || v === '') return;
+        el.textContent = v;
+        const prefixo = el.dataset.privacidadeHref;
+        if (prefixo != null && el.tagName === 'A') el.href = prefixo + v;
+      });
+    }
+
     window.dispatchEvent(new CustomEvent('brandLoaded', { detail: brand }));
   }
 };
