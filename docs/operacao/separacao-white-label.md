@@ -40,6 +40,7 @@ mesmo assim.
 | `projetos-rouanet.html` | mostra o projeto ativo da organização (`GET /api/salic/org-project`), não uma busca no SALIC |
 | `destinar-rouanet.html` | a conta de captação é a do projeto do cliente, lida do banco |
 | `conferencia.html` | fila dos gestores **dele** |
+| `interessados.html` | a lista de avisos **dele** (`GET /api/interessados/lista`), escopada pela organização |
 | Marca, cores e logo | `GET /api/config/brand`, por tenant |
 
 ## Serve aos dois (só a marca muda no topo)
@@ -55,8 +56,9 @@ para qualquer instituição; o que muda é o logotipo e a cor.
 
 Três pontos não têm resposta técnica — são de contrato:
 
-1. **`cadastro-avisos.html`** — hoje a lista de avisos é uma só. Num cliente,
-   quem se cadastra está entrando na lista de quem: da IncentivaBR ou dele?
+1. **`cadastro-avisos.html`** — decidido em setembro: a lista é **do
+   cliente**. `subscribers.organization_id` escopa, e `interessados.html`
+   mostra a ele a lista dele. Ver `docs/juridico/papeis-lgpd.md`.
 2. **`termos-uso.html` e `politica-privacidade.html`** — os textos nomeiam a
    IncentivaBR. No site do cliente, ele é controlador dos dados dos
    destinadores e a IncentivaBR é operadora — ou o contrário? Isso precisa
