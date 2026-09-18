@@ -2,6 +2,11 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### A lista de avisos ganha tela
+- `interessados.html`: a lista de quem se cadastrou para receber avisos pelo site da organização, com a situação de cada pessoa (ativo, pendente, revogado) e exportação em CSV. Chega por atalho no dashboard, aceso pela própria rota — o mesmo padrão da conferência e da tela de clientes: a tela não guarda cópia da regra de permissão.
+- Nome, órgão e e-mail vêm de um formulário aberto ao público; nunca entram em `innerHTML` sem escape, e o teste falha se entrarem. O CSV sai por fetch autenticado, porque link direto não leva o token.
+- `noindex`: é tela de operação com dado pessoal de terceiros.
+
 ### A lista de avisos do cliente passa a ser legível
 - `subscribers.organization_id` guarda quem captou cada inscrição desde a migration 027, e a decisão de setembro é que **a lista é do cliente**. Só que não existia rota que lesse a tabela: a lista era dele no banco e não era dele em lugar nenhum — promessa correta e não entregável.
 - `GET /api/interessados/lista` (JSON, com resumo de ativos, pendentes e revogados) e `GET /api/interessados/lista.csv` (para planilha). Escopo sempre pela organização, conferido por `podeGerirOrganizacao` **depois** de o tenant ser resolvido — senão bastava trocar o `?org=` do endereço para ler a base de qualquer cliente.

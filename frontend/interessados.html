@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    /*
+      White label — cor de acento. tenant.js escreve --secondary-color em :root
+      a partir da organizacao; o fallback e a cor original, entao sem tenant
+      carregado nada muda de aparencia.
+    */
+    :root {
+      --secondary-solid: var(--secondary-color,#EE985C);
+    }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interessados — IncentivaBR</title>
+  <!-- Tela de operação, com dado pessoal de terceiros: fora dos buscadores. -->
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Montserrat', sans-serif; background: #F4F6FB; color: #1a1a2e; }
+
+    .nav { position: fixed; top:0; left:0; right:0; z-index:50; height:60px;
+           background: rgba(15,30,61,.97); display:flex; align-items:center; }
+    .nav-inner { max-width:960px; width:100%; margin:0 auto; padding:0 24px;
+                 display:flex; align-items:center; justify-content:space-between; }
+    .nav-logo { color:#fff; font-weight:900; font-size:19px; text-decoration:none; }
+    .nav-logo span { color: var(--secondary-solid); }
+    .nav-right { color:rgba(255,255,255,.7); font-size:13px; display:flex; align-items:center; gap:14px; }
+    .btn-sair { background:none; border:1px solid rgba(255,255,255,.25); color:rgba(255,255,255,.6);
+                padding:6px 14px; border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit; }
+
+    .page { max-width:960px; margin:0 auto; padding:84px 24px 60px; }
+    h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .sub { color:#556; font-size:14.5px; line-height:1.65; margin-bottom:18px; }
+    .sub b { color:#0F1E3D; }
+
+    .resumo { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:20px;
+            font-size:13px; font-weight:700; }
+    .pill.ativos    { background:#DCFCE7; color:#15803D; }
+    .pill.pendentes { background:#FEF9C3; color:#92400E; }
+    .pill.revogados { background:#F1F5F9; color:#64748B; }
+    .btn { display:inline-flex; align-items:center; gap:8px; border:none; border-radius:10px;
+           padding:10px 18px; font-size:14px; font-weight:700; font-family:inherit;
+           cursor:pointer; text-decoration:none; margin-left:auto; }
+    .btn:disabled { opacity:.5; cursor:default; }
+    .btn-csv { background:#0F1E3D; color:#fff; }
+    .btn-csv:hover:not(:disabled) { background:#1a2f5c; }
+
+    .aviso { padding:14px 18px; border-radius:12px; font-size:14px; line-height:1.6;
+             margin-bottom:18px; display:none; }
+    .aviso.on { display:block; }
+    .aviso.erro{ background:#FEE2E2; color:#B91C1C; border:1px solid #FCA5A5; }
+
+    .tabela { background:#fff; border:1px solid #E8ECF4; border-radius:14px; overflow:hidden; }
+    .tabela-rolagem { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:13.5px; min-width:640px; }
+    th { text-align:left; background:#0F1E3D; color:#fff; font-size:11px; text-transform:uppercase;
+         letter-spacing:.5px; padding:12px 16px; font-weight:700; white-space:nowrap; }
+    td { padding:12px 16px; border-bottom:1px solid #F0F2F8; vertical-align:top; }
+    tr:last-child td { border-bottom:none; }
+    td .nome { font-weight:700; }
+    td .orgao { color:#8B96A8; font-size:12px; margin-top:2px; }
+    .sit { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11.5px; font-weight:700; }
+    .sit.ativo    { background:#DCFCE7; color:#15803D; }
+    .sit.pendente { background:#FEF9C3; color:#92400E; }
+    .sit.revogado { background:#F1F5F9; color:#64748B; }
+    .sim { color:#15803D; } .nao { color:#CBD5E1; }
+
+    .vazio { background:#fff; border:1px solid #E8ECF4; border-radius:14px;
+             padding:48px 24px; text-align:center; color:#8B96A8; }
+    .vazio i { font-size:34px; color:#CBD5E1; display:block; margin-bottom:14px; }
+
+    .nota-final { margin-top:26px; font-size:12.5px; color:#8B96A8; line-height:1.75; }
+
+    @media (max-width:700px) {
+      .btn { margin-left:0; width:100%; justify-content:center; }
+    }
+  </style>
+  <script src="js/tenant.js"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="dashboard.html" class="nav-logo">Incentiva<span>BR</span></a>
+      <div class="nav-right">
+        <span id="quem"></span>
+        <button class="btn-sair" onclick="sair()">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1>Interessados</h1>
+    <p class="sub">
+      Quem se cadastrou para receber avisos pelo site de <b class="brand-name">esta instituição</b>.
+      A lista é sua: cada pessoa consentiu com finalidades específicas, e o consentimento
+      vale só para elas. <b>Só quem está "ativo" confirmou o e-mail</b> — pendente ainda não
+      clicou no link, e revogado pediu para sair.
+    </p>
+
+    <div id="resumo" class="resumo" style="display:none">
+      <span class="pill ativos"><i class="fas fa-circle-check"></i> <span id="nAtivos">0</span> ativos</span>
+      <span class="pill pendentes"><i class="fas fa-clock"></i> <span id="nPendentes">0</span> pendentes</span>
+      <span class="pill revogados"><i class="fas fa-user-slash"></i> <span id="nRevogados">0</span> revogados</span>
+      <button class="btn btn-csv" id="btnCsv" onclick="baixarCsv(this)">
+        <i class="fas fa-file-csv"></i> Baixar planilha (CSV)
+      </button>
+    </div>
+
+    <div id="aviso" class="aviso"></div>
+    <div id="lista"></div>
+
+    <p class="nota-final">
+      O telefone só aparece de quem pediu contato por WhatsApp: foi só para isso que ele
+      foi coletado. Quem pediu a eliminação dos dados não consta. Toda exportação fica
+      registrada — dado pessoal saindo em lote deixa rastro.
+    </p>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const token = localStorage.getItem('incentivabr_token');
+
+    // Nome, órgão e e-mail vêm de um formulário aberto ao público. Tudo o que
+    // entra em innerHTML passa por aqui — sem isso, um nome com <script>
+    // executaria na tela do gestor.
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+    const data = iso => iso
+      ? new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })
+      : '—';
+
+    const ROTULO = { ativo: 'ativo', pendente: 'pendente', revogado: 'revogado' };
+
+    function mostra(tipo, texto) {
+      const a = $('aviso');
+      a.className = 'aviso on ' + tipo;
+      a.textContent = texto;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function sair() {
+      localStorage.removeItem('incentivabr_token');
+      location.href = 'login.html';
+    }
+
+    const pedir = (url, opcoes = {}) => fetch(url, {
+      ...opcoes,
+      headers: { 'Authorization': 'Bearer ' + token, ...(opcoes.headers || {}) }
+    });
+
+    const marca = v => v
+      ? '<i class="fas fa-check sim" title="sim"></i>'
+      : '<i class="fas fa-minus nao" title="não"></i>';
+
+    function render(r) {
+      $('resumo').style.display = 'flex';
+      $('nAtivos').textContent    = r.resumo.ativos;
+      $('nPendentes').textContent = r.resumo.pendentes;
+      $('nRevogados').textContent = r.resumo.revogados;
+      $('btnCsv').disabled = !r.total;
+
+      if (!r.total) {
+        $('lista').innerHTML = `
+          <div class="vazio">
+            <i class="fas fa-inbox"></i>
+            Ninguém se cadastrou para receber avisos ainda.
+          </div>`;
+        return;
+      }
+
+      $('lista').innerHTML = `
+        <div class="tabela"><div class="tabela-rolagem">
+          <table>
+            <thead><tr>
+              <th>Pessoa</th><th>E-mail</th><th>Situação</th>
+              <th title="Avisos de prazo do IR">Prazos</th>
+              <th title="Novos projetos aprovados">Projetos</th>
+              <th>WhatsApp</th><th>Cadastro</th>
+            </tr></thead>
+            <tbody>
+              ${r.interessados.map(s => `
+                <tr>
+                  <td><div class="nome">${esc(s.nome || '—')}</div>
+                      ${s.orgao ? `<div class="orgao">${esc(s.orgao)}</div>` : ''}</td>
+                  <td>${esc(s.email)}</td>
+                  <td><span class="sit ${esc(s.situacao)}">${esc(ROTULO[s.situacao] || s.situacao)}</span></td>
+                  <td>${marca(s.consent_prazos)}</td>
+                  <td>${marca(s.consent_projetos)}</td>
+                  <td>${s.consent_whatsapp ? esc(s.phone || 'sim') : marca(false)}</td>
+                  <td>${data(s.created_at)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div></div>`;
+    }
+
+    // O CSV sai por rota autenticada: um link direto não leva o token e daria
+    // 401. Mesmo caminho do comprovante na conferência — busca com o cabeçalho,
+    // vira blob, e o navegador salva.
+    async function baixarCsv(btn) {
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparando...';
+      try {
+        const resp = await pedir('/api/interessados/lista.csv');
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({}));
+          throw new Error(e.message || 'Não foi possível exportar.');
+        }
+        const url = URL.createObjectURL(await resp.blob());
+        const a = document.createElement('a');
+        a.href = url; a.download = 'interessados.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } catch (e) {
+        mostra('erro', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    }
+
+    async function carregar() {
+      try {
+        const resp = await pedir('/api/interessados/lista');
+        const r = await resp.json();
+        if (resp.status === 403) {
+          $('lista').innerHTML = `
+            <div class="vazio">
+              <i class="fas fa-lock"></i>
+              Esta tela é de quem administra a organização.<br>${esc(r.message || '')}
+            </div>`;
+          return;
+        }
+        if (!resp.ok) throw new Error(r.message || 'Erro ao carregar.');
+        render(r);
+      } catch (e) {
+        mostra('erro', e.message);
+      }
+    }
+
+    (function inicio() {
+      if (!token) { location.href = 'login.html'; return; }
+      try {
+        const u = JSON.parse(localStorage.getItem('incentivabr_user') || '{}');
+        $('quem').textContent = u.nome || u.email || '';
+      } catch (_) {}
+      carregar();
+    })();
+  </script>
+
+<!-- incentivabr-legal -->
+<div style="max-width:1100px;margin:0 auto;padding:22px 18px 30px;text-align:center;border-top:1px solid rgba(128,128,128,0.14);font-size:11px;line-height:1.7;color:rgba(128,128,128,0.75);font-family:inherit">
+  <strong>IncentivaBR</strong>&trade; &mdash; programa de computador registrado no INPI sob o n&ordm; BR512025000647-0.<br>
+  Marca mista depositada no INPI sob os processos n&ordm; 939403005 (NCL 35) e n&ordm; 939403110 (NCL 42).<br>
+  Documenta&ccedil;&atilde;o t&eacute;cnica registrada no 2&ordm; Of&iacute;cio de Registro Civil, T&iacute;tulos e Documentos e Pessoas Jur&iacute;dicas de Bras&iacute;lia/DF.<br>
+  &copy; 2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. &Eacute; vedada a reprodu&ccedil;&atilde;o, distribui&ccedil;&atilde;o ou engenharia reversa, total ou parcial, sem autoriza&ccedil;&atilde;o expressa.
+</div>
+</body>
+</html>

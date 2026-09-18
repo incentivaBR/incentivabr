@@ -351,6 +351,10 @@
         <a href="conferencia.html" id="linkConferencia" class="btn-conferencia" style="display:none">
           <i class="fas fa-clipboard-check"></i> <span id="qtdConferencia">Conferência</span>
         </a>
+        <!-- A lista de avisos da organização. Mesmo mecanismo: a rota decide. -->
+        <a href="interessados.html" id="linkInteressados" class="btn-conferencia" style="display:none">
+          <i class="fas fa-envelope-open-text"></i> <span id="qtdInteressados">Interessados</span>
+        </a>
         <button class="btn-logout" onclick="auth.logout()">Sair</button>
       </div>
     </div>
@@ -855,6 +859,28 @@
       } catch (_) { /* atalho, não funcionalidade */ }
     }
     verificaAcessoClientes();
+
+    /**
+     * Mostra "Interessados" a quem administra a organização.
+     *
+     * A lista de avisos é do cliente, e a rota que a lê já existia sem tela
+     * nenhuma. Mesma mecânica dos outros dois atalhos: a rota responde 403 a
+     * quem não pode, e é essa resposta que acende ou não o link.
+     */
+    async function verificaAcessoInteressados() {
+      const token = localStorage.getItem('incentivabr_token');
+      if (!token) return;
+      try {
+        const resp = await fetch('/api/interessados/lista',
+          { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!resp.ok) return;
+        const r = await resp.json();
+        document.getElementById('linkInteressados').style.display = 'inline-flex';
+        document.getElementById('qtdInteressados').textContent =
+          r.resumo?.ativos ? `Interessados (${r.resumo.ativos})` : 'Interessados';
+      } catch (_) { /* atalho, não funcionalidade */ }
+    }
+    verificaAcessoInteressados();
 
     /**
      * Liga os links [data-destinar] que nascem depois do carregamento.

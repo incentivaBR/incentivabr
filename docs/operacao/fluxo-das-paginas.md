@@ -33,14 +33,20 @@ conta) e `verificar-email.html` (chega por link no e-mail).
 **A calculadora não exige conta e não grava nada.** É a porta mais larga do
 funil e a que menos pede em troca.
 
-### 2. Gestor do proponente — conferir o que entrou
+### 2. Gestor do proponente — conferir o que entrou, e falar com quem se interessou
 
 ```
 login.html → dashboard.html → conferencia.html
+                            → interessados.html
 ```
 
-O atalho para a conferência só acende quando `GET /api/donations/conferencia`
-responde 200. Quem decide é a rota; a tela não guarda cópia da regra.
+Os dois atalhos só acendem quando a rota respectiva responde 200
+(`GET /api/donations/conferencia`, `GET /api/interessados/lista`). Quem decide
+é a rota; a tela não guarda cópia da regra.
+
+`interessados.html` é a lista de quem se cadastrou para receber avisos pelo
+site da organização — a lista é dela. Mostra a situação de cada pessoa
+(ativo, pendente, revogado) e exporta CSV por rota autenticada.
 
 `aceitar-convite.html` é como um gestor entra pela primeira vez — chega por
 link no e-mail do convite.
@@ -123,10 +129,9 @@ e-mail com token, ou são atalho de endereço.
 operação, e o acesso é sempre decidido pela rota, nunca por uma cópia da regra
 na tela. Qualquer tela de operação nova entra por ali.
 
-**Falta uma tela.** `GET /api/interessados/lista` já existe e devolve a lista
-de quem se cadastrou para receber avisos — do cliente, escopada pela
-organização. Não há tela que a mostre. Pelo padrão acima, ela entra como
-atalho no dashboard, aceso pela resposta da rota.
+**A tela da lista entrou por esse padrão.** `GET /api/interessados/lista`
+existiu um dia sem tela; `interessados.html` chega por atalho no dashboard,
+aceso pela resposta da rota, como as outras duas telas de operação.
 
 ---
 

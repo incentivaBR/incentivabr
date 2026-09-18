@@ -267,6 +267,52 @@ await teste('ler a lista em JSON nao gera registro de exportacao', async () => {
   if (depois !== antes) throw new Error('a leitura virou exportacao no log');
 });
 
+// ── a tela ──────────────────────────────────────────────────────────────────
+// A rota existiu um dia sem tela nenhuma. Estas guardas prendem a tela ao
+// padrao das outras de operacao: chega-se por atalho no dashboard, aceso pela
+// propria rota; e o que vem do formulario aberto nunca entra em innerHTML sem
+// escape.
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const FRONTEND = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../frontend');
+const leia = nome => fs.readFileSync(path.join(FRONTEND, nome), 'utf8');
+
+await teste('a tela existe, e fora dos buscadores', () => {
+  const html = leia('interessados.html');
+  if (!/<meta name="robots" content="noindex">/.test(html)) throw new Error('sem noindex — tem dado pessoal de terceiros');
+  if (!/<script[^>]+src="js\/tenant\.js"/.test(html)) throw new Error('nao carrega o tenant.js');
+  if (!/\/api\/interessados\/lista\b/.test(html)) throw new Error('nao chama a rota da lista');
+  if (!/\/api\/interessados\/lista\.csv/.test(html)) throw new Error('nao oferece o CSV');
+});
+
+await teste('o dashboard leva ate a tela, e quem acende o atalho e a rota', () => {
+  const dash = leia('dashboard.html');
+  if (!/href="interessados\.html"/.test(dash)) throw new Error('sem atalho no dashboard');
+  // O atalho nasce escondido e a RESPOSTA da rota o acende — nenhuma copia da
+  // regra de permissao na tela, livre para divergir da do servidor.
+  const atalho = dash.match(/<a href="interessados\.html"[^>]*>/)?.[0] || '';
+  if (!/display:\s*none/.test(atalho)) throw new Error('o atalho nasce visivel: ' + atalho);
+  if (!/fetch\('\/api\/interessados\/lista'/.test(dash)) throw new Error('o dashboard nao consulta a rota para acender o atalho');
+});
+
+await teste('nome, orgao e e-mail nunca entram em innerHTML sem escape', () => {
+  // Vieram de um formulario aberto ao publico. `${s.nome}` cru executaria um
+  // <script> na tela do gestor.
+  const html = leia('interessados.html');
+  const crus = [...html.matchAll(/\$\{s\.(nome|orgao|email|phone|situacao)[^}]*\}/g)]
+    .map(m => m[0]).filter(m => !/esc\(/.test(m));
+  if (crus.length) throw new Error('campo cru em template: ' + crus.join(' '));
+  if (!/const esc = /.test(html)) throw new Error('a tela nao define esc()');
+});
+
+await teste('o CSV sai por fetch autenticado, nao por link direto', () => {
+  // Link direto nao leva o token e daria 401.
+  const html = leia('interessados.html');
+  if (/<a[^>]+href="\/api\/interessados\/lista\.csv"/.test(html)) throw new Error('link direto para o CSV');
+  if (!/URL\.createObjectURL/.test(html)) throw new Error('nao baixa por blob');
+});
+
 servidor.close();
 
 console.log('\n' + '='.repeat(64));
