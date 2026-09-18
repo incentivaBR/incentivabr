@@ -2,6 +2,12 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Material comercial: só o que o código sustenta (Raio-X, risco 12)
+- `docs/auditoria/afirmacoes-comerciais.md` confere cada afirmação de pitch, roteiro e página inicial contra o repositório. Sete eram falsas: "OAuth Gov.br ativo" (não há uma linha de código), "microsserviços" (um processo), "trilha imutável / append-only / SHA-256 por evento" (`audit_log` é tabela comum), "AES em repouso" (não há), "URL assinada com TTL" (é rota autenticada — mais restritivo), "segregação de PII" (mesma tabela), "laudo com assinatura digital" (o PDF é registro de operação; o documento fiscal é o Recibo de Mecenato).
+- **Os números do piloto saíram da home** (NPS +64, 88% concluíram, 84% não sabiam) e os três depoimentos também. Não existe no repositório a planilha de onde teriam saído; um deles era a opção de múltipla escolha de um questionário — caixa marcada não é frase dita. Numa plataforma que fala de imposto, número que não se confere é passivo. Um teste impede que voltem sem `docs/piloto-fgv/resultados.md`.
+- O roteiro de venda (`ROTEIRO_PITCH_ASJDF.md`) foi corrigido passagem a passagem, com o que existe no lugar do que não existe — e, onde o que existe é melhor (rota autenticada em vez de link com prazo), dizendo isso. O pitch da FGV é histórico: ganhou aviso no topo e deixa de ser material comercial. O guia do piloto marca o PRONAC 261847 como fictício.
+- `VIRADA-PRODUCAO.md` atualizado: o PRONAC fictício já não está em código servido; o real entra pela tela de clientes.
+
 ### A lista de avisos ganha tela
 - `interessados.html`: a lista de quem se cadastrou para receber avisos pelo site da organização, com a situação de cada pessoa (ativo, pendente, revogado) e exportação em CSV. Chega por atalho no dashboard, aceso pela própria rota — o mesmo padrão da conferência e da tela de clientes: a tela não guarda cópia da regra de permissão.
 - Nome, órgão e e-mail vêm de um formulário aberto ao público; nunca entram em `innerHTML` sem escape, e o teste falha se entrarem. O CSV sai por fetch autenticado, porque link direto não leva o token.

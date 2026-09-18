@@ -39,12 +39,23 @@ cai na Conta de Captação do Banco do Brasil, fora do alcance da plataforma, e
 não há como conciliar sem integração bancária. Se o volume crescer, vale
 avaliar conciliação por arquivo de extrato (OFX/CNAB).
 
-## 1. PRONAC — hoje é fictício, em 12 arquivos
+## 1. PRONAC — o fictício saiu do código; falta o real entrar
 
-O PRONAC **261847** é fictício, criado para o piloto. Ele está espalhado por:
+Em setembro de 2026 o PRONAC fictício **261847** não aparece mais em nenhum
+arquivo servido: sobrou só em `docs/piloto-fgv/guia-piloto-fgv.md`, marcado
+como documento histórico. O projeto que cada tenant mostra vem de
+`org_projects`, inclusive em modo simulação (`routes/salic.js`: a simulação
+só deixa de consultar o SALIC; não inventa projeto nem dado bancário).
 
-| Onde | Arquivos |
-|---|---|
+O PRONAC real da Casa Azul — **2511274** — é cadastrado pela tela de clientes,
+não pelo código. O que ainda depende de gente:
+
+- [ ] Confirmar o PRONAC real e a vigência da captação junto ao proponente
+- [ ] Cadastrar o projeto e a Conta de Captação em `admin-clientes.html`
+- [ ] Exercitar `GET /api/salic/projetos/2511274` contra a API real antes de
+      desligar a simulação: se a consulta falhar, a página de projetos fica vazia
+
+---|---|
 | Backend | `migrations/022_orquestra_periferias.sql`, `migrations/025_knowledge_extra.sql`, `routes/salic.js` |
 | Frontend | `calculadora.html`, `dashboard.html`, `demo-dashboard.html`, `demo-projeto.html`, `destinar-rouanet.html`, `faq.html`, `passo-a-passo.html`, `projeto-detalhes.html`, `projetos-rouanet.html` |
 

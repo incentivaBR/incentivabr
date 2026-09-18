@@ -43,7 +43,7 @@ Meu nome é Artur Dornas, sou fundador da IncentivaBR e Analytics Translator des
 → Esse é o insight central de todo o projeto. O problema é de percepção — o processo parece complicado, parece arriscado, parece que vai dar problema com a Receita. E de operação — não existe uma ferramenta que guie o servidor do começo ao fim.
 
 **R$4,3 milhões:**
-→ Número baseado nos dados da Receita Federal 2025: número de associados da ASJDF (1.847) multiplicado pela renda média de magistrados e servidores do TRF, TJDFT, STJ e STF, aplicando a alíquota efetiva de IR e o limite de 6%. O potencial anual é R$4,3M — e hoje esse número é zero. Literalmente zero destinado.
+→ Estimativa. O número de associados (1.847) é informado pela ASJDF — conferir com ela antes de repetir. A conta usa dados da Receita Federal 2025 multiplicado pela renda média de magistrados e servidores do TRF, TJDFT, STJ e STF, aplicando a alíquota efetiva de IR e o limite de 6%. O potencial anual é R$4,3M — e hoje esse número é zero. Literalmente zero destinado.
 
 **99% nunca fizeram uma destinação:**
 → O cruzamento de declarações com as prestações de contas do SALIC (Sistema de Apoio às Leis de Incentivo à Cultura) mostra que menos de 1% dos contribuintes elegíveis realiza destinações via Lei Rouanet. Para o público de servidores públicos, a estimativa é ainda pior.
@@ -109,13 +109,13 @@ Quatro barreiras. Uma solução. É o que vamos apresentar."
 → A diretoria precisa ver isso como benefício real, não como risco institucional. Por isso o piloto tem escopo limitado e critérios binários de sucesso.
 
 *Circuito do Forró — PRONAC 252026:*
-→ O Circuito do Forró é um projeto de difusão da cultura popular brasileira. O PRONAC 252026 é o número real de cadastro aprovado no Ministério da Cultura. Proponente: BR Projects LTDA. Não é simulação.
+→ *Trecho histórico.* O Circuito do Forró foi o projeto de demonstração de 2025; o PRONAC 252026 usado então era de simulação. Hoje o projeto mostrado é sempre o do cliente, cadastrado com o PRONAC real dele — confira no SALIC antes de citar qualquer número.
 
 *Receita Federal — Quer: conformidade art. 6º / e-CAC não disponível:*
 → A RFB é um stakeholder silencioso mas presente. A não integração com o e-CAC é decisão estratégica — aparece no slide 7.
 
 *CGU / TCU — Querem: transparência / Podem exigir auditoria:*
-→ Reguladores que podem questionar qualquer produto que lide com dados fiscais de servidores. Por isso o sistema tem trilha de auditoria imutável desde o dia zero.
+→ Reguladores que podem questionar qualquer produto que lide com dados fiscais de servidores. Por isso o sistema registra quem fez o quê e quando (`audit_log`), com backup diário. *Não diga "imutável": é uma tabela comum, protegida por acesso.*
 
 ### Fala
 
@@ -208,8 +208,8 @@ E duas hipóteses que guiam o design da solução: se o processo for de menos de
 **Fonte 1 — Declaração IR (interna, PII Alta):**
 → PII = Personally Identifiable Information. CPF, valor do IR devido, renda bruta. Fornecido voluntariamente pelo associado. Coração do cálculo: IR devido × 6% = limite máximo de destinação.
 
-**Fonte 2 — Cadastro Gov.br (externa, API):**
-→ Autenticação federal: traz nome, CPF, órgão e vínculo sem que o usuário precise digitar nada. Reduz atrito e valida que quem está no sistema é de fato um servidor público.
+**Fonte 2 — Cadastro na plataforma (interna):**
+→ E-mail e senha; nome e CPF informados pela pessoa. *Login Gov.br não está implementado — é roadmap. Não apresente como fonte de dados.*
 
 **Fonte 3 — SALIC API do MinC (pública, sem PII):**
 → Lista em tempo real todos os projetos aprovados pela Lei Rouanet com PRONAC válido, valores disponíveis para captação, e status de aprovação. Fonte dos projetos do catálogo DestineAI.
@@ -218,7 +218,7 @@ E duas hipóteses que guiam o design da solução: se o processo for de menos de
 → Base de conhecimento do motor de IA TINA. Fundos classificados por ODS. TINA usa esse catálogo para matching: dado o perfil do servidor, qual projeto faz mais sentido.
 
 **Fonte 5 — Comprovantes PDF (upload, PII Alta):**
-→ Para conformidade com o art. 6º da Lei Rouanet. Hash SHA-256 garante que o documento não foi adulterado. URL assinada com TTL — o link para o PDF expira automaticamente.
+→ Comprovante da transferência para a Conta de Captação. Hash SHA-256 gravado no envio detecta adulteração. O arquivo só sai por rota autenticada — não há link público, com ou sem prazo.
 
 **Fonte 6 — Histórico de Destinações (interna gerada):**
 → Não existe no início — o próprio uso da plataforma gera ela. Ao final do piloto, é essa fonte que alimenta o dashboard de impacto da ASJDF.
@@ -232,11 +232,11 @@ E duas hipóteses que guiam o design da solução: se o processo for de menos de
 
 Temos seis fontes. Cada uma com função específica.
 
-A declaração de IR do associado é a mais sensível e a mais importante. É ela que nos diz quanto o servidor pode destinar. Fornecida voluntariamente no cadastro, protegida com criptografia em repouso.
+A declaração de IR do associado é a mais sensível e a mais importante. É ela que nos diz quanto o servidor pode destinar. Fornecida voluntariamente, e a calculadora não grava nada: quem só calcula não deixa rastro.
 
-O Gov.br é nossa porta de entrada: autenticação federal que traz nome, CPF e vínculo sem atrito para o usuário. Se você tem conta Gov.br — e qualquer servidor federal tem — você não precisa digitar nada.
+A entrada é por e-mail e senha. Login Gov.br está no roadmap — hoje não existe, e eu não vou dizer a vocês que existe.
 
-O SALIC é a API pública do Ministério da Cultura. Em tempo real, ela nos diz quais projetos Rouanet estão aprovados, com quanto capital disponível para captação, e qual o PRONAC correspondente. O Circuito do Forró que vocês vão ver na demo está aqui.
+O SALIC é a API pública do Ministério da Cultura. Em tempo real, ela nos diz quais projetos Rouanet estão aprovados, com quanto capital disponível para captação, e qual o PRONAC correspondente. O projeto de vocês, com o PRONAC de vocês, é o que aparece.
 
 O catálogo de fundos é o que alimenta a TINA — nossa IA. É uma base curada com projetos classificados por ODS. A TINA usa esse catálogo para sugerir o projeto mais alinhado ao perfil de cada servidor.
 
@@ -312,16 +312,16 @@ Os dados de maior qualidade são o SALIC e a legislação fiscal — públicos, 
 
 **Risco 1 — CPF + Dados de IR (Prob. Baixa / Impacto Altíssimo):**
 → Prob. Baixa por múltiplas camadas de proteção. Impacto Altíssimo porque violação de CPF + IR de 1.847 servidores públicos seria catástrofe reputacional e legal.
-Mitigação: AES em repouso (criptografia do banco), bcryptjs + JWT (autenticação segura), RBAC granular (cada usuário acessa só o que precisa).
+Mitigação: senha guardada com bcrypt; sessão por JWT que **não carrega o CPF**; papéis por organização (RBAC); banco gerenciado pela Railway com acesso restrito e backup diário. *Não há criptografia AES própria em repouso — não prometa o que não existe.*
 
 **Risco 2 — Comprovante PDF (Prob. Baixa / Impacto Alto):**
-→ Hash SHA-256 detecta qualquer adulteração. Armazenamento isolado do banco de dados. URL assinada TTL — link expira automaticamente.
+→ Hash SHA-256 gravado no banco na hora do envio: qualquer adulteração do arquivo é detectada. Guardado em bucket separado do banco. O arquivo **só sai por rota autenticada** — não existe link público, com ou sem prazo. É mais restritivo do que URL assinada.
 
-**Risco 3 — OAuth Gov.br (Prob. Baixa / Impacto Alto):**
-→ Tokens de curta duração (expiram em minutos), refresh rotation (token anterior invalidado a cada renovação), revogação imediata.
+**Risco 3 — Sessão e senha (Prob. Baixa / Impacto Alto):**
+→ Login é e-mail e senha; sessão por JWT com validade de 24 horas; todo token que viaja por e-mail (redefinição, confirmação, convite) fica no banco só como hash. *Login Gov.br não está implementado — é roadmap. Não diga que está ativo.*
 
 **Risco 4 — Adulteração de Auditoria (Prob. Baixíssima / Impacto Alto):**
-→ Registros append-only: nada pode ser deletado ou editado. SHA-256 por evento cria cadeia verificável.
+→ Registro de auditoria (`audit_log`): quem fez o quê, quando e de onde. É uma tabela comum do banco, protegida por controle de acesso e backup diário — **não** uma cadeia de hashes nem append-only. Quem tem acesso ao banco altera. Dizer "imutável" é falso.
 
 **4 Princípios LGPD:**
 - *Consentimento Explícito:* Datado, com versão do termo, registrado em banco. Não é checkbox escondida.
@@ -338,7 +338,7 @@ Mitigação: AES em repouso (criptografia do banco), bcryptjs + JWT (autenticaç
 
 A LGPD não é uma formalidade no nosso sistema. É arquitetura.
 
-Mapeamos quatro riscos principais. Os dois primeiros — CPF com dados de IR, e comprovantes PDF — são os mais críticos em termos de impacto. A probabilidade é baixa porque temos múltiplas camadas de proteção: criptografia AES em repouso, autenticação JWT com RBAC, hash SHA-256 em cada documento, e registros de auditoria que são fisicamente impossíveis de deletar.
+Mapeamos quatro riscos principais. Os dois primeiros — CPF com dados de IR, e comprovantes PDF — são os mais críticos em termos de impacto. A probabilidade é baixa porque temos múltiplas camadas de proteção: senha com bcrypt, sessão por JWT sem o CPF dentro, papéis por organização, hash SHA-256 de cada documento na hora do envio, e registro de auditoria de quem fez o quê.
 
 Os quatro princípios LGPD que guiam o sistema: consentimento explícito e datado — não caixa de checkbox; minimização — só coletamos o que é estritamente necessário; segurança técnica em todas as camadas de comunicação; e retenção por prazo legal definido de 5 anos.
 
@@ -364,23 +364,23 @@ Isso não é uma limitação. É uma vantagem competitiva de conformidade."
 *Interface — HTML5 · CSS3 · JS Vanilla · Mobile-First:*
 → Tecnologia simples por design, não por limitação. Funciona em qualquer dispositivo, não exige instalação, carrega rápido em 3G, auditável por qualquer desenvolvedor. Mobile-First porque a maioria dos servidores acessa pelo celular.
 
-*Gateway / Segurança — JWT · OAuth Gov.br · RBAC:*
-→ JWT = token de autenticação. OAuth Gov.br = login federal. RBAC = cada usuário só vê o que deve ver: servidor vê suas destinações, admin da ASJDF vê o dashboard, auditor vê a trilha completa.
+*Acesso — JWT · RBAC:*
+→ JWT = token de sessão, sem CPF dentro. RBAC = cada usuário só vê o que deve ver: servidor vê suas destinações, gestor da ASJDF vê a fila de conferência e a lista de interessados. *Login Gov.br: não implementado, roadmap.*
 
 *TINA (Motor IA) — Lógica proprietária + RAG v2.0 roadmap:*
-→ TINA é o diferencial competitivo. Assistente de IA que orienta o servidor em cada passo. Versão atual: prescritiva (regras + perfil → sugere melhor projeto). Roadmap: generativa (RAG + LLM → conversa em linguagem natural). TINA não é simulação — é sistema real, operando.
+→ TINA é o diferencial competitivo. Assistente em linguagem natural sobre a API da Anthropic (Claude), com base de conhecimento própria da plataforma. Percentuais e limites vêm de uma fonte única — ela nunca inventa valor e sempre lembra que não substitui contador. Não recebe nome, CPF nem e-mail de quem pergunta. É sistema real, operando.
 
-*Microsserviços — Calculadora IR · Destinação · Compliance:*
-→ Três serviços separados: Calculadora aplica IR devido × 6%, Destinação registra a transação, Compliance gera documentos e valida conformidade. Se um cair, os outros continuam.
+*Um serviço só — Calculadora IR · Destinação · Conferência:*
+→ São módulos de um mesmo processo, não microsserviços: um deploy, um banco. Deliberado — menos peças, menos coisa para cair, auditável por qualquer desenvolvedor. *Não diga "se um cair os outros continuam": é um processo.*
 
 *Armazenamento — PostgreSQL · Segregação PII · Multer:*
-→ Segregação PII: dados pessoais em tabelas separadas das transacionais. Um vazamento do histórico de destinações não expõe o CPF e vice-versa. Multer: upload de arquivos (comprovantes PDF).
+→ PostgreSQL gerenciado (Railway). Comprovantes e recibos em bucket S3-compatível, separados do banco, com SHA-256 no banco. *Não há segregação de PII em tabelas distintas: nome, e-mail e CPF ficam na tabela de usuários.*
 
-*Integrações — Gov.br · SALIC/MinC · BRB PIX (roadmap):*
-→ Gov.br e SALIC já ativos. BRB PIX no roadmap: integração com banco do DF para processar destinações diretamente, eliminando o DARF manual.
+*Integrações — SALIC/MinC:*
+→ SALIC ativo: consulta por PRONAC, com cache. Gov.br: não implementado, roadmap. BRB PIX: roadmap — e mesmo assim a plataforma **não movimenta dinheiro**: o depósito é sempre direto na Conta de Captação do projeto.
 
-*Compliance / Auditoria — Trilha imutável · SHA-256 · Laudos PDF:*
-→ Cada destinação gera laudo PDF com assinatura digital. Trilha imutável com timestamp e hash. É o comprovante do servidor para a declaração do ano seguinte.
+*Conferência e documentos — SHA-256 · registro de operação · Recibo de Mecenato:*
+→ Cada destinação gera um PDF de registro da operação (sem assinatura digital). **O documento fiscal é o Recibo de Mecenato, emitido pelo proponente, não pela plataforma.** Registro de auditoria com data e autor.
 
 **IA aplicada:**
 → IA Prescritiva (hoje): TINA analisa perfil e sugere o melhor projeto baseado em regras — como GPS.
@@ -399,11 +399,11 @@ A arquitetura tem sete camadas. Vou destacar as três mais importantes para voc�
 
 Interface mobile-first em tecnologia vanilla — simples por design, não por limitação. Funciona em qualquer celular, sem instalação, sem atrito.
 
-TINA — nosso motor de inteligência artificial. TINA não é um chatbot genérico. É um sistema proprietário, registrado no INPI, que usa o perfil do servidor para sugerir o projeto mais alinhado ao seu contexto. Na versão atual é prescritiva. No roadmap de 2027 será generativa — conversando em linguagem natural com cada servidor. Isso não é promessa de PowerPoint: o motor base está funcionando.
+TINA — a assistente. Conversa em linguagem natural, sobre a base de conhecimento da plataforma, e nunca inventa percentual: os limites vêm de uma fonte única, a mesma que o site mostra. Ela sempre lembra que não substitui contador. E não recebe nome, CPF nem e-mail de quem pergunta. Está no ar hoje.
 
-Compliance e auditoria imutável. Cada destinação gera um laudo PDF com assinatura digital e hash SHA-256. É o documento que o servidor usa na declaração do ano seguinte — e que a Receita Federal, CGU ou TCU pode auditar a qualquer momento.
+Documentos. Cada comprovante enviado ganha um hash SHA-256 na hora — qualquer alteração é detectada. A plataforma gera um registro da operação em PDF; **o documento fiscal é o Recibo de Mecenato, emitido pelo proponente**, como manda o modelo do MinC.
 
-Três camadas de proteção de dados: segregação de PII no banco, criptografia em repouso, e trilha de auditoria que não pode ser deletada.
+Proteção de dados: senha com bcrypt, sessão sem CPF dentro, cada gestor vê só a organização dele, e registro de quem fez o quê. Sem promessa de criptografia que não existe.
 
 E a decisão de não integrar o e-CAC — que é vantagem, não limitação: conformidade LGPD mais limpa, performance autônoma, e o servidor mantém a responsabilidade fiscal que a lei prevê.
 

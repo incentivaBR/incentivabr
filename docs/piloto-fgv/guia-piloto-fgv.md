@@ -1,5 +1,10 @@
 # Guia do Participante — Piloto FGV DestineAI
 
+> **Documento histórico.** Este guia foi usado no piloto de maio de 2026, quando o
+> produto ainda se chamava DestineAI. O endereço, o PRONAC e os dados bancários
+> citados eram de **simulação** e não valem mais. O PRONAC 261847 é fictício, criado
+> para o piloto; não é projeto aprovado. O produto atual é a IncentivaBR.
+
 **URL do piloto:** https://www.destineai.com.br/piloto.html
 
 ---
@@ -14,7 +19,7 @@ Acesse o link abaixo e clique em "Criar conta". Use um e-mail real — você rec
 ---
 
 ### 2 — Conheça o projeto
-Após o login você verá a tela de apresentação da **Orquestra das Periferias do DF** — PRONAC 261847, Art. 18 (100% dedutível), aprovado pelo MinC. Leia a missão do projeto e os benefícios da Lei Rouanet. Quando estiver pronto, clique em **"Quero destinar para este projeto"**.
+Após o login você verá a tela de apresentação da **Orquestra das Periferias do DF** — PRONAC 261847 (fictício, criado para o piloto), apresentado como projeto do Art. 18 (100% dedutível). Leia a missão do projeto e os benefícios da Lei Rouanet. Quando estiver pronto, clique em **"Quero destinar para este projeto"**.
 
 ---
 
@@ -38,7 +43,7 @@ O sistema mostra quanto você pode destinar (até 6% do IR Devido). Use o slider
 ---
 
 ### 6 — Veja os dados de pagamento (Etapa 4)
-Você verá os dados bancários do projeto (Banco do Brasil, Ag. 3217-4). Explore a tela — é exatamente o que apareceria numa destinação real. **Não faça nenhuma transferência.**
+Você verá os dados bancários de simulação do projeto. Explore a tela — é o que apareceria numa destinação real, com a Conta de Captação de verdade. **Não faça nenhuma transferência.**
 
 ---
 
