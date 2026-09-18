@@ -16,8 +16,9 @@
 //   - o `?org=` sobrevive ao redirecionamento, senão testar um cliente em
 //     desenvolvimento devolve sempre a página da IncentivaBR;
 //   - toda página listada existe de verdade;
-//   - na página inicial, o cartão que vende o white-label e os depoimentos do
-//     piloto ficam dentro de `data-so-plataforma`.
+//   - na página inicial, o cartão que vende o white-label fica dentro de
+//     `data-so-plataforma`; números e depoimentos do piloto não voltam sem
+//     fonte (sairam em set/2026 — docs/auditoria/afirmacoes-comerciais.md).
 import express from 'express';
 import http from 'http';
 import fs from 'fs';
@@ -112,15 +113,17 @@ await teste('o cartao que vende o white-label so aparece na IncentivaBR', () => 
   }
 });
 
-await teste('os depoimentos do piloto so aparecem na IncentivaBR', () => {
-  if (!dentroDe(inicial, 'data-so-plataforma', 'Servidores que já simularam')) {
-    throw new Error('a prova social do piloto apareceria sob a marca do cliente');
+await teste('numeros e depoimentos do piloto nao voltam para a home sem fonte', () => {
+  // Sairam em setembro de 2026: nao existe no repositorio a planilha de onde
+  // teriam saido (docs/auditoria/afirmacoes-comerciais.md). Voltam quando
+  // docs/piloto-fgv/resultados.md existir — e ai esta guarda muda junto.
+  const semFonte = ['NPS', 'concluíram', 'Servidores que já simularam', 'Piloto com servidores'];
+  const texto = inicial.replace(/<!--[\s\S]*?-->/g, '');
+  for (const t of semFonte) {
+    if (texto.includes(t)) throw new Error('voltou sem fonte: ' + t);
   }
-});
-
-await teste('os numeros do piloto so aparecem na IncentivaBR', () => {
-  if (!dentroDe(inicial, 'data-so-plataforma', 'Piloto com servidores públicos do DF')) {
-    throw new Error('os numeros do piloto apareceriam sob a marca do cliente');
+  if (!fs.existsSync(path.join(RAIZ, 'docs/auditoria/afirmacoes-comerciais.md'))) {
+    throw new Error('sumiu a tabela que explica por que sairam');
   }
 });
 
