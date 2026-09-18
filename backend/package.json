@@ -25,6 +25,7 @@
     "test:white-label": "node tests/separacao-white-label.test.mjs",
     "test:papeis-lgpd": "node tests/papeis-lgpd.test.mjs",
     "test:lista-interessados": "node tests/lista-interessados.test.mjs",
+    "test:postgres": "node tests/postgres-real.test.mjs",
     "test:calculadora": "node tests/calculadora.test.mjs",
     "test:limpar-contas": "node tests/limpar-contas.test.mjs",
     "test:migracoes": "node tests/migracoes.test.mjs",

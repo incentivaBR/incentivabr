@@ -28,7 +28,7 @@ Ver `docs/auditoria/plano-centralizacao.md`.
 - **IA:** TINA, sobre a API da Anthropic (`backend/src/routes/chat.js`, base em `backend/src/knowledge/nucleo.md`).
 - **E-mail:** Resend em produção; Ethereal quando falta chave.
 - **Deploy:** Railway, `backend/Dockerfile`, healthcheck em `/health`. Lê o branch `main`.
-- **Testes:** `backend/tests/*.test.mjs` (pg-mem, sem infraestrutura); `tests/api` e `tests/e2e` (Playwright, desatualizados).
+- **Testes:** `backend/tests/*.test.mjs` (pg-mem, sem infraestrutura); `tests/postgres-real.test.mjs` roda no CI contra `postgres:16` de verdade (migrations, cadastro, login) e localmente por `npm run test:postgres` com `DATABASE_URL` de um banco `_teste`; `tests/api` e `tests/e2e` (Playwright, desatualizados).
 
 O PRD descreve React, Supabase, Auth0 e Vercel. Essa stack nunca existiu; não a use como referência.
 
@@ -99,6 +99,7 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 | No site do cliente, o **cliente é controlador** e a IncentivaBR é operadora (LGPD art. 5º VI/VII). O Encarregado divulgado é o do controlador (art. 41 §1º), por tenant (migration 041). Fonte única em `lib/papeisLgpd.js` → `/api/config/brand` (`privacidade`) → `[data-privacidade]`. Página não nomeia controlador à mão | set/2026 | `backend/src/lib/papeisLgpd.js`, `docs/juridico/papeis-lgpd.md`, `docs/juridico/mapa-de-dados-pessoais.md`, `backend/tests/papeis-lgpd.test.mjs` |
 | A lista de avisos é do cliente: `subscribers.organization_id` escopa, `podeGerirOrganizacao` autoriza depois do tenant, e `access_token` nunca sai — é credencial, não identificador. Tela em `interessados.html`, por atalho no dashboard aceso pela rota | set/2026 | `backend/src/routes/interessados.js`, `frontend/interessados.html`, `backend/tests/lista-interessados.test.mjs`, `docs/operacao/fluxo-das-paginas.md` |
 | Material comercial só afirma o que o código sustenta. Projeção se chama projeção, meta se chama meta, número de piloto só entra com a planilha de origem em `docs/piloto-fgv/resultados.md`. Sem ela, números e depoimentos do piloto ficam fora da home, e um teste impede que voltem | set/2026 | `docs/auditoria/afirmacoes-comerciais.md`, `docs/estrategia/ROTEIRO_PITCH_ASJDF.md`, `backend/tests/separacao-white-label.test.mjs` |
+| O pg-mem não é juiz do que o Postgres aceita: o CI roda migrations, cadastro e login contra `postgres:16` real. Teste que toque SQL que o pg-mem não executa vai para `postgres-real.test.mjs`. O arquivo apaga o schema e só aceita banco `_teste` | set/2026 | `backend/tests/postgres-real.test.mjs`, `.github/workflows/ci.yml`, `docs/operacao/ci-e-deploy.md` |
 | Página que só a plataforma mostra é recusada no servidor, entre o tenant e o estático — esconder o link não faz o endereço sumir. Hoje só `para-associacoes.html` | set/2026 | `backend/src/lib/paginasDaPlataforma.js`, `docs/operacao/separacao-white-label.md`, `backend/tests/separacao-white-label.test.mjs` |
 | Textos fiscais têm uma fonte só: `lib/textosFiscais.js` → `/api/config/brand` (`fiscal`) → `[data-fiscal]` nas páginas e resumo no prompt da TINA. Página não escreve percentual à mão; códigos da DIRPF estão marcados como não confirmados em fonte primária | set/2026 | `backend/src/lib/textosFiscais.js`, `frontend/js/tenant.js`, `backend/tests/textos-fiscais.test.mjs` |
 
