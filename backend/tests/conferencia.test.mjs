@@ -24,7 +24,7 @@ db.public.none(`
     slug TEXT,
     contact_email TEXT
   );
-  CREATE TABLE users (
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome TEXT, cpf TEXT, email TEXT
   );

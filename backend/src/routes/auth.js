@@ -304,7 +304,7 @@ router.post('/login', async (req, res) => {
       `SELECT
         u.id, u.cpf, u.nome, u.email, u.phone, u.senha_hash,
         u.total_donated, u.is_admin, u.is_superadmin, u.is_org_admin,
-        u.organization_id, u.email_verified, u.created_at,
+        u.organization_id, u.email_verified, u.created_at, u.encerrada_em,
         o.slug AS org_slug, o.name AS org_name
        FROM users u
        LEFT JOIN organizations o ON u.organization_id = o.id
@@ -316,6 +316,13 @@ router.post('/login', async (req, res) => {
 
     if (!user || !(await bcrypt.compare(senha, user.senha_hash))) {
       return res.status(401).json({ status: 'error', message: 'Credenciais inválidas.' });
+    }
+
+    // Conta encerrada a pedido do titular: a senha já foi invalidada, então
+    // este ponto só é alcançado por CPF com a senha antiga — nunca. Fica
+    // como cinto e suspensório, com a mensagem certa.
+    if (user.encerrada_em) {
+      return res.status(403).json({ status: 'error', message: 'Esta conta foi encerrada a pedido do titular.' });
     }
 
     // O JWT vai em todo pedido e fica no localStorage do navegador; qualquer

@@ -81,9 +81,14 @@ Três níveis, e é bom que fiquem explícitos no contrato:
 
 - `govbr_client_id` e afins estão nas colunas de `organizations`, mas **não há
   código de integração com o gov.br**. Nenhum dado é trocado com o gov.br hoje.
-- Não há política de retenção implementada: nada é apagado por prazo. A
-  exclusão de conta existe pela tela do superadmin, uma a uma, e conta com
-  destinação registrada só sai em modo simulação.
+- Nada é apagado **por prazo**. O titular elimina os próprios dados quando
+  quiser (`minha-conta.html`, `/api/meus-dados`, set/2026): sem registro
+  fiscal a conta é anonimizada no ato; com registro fiscal é encerrada e
+  nome, CPF, valor, comprovante e recibo ficam até o fim do prazo da Política
+  (§7), calculado em `config/lgpd.js` a partir do ano seguinte ao ano-base.
+  O que já venceu aparece em `GET /api/admin/retencao`, que só lista. O
+  apagamento automático espera o tributarista dizer de que data o prazo
+  conta. O superadmin continua podendo apagar uma conta pela tela dele.
 
 ---
 

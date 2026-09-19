@@ -47,7 +47,7 @@ db.public.none(`
     bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT
   );
-  CREATE TABLE users (
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome TEXT, cpf TEXT, email TEXT, phone TEXT, total_donated NUMERIC DEFAULT 0
   );

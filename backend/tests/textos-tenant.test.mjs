@@ -38,7 +38,7 @@ db.public.none(`
     govbr_client_id TEXT, govbr_client_secret TEXT, govbr_redirect_uri TEXT,
     incentive_group_code TEXT, mecenato_prazo_dias INT
   );
-  CREATE TABLE users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID);
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID);
   CREATE TABLE donations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, donation_amount NUMERIC, status TEXT);
   CREATE TABLE audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID, user_id UUID,

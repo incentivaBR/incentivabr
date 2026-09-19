@@ -29,6 +29,7 @@ import chatRoutes, { ultimaFalhaDaIA } from './src/routes/chat.js';
 import mecenatoRoutes from './src/routes/mecenato.js';
 import interessadosRoutes from './src/routes/interessados.js';
 import convitesRoutes from './src/routes/convites.js';
+import meusDadosRoutes from './src/routes/meusDados.js';
 import tenantMiddleware from './src/middleware/tenant.js';
 import { guardaDePaginasDaPlataforma } from './src/lib/paginasDaPlataforma.js';
 
@@ -501,6 +502,7 @@ app.use('/api/convites', convitesRoutes);   // acesso de gestor a uma organizaç
 app.use('/api/chat', chatRoutes);     // TINA — assistente virtual IA
 app.use('/api/mecenato', mecenatoRoutes); // Recibo de Mecenato — emitido pelo proponente
 app.use('/api/interessados', interessadosRoutes); // Cadastro de comunicação — consentimento LGPD
+app.use('/api/meus-dados', meusDadosRoutes);      // Direitos de quem tem conta — LGPD art. 18
 
 // A pasta de uploads NAO e publicada.
 //

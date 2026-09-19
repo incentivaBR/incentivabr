@@ -30,7 +30,7 @@ db.public.registerFunction({
 
 db.public.none(`
   CREATE TABLE organizations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT, slug TEXT);
-  CREATE TABLE users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT, cpf TEXT, email TEXT, phone TEXT, total_donated NUMERIC DEFAULT 0);
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT, cpf TEXT, email TEXT, phone TEXT, total_donated NUMERIC DEFAULT 0);
   CREATE TABLE org_projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID, pronac TEXT, titulo TEXT,
     proponente_nome TEXT, proponente_cnpj TEXT, bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,

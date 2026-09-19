@@ -37,7 +37,7 @@ db.public.none(`
   CREATE TABLE organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT, slug TEXT
   );
-  CREATE TABLE users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT);
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT);
   CREATE TABLE organization_users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID, user_id UUID, role TEXT, is_active BOOLEAN DEFAULT true
