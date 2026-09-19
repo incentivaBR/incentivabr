@@ -18,7 +18,7 @@ db.public.registerFunction({ name: 'gen_random_uuid', returns: 'uuid', impure: t
 db.public.none(`
   CREATE TABLE organizations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT, slug TEXT,
     contact_person TEXT, contact_email TEXT, contact_whatsapp TEXT, mecenato_prazo_dias INT);
-  CREATE TABLE users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT, cpf TEXT, email TEXT);
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT, cpf TEXT, email TEXT);
   CREATE TABLE organization_users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID, user_id UUID, role TEXT, is_active BOOLEAN DEFAULT true);
   CREATE TABLE donations (

@@ -79,9 +79,11 @@ O anexo de operador é o que sustenta o arranjo. No mínimo:
    comunica à ANPD é o controlador).
 7. **Fim do contrato.** O que acontece com os dados: devolução, eliminação,
    prazo. Inclui os documentos no bucket.
-8. **Retenção.** Hoje nada é apagado por prazo, exceto a regra de 24 meses dos
-   interessados. Documentos fiscais de quem destinou seguem a guarda de cinco
-   anos.
+8. **Retenção.** Nada é apagado por prazo ainda; a regra de 24 meses dos
+   interessados e a de cinco anos de quem destinou estão escritas e
+   calculadas (`config/lgpd.js`), e `GET /api/admin/retencao` lista o que
+   venceu. Falta o tributarista dizer de que data o prazo fiscal conta para
+   o apagamento virar rotina.
 
 ## Pontas soltas, honestamente
 
@@ -93,8 +95,10 @@ O anexo de operador é o que sustenta o arranjo. No mínimo:
   existe rota que liste — nem para o cliente, nem para o superadmin. A
   promessa "a lista é sua" está correta no dado e não entregável no produto.
   É a próxima coisa a construir nesta frente.
-- **Retenção não implementada.** Só a regra de 24 meses dos interessados está
-  escrita; nada roda apagando por prazo.
+- **Expurgo por prazo não implementado.** Os direitos do titular, sim: quem
+  tem conta exporta e elimina em `minha-conta.html` (set/2026), e a
+  eliminação respeita a guarda fiscal. O que venceu o prazo é listado, não
+  apagado, até o parecer do tributarista sobre a contagem.
 - **Razão social e CNPJ do cliente** não aparecem nos documentos: as páginas
   mostram o nome fantasia do cadastro. Um contrato assinado provavelmente vai
   exigir a razão social completa na Política.

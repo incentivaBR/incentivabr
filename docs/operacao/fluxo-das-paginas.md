@@ -27,8 +27,11 @@ destinar-rouanet.html       ← assistente: valor, CPF, conta de captação, com
 dashboard.html              ← acompanha; recebe o Recibo de Mecenato
 ```
 
-Fora da linha, mas dentro do fluxo: `minhas-preferencias.html` (dados da
-conta) e `verificar-email.html` (chega por link no e-mail).
+Fora da linha, mas dentro do fluxo: `minha-conta.html` (os direitos de quem
+tem conta — LGPD art. 18: ver, baixar em JSON, eliminar com a senha; chega
+pelo painel), `minhas-preferencias.html` (o mesmo para quem só recebe avisos,
+chega pelo link de cada mensagem) e `verificar-email.html` (chega por link no
+e-mail).
 
 **A calculadora não exige conta e não grava nada.** É a porta mais larga do
 funil e a que menos pede em troca.

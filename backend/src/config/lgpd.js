@@ -41,4 +41,30 @@ export const ENCARREGADO = {
  */
 export const RETENCAO_INTERESSADO_MESES = 24;
 
-export default { POLITICA_VERSAO, ENCARREGADO, RETENCAO_INTERESSADO_MESES };
+/**
+ * Retenção de quem destinou: o prazo fiscal.
+ *
+ * A Política (§7) promete guardar os documentos fiscais por 5 anos, "conforme
+ * legislação tributária". Quando uma conta com destinação real é encerrada a
+ * pedido do titular, nome, CPF, valor, comprovante e recibo ficam até o fim
+ * do ano devolvido por anoFinalDaGuarda(); e-mail, telefone e senha somem na
+ * hora, porque nada obriga a guardá-los.
+ *
+ * A contagem começa no ano da DECLARAÇÃO (ano-base + 1), não no ano-base: é
+ * a leitura mais conservadora, e a única que garante não apagar antes da
+ * hora. De que data exata o prazo conta é pergunta para o tributarista
+ * (docs/juridico/CONSULTA-TRIBUTARISTA.md); enquanto não houver parecer,
+ * nada é apagado por prazo — a rota /api/admin/retencao só lista o que já
+ * venceu.
+ */
+export const RETENCAO_FISCAL_ANOS = 5;
+
+/** Último ano em que o registro fiscal de um ano-base precisa ser guardado. */
+export function anoFinalDaGuarda(anoBase) {
+  return Number(anoBase) + 1 + RETENCAO_FISCAL_ANOS;
+}
+
+export default {
+  POLITICA_VERSAO, ENCARREGADO, RETENCAO_INTERESSADO_MESES,
+  RETENCAO_FISCAL_ANOS, anoFinalDaGuarda
+};

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    :root { --secondary-solid: var(--secondary-color,#EE985C); }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha conta — IncentivaBR</title>
+  <!-- Dados pessoais de quem está logado: fora dos buscadores. -->
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Montserrat', sans-serif; background: #F4F6FB; color: #1a1a2e; }
+
+    .nav { position: fixed; top:0; left:0; right:0; z-index:50; height:60px;
+           background: rgba(15,30,61,.97); display:flex; align-items:center; }
+    .nav-inner { max-width:720px; width:100%; margin:0 auto; padding:0 24px;
+                 display:flex; align-items:center; justify-content:space-between; }
+    .nav-logo { color:#fff; font-weight:900; font-size:19px; text-decoration:none; }
+    .nav-logo span { color: var(--secondary-solid); }
+    .nav-right { color:rgba(255,255,255,.7); font-size:13px; display:flex; align-items:center; gap:14px; }
+    .nav-right a { color:rgba(255,255,255,.7); text-decoration:none; }
+    .btn-sair { background:none; border:1px solid rgba(255,255,255,.25); color:rgba(255,255,255,.6);
+                padding:6px 14px; border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit; }
+
+    .page { max-width:720px; margin:0 auto; padding:84px 24px 60px; }
+    .card { background:#fff; border:1px solid #E8ECF4; border-radius:16px; padding:30px; margin-bottom:18px; }
+    h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
+    h2 { font-size:15px; font-weight:700; color:#0F1E3D; margin:0 0 14px;
+         padding-bottom:8px; border-bottom:2px solid var(--secondary-solid); }
+    .sub { color:#556; font-size:14.5px; line-height:1.65; margin-bottom:22px; }
+    .dado { display:flex; justify-content:space-between; gap:14px; padding:9px 0; border-bottom:1px solid #F0F2F8; font-size:14px; }
+    .dado:last-child { border-bottom:none; }
+    .dado span:first-child { color:#8B96A8; }
+    .dado span:last-child { font-weight:600; text-align:right; word-break:break-word; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:10px;
+           padding:12px 20px; font-size:14px; font-weight:700; font-family:inherit;
+           text-decoration:none; border:none; cursor:pointer; }
+    .btn.principal { background:#0F1E3D; color:#fff; }
+    .btn.principal:hover:not(:disabled) { background:#1D2F59; }
+    .btn.secundario{ background:none; border:1.5px solid #D1D9EC; color:#5566A0; }
+    .btn.secundario:hover { border-color:#0F1E3D; color:#0F1E3D; }
+    .btn.perigo { background:none; border:1.5px solid #FCA5A5; color:#B91C1C; }
+    .btn.perigo:hover:not(:disabled) { background:#FEE2E2; }
+    .btn:disabled { opacity:.55; cursor:default; }
+    .linha-botoes { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    .aviso { padding:14px 16px; border-radius:10px; font-size:14px; line-height:1.6; margin-bottom:18px; display:none; }
+    .aviso.on { display:block; }
+    .aviso.ok  { background:#DCFCE7; color:#15803D; border:1px solid #86EFAC; }
+    .aviso.erro{ background:#FEE2E2; color:#B91C1C; border:1px solid #FCA5A5; }
+    .aviso.info{ background:#FEF9C3; color:#92400E; border:1px solid #FDE68A; }
+    .nota { font-size:12.5px; color:#8B96A8; line-height:1.7; margin-top:14px; }
+    .nota a { color:#0F1E3D; }
+    label { display:block; font-size:13px; font-weight:600; color:#556; margin:14px 0 6px; }
+    input[type=password] { width:100%; max-width:320px; padding:11px 13px; border:1.5px solid #D1D9EC;
+                           border-radius:10px; font-family:inherit; font-size:14px; }
+    #conteudo { display:none; }
+    @media (max-width:640px){ .card{padding:22px} h1{font-size:22px} .btn{width:100%} }
+  </style>
+  <script src="js/tenant.js"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="dashboard.html" class="nav-logo">Incentiva<span>BR</span></a>
+      <div class="nav-right">
+        <a href="dashboard.html"><i class="fas fa-arrow-left"></i> Painel</a>
+        <button class="btn-sair" onclick="sair()">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div id="carregando" class="card" style="text-align:center">
+      <i class="fas fa-spinner fa-spin" style="font-size:26px;color:#CBD5E1"></i>
+      <p class="sub" style="margin:14px 0 0">Carregando seus dados...</p>
+    </div>
+
+    <div id="conteudo">
+      <div id="aviso" class="aviso"></div>
+
+      <div class="card">
+        <h1>Minha conta</h1>
+        <p class="sub">
+          O que <b class="brand-name" data-privacidade="controlador">esta instituição</b> guarda
+          sobre você, e o que você pode fazer com isso — sem pedir a ninguém.
+        </p>
+        <h2>Seus dados</h2>
+        <div id="dados"></div>
+        <p class="nota">
+          Para corrigir nome ou e-mail, fale com o Encarregado:
+          <a data-privacidade="encarregado_email" data-privacidade-href="mailto:" href="mailto:privacidade@incentivabr.com.br">privacidade@incentivabr.com.br</a>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Baixar meus dados</h2>
+        <p class="sub" style="margin-bottom:0">
+          Um arquivo com tudo o que existe sobre você aqui: cadastro, destinações, registro
+          de acessos e com quem cada dado foi compartilhado (LGPD, art. 18 II, V e VII).
+        </p>
+        <div class="linha-botoes">
+          <button class="btn secundario" id="btnExportar" onclick="exportar(this)">
+            <i class="fas fa-download"></i> Baixar meus dados (JSON)
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Eliminar meus dados</h2>
+        <p class="sub" id="explicaEliminar" style="margin-bottom:0">
+          Sua conta deixa de existir para você: senha invalidada, e-mail e telefone apagados,
+          nenhum aviso. Se você nunca destinou, ou só simulou, nome e CPF somem também na hora.
+        </p>
+        <div id="avisoFiscal" class="aviso info" style="margin-top:14px">
+          Você tem <b id="qtdFiscal">0</b> destinação(ões) com comprovante ou recibo. Nome, CPF,
+          valor, comprovante e Recibo de Mecenato dessas destinações ficam guardados pelo prazo
+          fiscal (Política de Privacidade, seção 7) e são anonimizados depois. É obrigação
+          legal, não escolha nossa.
+        </div>
+        <label for="senha">Confirme com a sua senha</label>
+        <input type="password" id="senha" autocomplete="current-password">
+        <div class="linha-botoes">
+          <button class="btn perigo" id="btnEliminar" onclick="eliminar(this)">
+            <i class="fas fa-trash-can"></i> Eliminar meus dados
+          </button>
+        </div>
+        <p class="nota">
+          Não tem desfazer. Depois de confirmar, ninguém mais entra nesta conta — nem você,
+          nem quem tiver este aparelho aberto.
+        </p>
+      </div>
+    </div>
+
+    <div id="fim" class="card" style="display:none;text-align:center">
+      <h1 id="fimTitulo">Pedido atendido</h1>
+      <p class="sub" id="fimTexto"></p>
+      <a class="btn principal" href="index.html">Voltar ao início</a>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const token = localStorage.getItem('incentivabr_token');
+    // Tudo o que entra em innerHTML passa por aqui.
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const data = iso => iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
+    const BRL = v => new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(Number(v) || 0);
+    const SEM_FISCAL = ['pending', 'cancelled', 'test_simulated'];
+
+    function mostra(tipo, texto) {
+      const a = $('aviso');
+      a.className = 'aviso on ' + tipo;
+      a.textContent = texto;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function sair() {
+      localStorage.removeItem('incentivabr_token');
+      localStorage.removeItem('incentivabr_user');
+      location.href = 'login.html';
+    }
+    const pedir = (url, opcoes = {}) => fetch(url, {
+      ...opcoes,
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...(opcoes.headers || {}) }
+    });
+
+    let meusDados = null;
+
+    function pinta(d) {
+      const t = d.titular;
+      const linhas = [
+        ['Nome', t.nome], ['CPF', t.cpf || 'não informado'], ['E-mail', t.email],
+        ['Telefone', t.telefone || '—'], ['Conta criada em', data(t.conta_criada_em)],
+        ['Destinações registradas', String(d.destinacoes.length)],
+        ['Versão da Política aceita', t.termos_versao || '—']
+      ];
+      $('dados').innerHTML = linhas
+        .map(([r, v]) => `<div class="dado"><span>${esc(r)}</span><span>${esc(v)}</span></div>`).join('');
+
+      const fiscais = d.destinacoes.filter(x => !SEM_FISCAL.includes(x.situacao)).length;
+      $('qtdFiscal').textContent = fiscais;
+      $('avisoFiscal').classList.toggle('on', fiscais > 0);
+
+      $('carregando').style.display = 'none';
+      $('conteudo').style.display = 'block';
+    }
+
+    async function exportar(btn) {
+      btn.disabled = true;
+      try {
+        const resp = await pedir('/api/meus-dados');
+        if (!resp.ok) throw new Error((await resp.json()).message || 'Não foi possível exportar.');
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'meus-dados-incentivabr.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(a.href);
+      } catch (e) { mostra('erro', e.message); }
+      finally { btn.disabled = false; }
+    }
+
+    async function eliminar(btn) {
+      const senha = $('senha').value;
+      if (!senha) return mostra('erro', 'Confirme com a sua senha.');
+      if (!confirm('Eliminar seus dados é definitivo e não pode ser desfeito. Confirma?')) return;
+      btn.disabled = true;
+      try {
+        const resp = await pedir('/api/meus-dados', { method: 'DELETE', body: JSON.stringify({ senha }) });
+        const r = await resp.json();
+        if (!resp.ok) throw new Error(r.message || 'Não foi possível eliminar.');
+        localStorage.removeItem('incentivabr_token');
+        localStorage.removeItem('incentivabr_user');
+        $('conteudo').style.display = 'none';
+        $('fimTitulo').textContent = r.resultado === 'encerrada' ? 'Conta encerrada' : 'Dados eliminados';
+        $('fimTexto').textContent = r.message;
+        $('fim').style.display = 'block';
+        window.scrollTo({ top: 0 });
+      } catch (e) { mostra('erro', e.message); btn.disabled = false; }
+    }
+
+    (async () => {
+      if (!token) { location.href = 'login.html?redirect=minha-conta.html'; return; }
+      try {
+        const resp = await pedir('/api/meus-dados');
+        if (resp.status === 401) { sair(); return; }
+        const d = await resp.json();
+        if (!resp.ok) throw new Error(d.message || 'Não foi possível abrir.');
+        meusDados = d;
+        pinta(d);
+      } catch (e) {
+        $('carregando').innerHTML = '<h1>Não foi possível abrir</h1><p class="sub">' + esc(e.message) + '</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

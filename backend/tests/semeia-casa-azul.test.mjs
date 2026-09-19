@@ -26,7 +26,7 @@ db.public.none(`
     contact_email TEXT, primary_color TEXT, secondary_color TEXT,
     logo_url TEXT, contracted_at TIMESTAMP, is_active BOOLEAN DEFAULT true
   );
-  CREATE TABLE users (
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     cpf TEXT, nome TEXT, email TEXT, senha_hash TEXT,
     email_verified BOOLEAN DEFAULT false, organization_id UUID,

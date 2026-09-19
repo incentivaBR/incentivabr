@@ -34,7 +34,7 @@ db.public.none(`
     contact_person TEXT, mecenato_prazo_dias INT DEFAULT 10,
     primary_color TEXT, secondary_color TEXT, logo_url TEXT
   );
-  CREATE TABLE users (
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome TEXT, cpf TEXT, email TEXT, phone TEXT,
     total_donated NUMERIC DEFAULT 0

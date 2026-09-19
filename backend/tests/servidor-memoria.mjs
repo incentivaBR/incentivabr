@@ -48,7 +48,7 @@ db.public.none(`
   );
   -- As colunas que o login (SELECT) e o cadastro (INSERT) de routes/auth.js
   -- tocam. Sem elas, o formulario de entrar nao serve para nada aqui.
-  CREATE TABLE users (
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome TEXT, cpf TEXT, email TEXT, phone TEXT, senha_hash TEXT,
     total_donated NUMERIC DEFAULT 0,
@@ -105,7 +105,7 @@ db.public.none(`
     pronac TEXT, projeto_titulo TEXT, status TEXT DEFAULT 'pending',
     receipt_url TEXT, receipt_filename TEXT, receipt_file_path TEXT,
     confirmed_at TIMESTAMP, proponente_notified_at TIMESTAMP,
-    mecenato_url TEXT, mecenato_issued_at TIMESTAMP,
+    mecenato_url TEXT, mecenato_filename TEXT, mecenato_issued_at TIMESTAMP,
     confirmed_by UUID, confirmation_note TEXT,
     rejected_at TIMESTAMP, rejected_by UUID, rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT NOW()
@@ -204,6 +204,7 @@ const { default: donationsRoutes }    = await import('../src/routes/donations.js
 const { default: configRoutes }       = await import('../src/routes/config.js');
 const { default: salicRoutes }        = await import('../src/routes/salic.js');
 const { default: interessadosRoutes } = await import('../src/routes/interessados.js');
+const { default: meusDadosRoutes }    = await import('../src/routes/meusDados.js');
 const { guardaDePaginasDaPlataforma } = await import('../src/lib/paginasDaPlataforma.js');
 
 const app = express();
@@ -224,6 +225,7 @@ app.use('/api/donations', donationsRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/salic', salicRoutes);
 app.use('/api/interessados', interessadosRoutes);
+app.use('/api/meus-dados', meusDadosRoutes);
 // Mesma ordem do server.js: a pagina que so a plataforma mostra e recusada
 // antes de o arquivo sair. Sem isto, o E2E nao teria como conferir a guarda.
 app.use(guardaDePaginasDaPlataforma);

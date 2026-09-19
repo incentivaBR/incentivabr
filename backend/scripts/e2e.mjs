@@ -210,6 +210,27 @@ await teste('assistente de destinação: o projeto do cliente já vem preenchido
   if (!desc.includes('teatro inclusivo')) throw new Error('a descrição não veio do cadastro: ' + desc);
 });
 
+await teste('minha conta: a destinadora vê o que existe sobre ela e baixa tudo em JSON', async pg => {
+  await entrar(pg, 'maria@exemplo.gov.br');
+  await ate(pg, () => getComputedStyle(document.querySelector('#linkMinhaConta')).display !== 'none',
+            'o painel não mostra "Minha conta"');
+  await ir(pg, 'minha-conta.html');
+  await ate(pg, () => /Maria Aparecida/.test(document.querySelector('#dados')?.textContent || ''), 'os dados não apareceram');
+  const dados = await texto(pg, '#dados');
+  if (!/Destinações registradas\s*3/.test(dados)) throw new Error('destinações: ' + dados);
+  // Três destinações com comprovante: a tela tem de avisar que nome e CPF ficam.
+  const avisa = await pg.evaluate(() => document.querySelector('#avisoFiscal').getClientRects().length > 0);
+  if (!avisa) throw new Error('não avisa da guarda fiscal antes de eliminar');
+  await chegouComoTexto(pg, '#dados');
+  // A exportação, como o botão faz: com o token da sessão.
+  const exportado = await pg.evaluate(async () => {
+    const r = await fetch('/api/meus-dados', { headers: { Authorization: 'Bearer ' + localStorage.getItem('incentivabr_token') } });
+    return r.json();
+  });
+  if (exportado.destinacoes?.length !== 3) throw new Error('exportação sem as três destinações');
+  if (JSON.stringify(exportado).includes('senha_hash')) throw new Error('a exportação vaza a senha');
+});
+
 // ═══ Gestor — os atalhos acendem pela rota, e as telas de operação abrem ════
 
 await teste('gestora entra e o painel acende Conferência (3) e Interessados', async pg => {

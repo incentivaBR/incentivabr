@@ -547,4 +547,61 @@ router.delete('/usuarios/:id', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin/retencao — o que já venceu o prazo de guarda
+//
+// A Política promete anonimizar depois do prazo (§7): 5 anos do registro
+// fiscal de quem destinou, 24 meses sem interação para quem só pediu avisos.
+// Nada roda apagando por prazo — e não vai rodar até o tributarista dizer de
+// que data o prazo fiscal conta. Enquanto isso, esta rota LISTA o que já
+// passou do prazo, para o superadmin ver o tamanho da fila e agir à mão.
+// Só lê; não apaga nada.
+// ─────────────────────────────────────────────────────────────
+router.get('/retencao', async (req, res) => {
+  try {
+    const { RETENCAO_INTERESSADO_MESES, RETENCAO_FISCAL_ANOS, anoFinalDaGuarda } =
+      await import('../config/lgpd.js');
+    const anoAtual = new Date().getFullYear();
+
+    // Contas encerradas a pedido, com registro fiscal: vencem quando o
+    // último ano-base sai da guarda.
+    const { rows: encerradas } = await pool.query(
+      `SELECT u.id, u.encerrada_em, MAX(d.fiscal_year)::int AS ultimo_ano_base, COUNT(d.id)::int AS destinacoes
+         FROM users u
+         JOIN donations d ON d.user_id = u.id
+        WHERE u.encerrada_em IS NOT NULL AND u.anonimizada_em IS NULL
+        GROUP BY u.id, u.encerrada_em`);
+    const contasVencidas = encerradas
+      .map(c => ({ ...c, guarda_ate: anoFinalDaGuarda(c.ultimo_ano_base) }))
+      .filter(c => c.guarda_ate < anoAtual);
+
+    const corte = new Date();
+    corte.setMonth(corte.getMonth() - RETENCAO_INTERESSADO_MESES);
+    const { rows: interessados } = await pool.query(
+      `SELECT COUNT(*)::int AS quantos
+         FROM subscribers
+        WHERE anonymized_at IS NULL AND last_interaction_at < $1`,
+      [corte]);
+
+    res.json({
+      status: 'success',
+      regra: {
+        fiscal_anos: RETENCAO_FISCAL_ANOS,
+        contagem: 'a partir do ano seguinte ao ano-base; data exata a confirmar com o tributarista',
+        interessado_meses: RETENCAO_INTERESSADO_MESES
+      },
+      contas_encerradas_vencidas: contasVencidas.map(c => ({
+        id: c.id, encerrada_em: c.encerrada_em, ultimo_ano_base: c.ultimo_ano_base,
+        guarda_ate: c.guarda_ate, destinacoes: c.destinacoes
+      })),
+      contas_encerradas_em_guarda: encerradas.length - contasVencidas.length,
+      interessados_inativos_vencidos: interessados[0]?.quantos || 0,
+      apaga_automaticamente: false
+    });
+  } catch (error) {
+    console.error('[Admin] Erro no relatorio de retencao:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
 export default router;

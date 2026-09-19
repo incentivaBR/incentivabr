@@ -49,7 +49,7 @@ const migrationsDir = path.join(raiz, 'migrations');
 for (const d of [configDir, legacyDir, migrationsDir]) fs.mkdirSync(d);
 
 fs.writeFileSync(path.join(configDir, 'schema.sql'),
-  `CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, nome TEXT);
+  `CREATE TABLE IF NOT EXISTS users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, id SERIAL PRIMARY KEY, nome TEXT);
    CREATE TABLE IF NOT EXISTS tabela_apagada_pela_014 (id SERIAL PRIMARY KEY);`);
 fs.writeFileSync(path.join(configDir, 'seeds.sql'),
   `INSERT INTO users (nome) VALUES ('semente');`);

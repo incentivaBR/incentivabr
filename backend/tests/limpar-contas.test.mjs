@@ -35,7 +35,7 @@ db.public.none(`
     is_active BOOLEAN DEFAULT true, contracted_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW(),
     govbr_client_id TEXT, govbr_client_secret TEXT, govbr_redirect_uri TEXT
   );
-  CREATE TABLE users (
+  CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     cpf TEXT UNIQUE, nome TEXT, email TEXT, phone TEXT, senha_hash TEXT,
     is_superadmin BOOLEAN DEFAULT false, organization_id UUID,
