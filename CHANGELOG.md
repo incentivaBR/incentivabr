@@ -2,6 +2,11 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O Encarregado é o do controlador também no cadastro de avisos e nas preferências
+- `cadastro-avisos.html` e `minhas-preferencias.html` escreviam o e-mail do Encarregado da IncentivaBR à mão. No site de um cliente, o interessado escreveria para o Encarregado errado — a decisão de set/2026 é que o divulgado é o do controlador (LGPD art. 41 §1º). As duas páginas passam a carregar `tenant.js` e a usar `[data-privacidade="encarregado_email"]`, como a Política e a tela Minha conta.
+- Pior: o **texto do consentimento** do cadastro de avisos, que é enviado como está e guardado como prova (art. 8º §2º), dizia "autorizo o IncentivaBR" em qualquer site. A prova nomeava o operador, não o controlador. O nome passa a vir de `[data-privacidade="controlador"]`, preenchido antes do envio.
+- Duas guardas em `papeis-lgpd.test.mjs`: nenhuma página escreve o e-mail do Encarregado da plataforma fora de `[data-privacidade]`, e o consentimento nomeia o controlador pelo tenant. As duas falham contra as páginas antigas.
+
 ### Dinheiro na tela tem um formatador só (Raio-X, risco 11)
 - Havia nove formatadores de real em oito arquivos (`BRL`, `BRLs`, `formatBRL`, `fmtBRL`, `utils.formatCurrency`...), cada um com a sua ideia de casas decimais, de espaço depois do "R$" e do que fazer com valor nulo: uns escreviam "R$ 0,00", outro "—", e o Intl punha um espaço inflexível que o `'R$ ' +` das outras telas não punha. Agora só `frontend/js/moeda.js`: `BRL(v)` com centavos, `BRL.inteiro(v)` para metas e valores aprovados, e valor ausente vira "—" em todo lugar — o que não veio não é zero. `utils.formatCurrency` continua existindo para a calculadora, delegando.
 - No Espaço do Contador, o campo de IR passava a mostrar "R$ " e o parser antigo devolvia zero. Ao cobrir a tela no E2E apareceu um defeito mais antigo: o IR devido era lido do texto de **antes** da máscara, e a tela ficava um dígito atrasada — quem digitava 20.000 via os limites de 2.000 até teclar de novo. Agora o valor sai dos dígitos digitados, e o campo e a tabela mudam juntos.
