@@ -146,8 +146,16 @@ await teste('login devolve sessao', async () => {
 });
 
 await teste('o audit_log registrou o login com IP e user-agent (colunas reais)', async () => {
-  const [linha] = await q(`SELECT action FROM audit_log WHERE action = 'user.login' ORDER BY created_at DESC LIMIT 1`);
-  if (!linha) throw new Error('nenhuma linha de user.login');
+  // A rota grava o audit_log sem esperar (logAudit nao e awaited: o login nao
+  // deve atrasar por causa do log). A linha pode chegar depois da resposta —
+  // num runner lento do CI chegou depois desta leitura, e o teste ficou
+  // vermelho num run e verde no outro do mesmo commit. Espera ate 3 s.
+  let linha;
+  for (let i = 0; i < 30 && !linha; i++) {
+    [linha] = await q(`SELECT action FROM audit_log WHERE action = 'user.login' ORDER BY created_at DESC LIMIT 1`);
+    if (!linha) await new Promise(r => setTimeout(r, 100));
+  }
+  if (!linha) throw new Error('nenhuma linha de user.login em 3 s');
 });
 
 servidor.close();
