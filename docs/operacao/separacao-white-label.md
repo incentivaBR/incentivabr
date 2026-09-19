@@ -37,7 +37,8 @@ mesmo assim.
 | O quê | O que muda |
 |---|---|
 | `index.html` | título, subtítulo, "Quem somos", contato e o bloco do projeto dele vêm do cadastro |
-| `projetos-rouanet.html` | mostra o projeto ativo da organização (`GET /api/salic/org-project`), não uma busca no SALIC |
+| `projetos-rouanet.html` | página do projeto ativo da organização (`GET /api/salic/org-project`): título, descrição, proponente, área e UF do cadastro — nenhuma narrativa fixa |
+| `como-funciona.html`, `passo-a-passo.html`, `calculadora.html` | citam o projeto pelo nome vindo do tenant (`data-projeto="titulo"`); a reserva é "o projeto apoiado" |
 | `destinar-rouanet.html` | a conta de captação é a do projeto do cliente, lida do banco |
 | `conferencia.html` | fila dos gestores **dele** |
 | `interessados.html` | a lista de avisos **dele** (`GET /api/interessados/lista`), escopada pela organização |

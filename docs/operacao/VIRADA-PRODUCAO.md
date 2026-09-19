@@ -51,7 +51,10 @@ O PRONAC real da Casa Azul — **2511274** — é cadastrado pela tela de client
 não pelo código. O que ainda depende de gente:
 
 - [ ] Confirmar o PRONAC real e a vigência da captação junto ao proponente
-- [ ] Cadastrar o projeto e a Conta de Captação em `admin-clientes.html`
+- [ ] Cadastrar o projeto e a Conta de Captação em `admin-clientes.html` —
+      inclusive "O que o projeto faz": é o texto que `projetos-rouanet.html`
+      e `como-funciona.html` mostram. Em branco, fica um texto neutro; fora da
+      simulação, o resumo do SALIC entra no lugar
 - [ ] Exercitar `GET /api/salic/projetos/2511274` contra a API real antes de
       desligar a simulação: se a consulta falhar, a página de projetos fica vazia
 

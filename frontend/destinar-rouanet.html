@@ -142,13 +142,10 @@
     .card-body { padding: 24px; }
 
     /* ── Step 1: Projeto ───────────────────────────────────────── */
+    /* Sem foto: era a do projeto do piloto, e não há campo de imagem no
+       cadastro do projeto. Até haver, o fundo é a paleta. */
     .project-banner {
-      background-image:
-        linear-gradient(to bottom, rgba(10,21,48,0.55) 0%, rgba(10,21,48,0.88) 100%),
-        url('assets/orquestra-hero.jpg');
-      background-size: 100% 100%, cover;
-      background-position: 0 0, center 25%;
-      background-repeat: no-repeat, no-repeat;
+      background: linear-gradient(135deg, #0F1E3D 0%, #132247 55%, #0a1530 100%);
       border-radius: var(--radius-lg); padding: 28px 24px; color: white;
       margin-bottom: 20px; position: relative; overflow: hidden;
       min-height: 130px;
@@ -457,11 +454,10 @@
     <div id="step0">
 
       <!-- HERO: foto + overlay + gancho emocional -->
-      <div style="border-radius:20px;overflow:hidden;margin-bottom:16px;position:relative">
-        <img src="assets/orquestra-hero.jpg"
-             alt="Jovens músicos da Orquestra das Periferias do DF"
-             style="width:100%;display:block;height:280px;object-fit:cover;object-position:center 25%"
-             loading="eager">
+      <!-- Aqui havia a foto do projeto do piloto. Não há campo de imagem no
+           cadastro do projeto; até haver, o fundo é a paleta — a foto de um
+           projeto no assistente de outro é o mesmo erro em imagem. -->
+      <div style="border-radius:20px;overflow:hidden;margin-bottom:16px;position:relative;min-height:280px;background:linear-gradient(135deg,#0F1E3D 0%,#132247 55%,#0F1E3D 100%)">
         <!-- overlay gradiente -->
         <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,21,48,0.35) 0%,rgba(10,21,48,0.85) 100%)"></div>
         <!-- conteúdo sobre a foto -->
@@ -1688,12 +1684,11 @@
         if (p.area)     document.getElementById('s0Area').textContent  = p.area;
         if (p.uf)       document.getElementById('s0Local').textContent = `${p.uf}${p.municipio ? ' · '+p.municipio : ''}`;
 
-        // Descrição contextual baseada no segmento
-        const segDesc = {
-          'Música Erudita / Orquestral': 'Leva música erudita e orquestral para comunidades que nunca tiveram acesso a esse tipo de arte. Com seu apoio, este projeto expande a formação cultural e artística no Distrito Federal — usando parte do imposto que você já paga, sem custo adicional.',
-          'Música Popular': 'Fomenta a produção e difusão da música popular brasileira, fortalecendo artistas e comunidades locais.'
-        };
-        const desc = segDesc[p.segmento] || `Projeto cultural aprovado pelo Ministério da Cultura, enquadrado como ${p.mecanismo || 'Art. 18 — 100% dedutível'}. Sua destinação fortalece a cultura brasileira sem custo adicional para você.`;
+        // A descrição vem do cadastro (simulação) ou do resumo do SALIC. Havia
+        // aqui um mapa por segmento com o texto do projeto do piloto — "no
+        // Distrito Federal" — que aparecia para qualquer projeto orquestral.
+        const desc = p.descricao || p.resumo || p.objetivos
+          || `Projeto cultural aprovado pelo Ministério da Cultura, enquadrado como ${p.mecanismo || 'Art. 18 — 100% dedutível'}. Sua destinação fortalece a cultura brasileira sem custo adicional para você.`;
         document.getElementById('s0Desc').textContent = desc;
 
         if (p.valores?.aprovado != null) {

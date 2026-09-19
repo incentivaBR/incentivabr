@@ -459,11 +459,22 @@ const tenant = {
  * Azul aparecer, alguém editaria arquivo e publicaria. Agora cada página só
  * MARCA o que precisa ser preenchido, e o dado vem do cadastro.
  *
- * Três marcações, todas opcionais:
+ * As marcações, todas opcionais:
  *
- *   <a data-destinar>                → vira link para destinar, com pronac e título
- *   <span data-projeto="pronac">     → recebe o PRONAC
- *   <span data-projeto="titulo">     → recebe o nome do projeto
+ *   <a data-destinar>                 → vira link para destinar, com pronac e título
+ *   <span data-projeto="pronac">      → recebe o PRONAC
+ *   <span data-projeto="titulo">      → recebe o nome do projeto
+ *   <span data-projeto="descricao">   → recebe a descrição do cadastro; fora da
+ *                                       simulação, o resumo ou os objetivos que
+ *                                       o SALIC devolve
+ *   <span data-projeto="proponente">  → recebe a razão social do proponente
+ *   <span data-projeto="area|segmento|uf"> → o campo com esse nome
+ *
+ * O texto que a página traz dentro da marcação é a reserva: fica quando o
+ * campo vem vazio. Por isso a reserva tem de ser neutra ("o projeto apoiado"),
+ * nunca o nome de um projeto — foi assim que o do piloto ficou escrito à mão
+ * em cinco páginas, e no site de um cliente elas pediam apoio a um projeto
+ * que não era dele.
  *
  * Sem projeto cadastrado, os links de destinar são desativados em vez de
  * apontarem para lugar nenhum — melhor um botão explicando que falta cadastro
@@ -512,10 +523,15 @@ async function preencheProjeto() {
     a.href = comOrg(`destinar-rouanet.html?${params}`);
   });
 
+  // Em simulação o projeto vem do cadastro (descricao); com o SALIC, vem do
+  // Ministério (resumo, objetivos). A página não precisa saber qual.
+  const descricao = projeto.descricao || projeto.resumo || projeto.objetivos || null;
+  const proponente = projeto.proponente?.nome || projeto.proponente_nome || null;
+  const valores = { ...projeto, titulo, descricao, proponente };
+
   document.querySelectorAll('[data-projeto]').forEach(el => {
-    const campo = el.getAttribute('data-projeto');
-    const valor = campo === 'titulo' ? titulo : projeto[campo];
-    if (valor != null) el.textContent = valor;
+    const valor = valores[el.getAttribute('data-projeto')];
+    if (typeof valor === 'string' && valor.trim()) el.textContent = valor.trim();
   });
 
   window.__projeto = projeto;
