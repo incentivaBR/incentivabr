@@ -357,9 +357,17 @@ const tenant = {
     // [data-so-cliente] aparece só na página de um cliente white-label;
     // [data-so-plataforma] só na da IncentivaBR. Os dois nascem como estão
     // no HTML (o de cliente, `hidden`), e aqui só o lado certo fica visível.
+    //
+    // O atributo `hidden` sozinho não basta: uma classe de display do
+    // Tailwind (`flex`, `grid`, `block`) tem a mesma especificidade e vem
+    // depois, e o elemento aparece mesmo escondido. Foi assim que o cartão
+    // "Associação / ONG" da home apareceu no site do cliente — só com o CDN
+    // no ar, que é o caso em produção. O display em linha vence qualquer
+    // classe; ao mostrar, é limpo para a classe voltar a mandar.
     const ehCliente = brand.eh_plataforma === false;
-    document.querySelectorAll('[data-so-cliente]').forEach(el => { el.hidden = !ehCliente; });
-    document.querySelectorAll('[data-so-plataforma]').forEach(el => { el.hidden = ehCliente; });
+    const mostra = (el, sim) => { el.hidden = !sim; el.style.display = sim ? '' : 'none'; };
+    document.querySelectorAll('[data-so-cliente]').forEach(el => mostra(el, ehCliente));
+    document.querySelectorAll('[data-so-plataforma]').forEach(el => mostra(el, !ehCliente));
     const textos = ehCliente && brand.textos ? brand.textos : {};
     document.querySelectorAll('[data-tenant]').forEach(el => {
       const v = textos[el.dataset.tenant];

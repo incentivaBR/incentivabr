@@ -28,7 +28,7 @@ Ver `docs/auditoria/plano-centralizacao.md`.
 - **IA:** TINA, sobre a API da Anthropic (`backend/src/routes/chat.js`, base em `backend/src/knowledge/nucleo.md`).
 - **E-mail:** Resend em produção; Ethereal quando falta chave.
 - **Deploy:** Railway, `backend/Dockerfile`, healthcheck em `/health`. Lê o branch `main`.
-- **Testes:** `backend/tests/*.test.mjs` (pg-mem, sem infraestrutura); `tests/postgres-real.test.mjs` roda no CI contra `postgres:16` de verdade (migrations, cadastro, login) e localmente por `npm run test:postgres` com `DATABASE_URL` de um banco `_teste`; `tests/api` e `tests/e2e` (Playwright, desatualizados).
+- **Testes:** `backend/tests/*.test.mjs` (pg-mem, sem infraestrutura); `tests/postgres-real.test.mjs` roda no CI contra `postgres:16` de verdade (migrations, cadastro, login) e localmente por `npm run test:postgres` com `DATABASE_URL` de um banco `_teste`; `scripts/e2e.mjs` percorre os fluxos no Chromium contra `tests/servidor-memoria.mjs` (`npm run e2e`, job "Fluxos no Chromium (E2E)").
 
 O PRD descreve React, Supabase, Auth0 e Vercel. Essa stack nunca existiu; não a use como referência.
 
@@ -48,7 +48,6 @@ incentivabr/                   ← antigo rouanet, renomeado em set/2026
 │   └── js/{tenant,api,auth,tina,layout,utils,toast}.js   ← layout.js é a barra e o rodapé únicos
 ├── brand/                     ← manual da marca, logos, IDENTIDADE-VISUAL.md
 ├── scripts/                   ← sync da base da TINA, limpeza de histórico
-├── tests/                     ← API + E2E (Playwright)
 ├── docs/
 │   ├── estrategia/            ← PRD, plano-mestre, pitch, specs de jornada
 │   ├── operacao/              ← virada para produção, TODO, limpeza de histórico

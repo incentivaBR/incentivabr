@@ -116,3 +116,30 @@ jobs:
       - run: npx playwright install --with-deps chromium
 
       - run: node scripts/confere-paginas.mjs
+
+  # Os fluxos de ponta a ponta, como uma pessoa faria: calcular, entrar pelo
+  # formulário, ver o painel, conferir, listar interessados — contra o
+  # servidor em memória que finge o site da Casa Azul. É o que confere que as
+  # peças encaixam, não só que cada uma existe.
+  e2e:
+    name: Fluxos no Chromium (E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+
+      - run: node scripts/e2e.mjs
