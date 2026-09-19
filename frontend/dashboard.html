@@ -331,6 +331,7 @@
     }
   </style>
   <script src="js/tenant.js"></script>
+  <script src="js/moeda.js"></script>
 </head>
 <body>
 
@@ -491,10 +492,6 @@
         }
       });
     })();
-
-    function BRL(v) {
-      return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(v || 0);
-    }
 
     function fmtDate(iso) {
       if (!iso) return '—';

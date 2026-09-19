@@ -161,6 +161,27 @@ await teste('página do projeto: título, proponente e descrição vêm do cadas
   await chegouComoTexto(pg, '#projectsContainer');
 });
 
+// As duas telas do contador têm máscara de moeda no campo de IR. Com o
+// formatador único (js/moeda.js) o campo passou a mostrar "R$ ", e o parser
+// de uma delas devolvia zero — é isso que estes dois fluxos vigiam.
+await teste('espaço do contador: digita o IR e a tabela de limites sai com o teto', async pg => {
+  await ir(pg, 'espaco-contador.html');
+  await pg.type('#ir-devido', '2000000');
+  await ate(pg, () => /R\$ 20\.000,00/.test(document.querySelector('#ir-valor')?.textContent || ''),
+            'IR devido não apareceu formatado: ' + await texto(pg, '#ir-valor'));
+  const tabela = await texto(pg, '#tabela-limites');
+  if (!/R\$ 1\.200,00/.test(tabela)) throw new Error('o teto único não apareceu na tabela: ' + tabela.slice(0, 120));
+});
+
+await teste('validador: digita o IR e o limite da Rouanet aparece em reais', async pg => {
+  await ir(pg, 'validador.html');
+  await pg.type('#ir-devido', '2000000');
+  await ate(pg, () => /R\$ 1\.200,00/.test(document.querySelector('#lim-rouanet')?.textContent || ''),
+            'limite: ' + await texto(pg, '#lim-rouanet'));
+  const campo = await pg.inputValue('#ir-devido');
+  if (campo !== 'R$ 20.000,00') throw new Error('máscara do campo: ' + campo);
+});
+
 await teste('política de privacidade: a Casa Azul é a controladora, a IncentivaBR a operadora', async pg => {
   await ir(pg, 'politica-privacidade.html');
   await ate(pg, () => [...document.querySelectorAll('[data-so-cliente]')].some(e => e.getClientRects().length > 0),

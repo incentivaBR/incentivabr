@@ -1,12 +1,10 @@
 // Utils Module - IncentivaBR
 
 const utils = {
-  // Formatar valor em reais
+  // Formatar valor em reais. Quem formata é js/moeda.js; aqui só o contrato
+  // antigo (valor ausente vira zero) para quem ainda chama por este nome.
   formatCurrency(value) {
-    const n = parseFloat(value) || 0;
-    const parts = n.toFixed(2).split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return 'R$ ' + parts[0] + ',' + parts[1];
+    return BRL(parseFloat(value) || 0);
   },
 
   // Formatar porcentagem
