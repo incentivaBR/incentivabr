@@ -28,6 +28,7 @@
     ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 3px; }
   </style>
   <script src="js/tenant.js"></script>
+  <script src="js/moeda.js"></script>
 </head>
 <body class="bg-navy font-sans text-white min-h-screen">
 
@@ -665,24 +666,17 @@ Qualquer dúvida, é só me chamar!
         pct: 0.01, label: '1%', nota: 'limite próprio de 1%, somados entre si' },
     ];
 
-    function parseBRL(val) {
-      return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
-    }
-
-    function formatBRL(val) {
-      return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
     function calcular() {
-      const raw = document.getElementById('ir-devido').value;
-      const irDevido = parseBRL(raw);
+      const campo = document.getElementById('ir-devido');
 
-      // Formatar input enquanto digita
-      const numStr = raw.replace(/\D/g, '');
-      if (numStr) {
-        const num = parseInt(numStr) / 100;
-        document.getElementById('ir-devido').value = formatBRL(num);
-      }
+      // Máscara de centavos: os dígitos digitados são o valor em centavos, e
+      // o campo mostra "R$ 1.234,56" (js/moeda.js). O IR devido sai DESTE
+      // número, não do texto de antes da máscara — lendo o texto antigo, a
+      // tela ficava um dígito atrasada: quem digitava 20.000 via os limites
+      // de 2.000 até teclar de novo.
+      const numStr = campo.value.replace(/\D/g, '');
+      const irDevido = numStr ? parseInt(numStr, 10) / 100 : 0;
+      if (numStr) campo.value = BRL(irDevido);
 
       const resultado = document.getElementById('resultado');
       const semIr = document.getElementById('sem-ir');
@@ -695,7 +689,7 @@ Qualquer dúvida, é só me chamar!
 
       resultado.classList.remove('hidden');
       semIr.classList.add('hidden');
-      document.getElementById('ir-valor').textContent = 'R$ ' + formatBRL(irDevido);
+      document.getElementById('ir-valor').textContent = BRL(irDevido);
 
       const tabela = document.getElementById('tabela-limites');
       const tetoTotal = irDevido * tetoGlobal();
@@ -713,7 +707,7 @@ Qualquer dúvida, é só me chamar!
               </div>
             </div>
             ${valor != null ? `<div class="text-right flex-shrink-0">
-              <div class="font-black text-gold text-base">R$ ${formatBRL(valor)}</div>
+              <div class="font-black text-gold text-base">${BRL(valor)}</div>
               <div class="text-white/30 text-xs">máximo</div>
             </div>` : ''}
           </div>`;
@@ -724,7 +718,7 @@ Qualquer dúvida, é só me chamar!
       tabela.innerHTML = `
         <div class="rounded-xl border border-gold/40 bg-gold/10 px-4 py-4 mb-3">
           <div class="text-xs uppercase tracking-wide text-gold/80 mb-1">Teto único a distribuir</div>
-          <div class="font-black text-gold text-2xl">R$ ${formatBRL(tetoTotal)}</div>
+          <div class="font-black text-gold text-2xl">${BRL(tetoTotal)}</div>
           <div class="text-white/60 text-xs mt-1">
             ${(tetoGlobal()*100).toLocaleString('pt-BR')}% do IR devido — ${BASE_TETO}. É a <strong class="text-white">soma</strong>
             das modalidades abaixo, não o limite de cada uma.

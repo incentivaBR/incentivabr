@@ -41,6 +41,7 @@
     }
   </style>
   <script src="js/tenant.js"></script>
+  <script src="js/moeda.js"></script>
 </head>
 <body class="bg-navy font-sans text-white min-h-screen">
 
@@ -274,16 +275,12 @@
     const nums = el.value.replace(/\D/g, '');
     if (!nums) { el.value = ''; return; }
     const val = parseInt(nums) / 100;
-    el.value = 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    el.value = BRL(val);
   }
 
   function parseVal(id) {
     const raw = document.getElementById(id)?.value || '';
     return parseFloat(raw.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-  }
-
-  function fmtBRL(v) {
-    return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   function pct(v, lim) { return lim > 0 ? Math.min((v / lim) * 100, 150) : 0; }
@@ -363,12 +360,12 @@
 
     // Atualizar limites no UI
     if (ir > 0) {
-      document.getElementById('lim-rouanet').textContent    = fmtBRL(L.rouanet);
-      document.getElementById('lim-esporte').textContent     = fmtBRL(L.esporte);
-      document.getElementById('lim-fia').textContent         = fmtBRL(L.fia);
-      document.getElementById('lim-fdi').textContent         = fmtBRL(L.fdi);
-      document.getElementById('lim-reciclagem').textContent  = fmtBRL(L.reciclagem);
-      document.getElementById('lim-pronon').textContent      = fmtBRL(L.pronon);
+      document.getElementById('lim-rouanet').textContent    = BRL(L.rouanet);
+      document.getElementById('lim-esporte').textContent     = BRL(L.esporte);
+      document.getElementById('lim-fia').textContent         = BRL(L.fia);
+      document.getElementById('lim-fdi').textContent         = BRL(L.fdi);
+      document.getElementById('lim-reciclagem').textContent  = BRL(L.reciclagem);
+      document.getElementById('lim-pronon').textContent      = BRL(L.pronon);
     }
 
     if (ir <= 0) {
@@ -385,24 +382,24 @@
       document.getElementById('icon-' + key).textContent = V[key] > 0 ? statusIcon(cls) : '—';
       setCard(key, V[key] > 0 ? cls : 'ok');
       let msg = '';
-      if (V[key] > 0 && cls === 'over') msg = `Excede em ${fmtBRL(V[key] - L[key])}. Reduza para até ${fmtBRL(L[key])}.`;
+      if (V[key] > 0 && cls === 'over') msg = `Excede em ${BRL(V[key] - L[key])}. Reduza para até ${BRL(L[key])}.`;
       else if (V[key] > 0 && cls === 'warn') msg = `Próximo do limite (${Math.round(V[key]/L[key]*100)}% usado). Atenção a variações no IR real.`;
-      else if (V[key] > 0) msg = `✓ Dentro do limite (${Math.round(V[key]/L[key]*100)}% de ${fmtBRL(L[key])}).`;
+      else if (V[key] > 0) msg = `✓ Dentro do limite (${Math.round(V[key]/L[key]*100)}% de ${BRL(L[key])}).`;
       setMsg(key, msg, cls);
     });
 
     // FDCA — Criança e Adolescente
     const clsFia = statusClass(V.fia, L.fia);
-    if (V.fia > 0 && clsFia === 'over') setMsg('fia', `Excede o limite de ${fmtBRL(L.fia)}`, 'over');
-    else if (V.fia > 0 && clsFia === 'warn') setMsg('fia', `Próximo do limite (${Math.round(V.fia/L.fia*100)}% de ${fmtBRL(L.fia)})`, 'warn');
-    else if (V.fia > 0) setMsg('fia', `✓ FDCA: ${fmtBRL(V.fia)} de ${fmtBRL(L.fia)} disponível`, 'ok');
+    if (V.fia > 0 && clsFia === 'over') setMsg('fia', `Excede o limite de ${BRL(L.fia)}`, 'over');
+    else if (V.fia > 0 && clsFia === 'warn') setMsg('fia', `Próximo do limite (${Math.round(V.fia/L.fia*100)}% de ${BRL(L.fia)})`, 'warn');
+    else if (V.fia > 0) setMsg('fia', `✓ FDCA: ${BRL(V.fia)} de ${BRL(L.fia)} disponível`, 'ok');
     else setMsg('fia', '', 'ok');
 
     // FDI — Idoso
     const clsFdi = statusClass(V.fdi, L.fdi);
-    if (V.fdi > 0 && clsFdi === 'over') setMsg('fdi', `Excede o limite de ${fmtBRL(L.fdi)}`, 'over');
-    else if (V.fdi > 0 && clsFdi === 'warn') setMsg('fdi', `Próximo do limite (${Math.round(V.fdi/L.fdi*100)}% de ${fmtBRL(L.fdi)})`, 'warn');
-    else if (V.fdi > 0) setMsg('fdi', `✓ FDI: ${fmtBRL(V.fdi)} de ${fmtBRL(L.fdi)} disponível`, 'ok');
+    if (V.fdi > 0 && clsFdi === 'over') setMsg('fdi', `Excede o limite de ${BRL(L.fdi)}`, 'over');
+    else if (V.fdi > 0 && clsFdi === 'warn') setMsg('fdi', `Próximo do limite (${Math.round(V.fdi/L.fdi*100)}% de ${BRL(L.fdi)})`, 'warn');
+    else if (V.fdi > 0) setMsg('fdi', `✓ FDI: ${BRL(V.fdi)} de ${BRL(L.fdi)} disponível`, 'ok');
     else setMsg('fdi', '', 'ok');
 
     // Card combinado FDCA + FDI. Cada um tem o proprio percentual na lei,
@@ -417,12 +414,12 @@
 
     // PRONON — Oncologia (mensagem individual)
     const clsPronon = statusClass(V.pronon, L.pronon);
-    if (V.pronon > 0) setMsg('pronon', `PRONON: ${fmtBRL(V.pronon)}`, clsPronon);
+    if (V.pronon > 0) setMsg('pronon', `PRONON: ${BRL(V.pronon)}`, clsPronon);
     else setMsg('pronon', '', 'ok');
 
     // PRONAS — Deficiência (mensagem individual)
     const clsPronas = statusClass(V.pronas, L.pronon);
-    if (V.pronas > 0) setMsg('pronas', `PRONAS: ${fmtBRL(V.pronas)}`, clsPronas);
+    if (V.pronas > 0) setMsg('pronas', `PRONAS: ${BRL(V.pronas)}`, clsPronas);
     else setMsg('pronas', '', 'ok');
 
     // Card combinado PRONON + PRONAS — limite conjunto de 1%
@@ -433,9 +430,9 @@
     const elPT = document.getElementById('msg-pronon-total');
     if (V.pronon_pronas > 0) {
       let m = '';
-      if (clsPrononTotal === 'over') m = `Total excede o limite conjunto em ${fmtBRL(V.pronon_pronas - L.pronon)}. Reduza para até ${fmtBRL(L.pronon)}.`;
-      else if (clsPrononTotal === 'warn') m = `Total próximo do limite conjunto (${Math.round(V.pronon_pronas/L.pronon*100)}% de ${fmtBRL(L.pronon)}).`;
-      else m = `✓ Total: ${fmtBRL(V.pronon_pronas)} de ${fmtBRL(L.pronon)} disponível.`;
+      if (clsPrononTotal === 'over') m = `Total excede o limite conjunto em ${BRL(V.pronon_pronas - L.pronon)}. Reduza para até ${BRL(L.pronon)}.`;
+      else if (clsPrononTotal === 'warn') m = `Total próximo do limite conjunto (${Math.round(V.pronon_pronas/L.pronon*100)}% de ${BRL(L.pronon)}).`;
+      else m = `✓ Total: ${BRL(V.pronon_pronas)} de ${BRL(L.pronon)} disponível.`;
       elPT.textContent = m;
       elPT.className = 'text-xs mt-2 ' + (clsPrononTotal === 'over' ? 'text-red-400' : clsPrononTotal === 'warn' ? 'text-yellow-400' : 'text-green-400');
       elPT.classList.remove('hidden');
@@ -454,9 +451,9 @@
     // A verificação decisiva, e a primeira: uma destinação pode estar dentro de
     // cada limite individual e ainda assim estourar o teto da soma.
     if (somaNoTeto > TETO_GLOBAL)
-      problemas.push(`A soma das modalidades (${fmtBRL(somaNoTeto)}) excede o teto de ${tetoPct} do IR devido `
-                   + `(${fmtBRL(TETO_GLOBAL)}) — Lei 9.532/1997, art. 22. `
-                   + `Reduza ${fmtBRL(somaNoTeto - TETO_GLOBAL)}.`);
+      problemas.push(`A soma das modalidades (${BRL(somaNoTeto)}) excede o teto de ${tetoPct} do IR devido `
+                   + `(${BRL(TETO_GLOBAL)}) — Lei 9.532/1997, art. 22. `
+                   + `Reduza ${BRL(somaNoTeto - TETO_GLOBAL)}.`);
     if (V.rouanet > L.rouanet)           problemas.push('Rouanet excede o limite');
     if (V.esporte > L.esporte)           problemas.push('Esporte excede o limite');
     if (V.fia > L.fia)                   problemas.push(`FDCA excede o limite de ${tetoPct}`);
@@ -499,7 +496,7 @@
       geral.className = 'rounded-2xl p-5 mb-4 text-center bg-green-500/10 border border-green-500/25';
       icon.textContent = '✅';
       titulo.textContent = 'Destinação dentro dos limites legais';
-      sub.textContent = `Total planejado: ${fmtBRL(total)} — todas as modalidades conformes.`;
+      sub.textContent = `Total planejado: ${BRL(total)} — todas as modalidades conformes.`;
     }
 
     // Laudo
@@ -508,16 +505,16 @@
       `Gerado em ${now.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' })} às ${now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}`;
 
     const itens = [];
-    itens.push(`IR Devido informado: ${fmtBRL(ir)}`);
-    if (V.rouanet > 0) itens.push(`Rouanet Art. 18: ${fmtBRL(V.rouanet)} de ${fmtBRL(L.rouanet)} disponível (${Math.round(V.rouanet/L.rouanet*100)}%) ${V.rouanet <= L.rouanet ? '✅' : '❌'}`);
-    if (V.esporte > 0)  itens.push(`Esporte: ${fmtBRL(V.esporte)} de ${fmtBRL(L.esporte)} disponível (${Math.round(V.esporte/L.esporte*100)}%) ${V.esporte <= L.esporte ? '✅' : '❌'}`);
-    if (V.fia > 0)        itens.push(`FDCA — Criança e Adolescente: ${fmtBRL(V.fia)} de ${fmtBRL(L.fia)} disponível (${tetoPct}) ${V.fia <= L.fia ? '✅' : '❌'}`);
-    if (V.fdi > 0)        itens.push(`FDI — Idoso: ${fmtBRL(V.fdi)} de ${fmtBRL(L.fdi)} disponível (${tetoPct}) ${V.fdi <= L.fdi ? '✅' : '❌'}`);
-    if (V.reciclagem > 0) itens.push(`Recicla+ (Lei 14.260/2021): ${fmtBRL(V.reciclagem)} de ${fmtBRL(L.reciclagem)} disponível (${tetoPct}) ${V.reciclagem <= L.reciclagem ? '✅' : '❌'}`);
-    if (V.pronon > 0)     itens.push(`PRONON — Oncologia: ${fmtBRL(V.pronon)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
-    if (V.pronas > 0)     itens.push(`PRONAS — Deficiência: ${fmtBRL(V.pronas)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
-    if (V.pronon_pronas > 0) itens.push(`PRONON+PRONAS total: ${fmtBRL(V.pronon_pronas)} de ${fmtBRL(L.pronon)} disponível (limite conjunto 1%) ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
-    if (total > 0)      itens.push(`Total destinado: ${fmtBRL(total)} | IR Devido: ${fmtBRL(ir)} ${total <= ir ? '✅' : '❌'}`);
+    itens.push(`IR Devido informado: ${BRL(ir)}`);
+    if (V.rouanet > 0) itens.push(`Rouanet Art. 18: ${BRL(V.rouanet)} de ${BRL(L.rouanet)} disponível (${Math.round(V.rouanet/L.rouanet*100)}%) ${V.rouanet <= L.rouanet ? '✅' : '❌'}`);
+    if (V.esporte > 0)  itens.push(`Esporte: ${BRL(V.esporte)} de ${BRL(L.esporte)} disponível (${Math.round(V.esporte/L.esporte*100)}%) ${V.esporte <= L.esporte ? '✅' : '❌'}`);
+    if (V.fia > 0)        itens.push(`FDCA — Criança e Adolescente: ${BRL(V.fia)} de ${BRL(L.fia)} disponível (${tetoPct}) ${V.fia <= L.fia ? '✅' : '❌'}`);
+    if (V.fdi > 0)        itens.push(`FDI — Idoso: ${BRL(V.fdi)} de ${BRL(L.fdi)} disponível (${tetoPct}) ${V.fdi <= L.fdi ? '✅' : '❌'}`);
+    if (V.reciclagem > 0) itens.push(`Recicla+ (Lei 14.260/2021): ${BRL(V.reciclagem)} de ${BRL(L.reciclagem)} disponível (${tetoPct}) ${V.reciclagem <= L.reciclagem ? '✅' : '❌'}`);
+    if (V.pronon > 0)     itens.push(`PRONON — Oncologia: ${BRL(V.pronon)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
+    if (V.pronas > 0)     itens.push(`PRONAS — Deficiência: ${BRL(V.pronas)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
+    if (V.pronon_pronas > 0) itens.push(`PRONON+PRONAS total: ${BRL(V.pronon_pronas)} de ${BRL(L.pronon)} disponível (limite conjunto 1%) ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
+    if (total > 0)      itens.push(`Total destinado: ${BRL(total)} | IR Devido: ${BRL(ir)} ${total <= ir ? '✅' : '❌'}`);
     itens.push(`Conclusão: ${problemas.length ? 'NÃO CONFORME — ' + problemas.join('; ') : 'CONFORME — dentro dos limites legais vigentes'}`);
 
     document.getElementById('laudo-itens').innerHTML = itens.map(i =>

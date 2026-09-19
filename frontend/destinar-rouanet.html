@@ -386,6 +386,7 @@
     }
   </style>
   <script src="js/tenant.js"></script>
+  <script src="js/moeda.js"></script>
 </head>
 <body>
 
@@ -1129,16 +1130,7 @@
       calcMode:    'rapida'
     };
 
-    // ── Formatadores ────────────────────────────────────────────
-    const BRL = v => {
-      if (v == null) return '—';
-      const n = parseFloat(v);
-      if (isNaN(n)) return '—';
-      const parts = n.toFixed(2).split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      return 'R$ ' + parts[0] + ',' + parts[1];
-    };
-
+    // ── Formatadores ── BRL vem de js/moeda.js ──────────────────
     function pct(captado, aprovado) {
       if (!captado || !aprovado) return 0;
       return Math.min(Math.round((captado / aprovado) * 100), 100);
@@ -1692,7 +1684,6 @@
         document.getElementById('s0Desc').textContent = desc;
 
         if (p.valores?.aprovado != null) {
-          const BRLs = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
           const rest   = Math.max(0, (p.valores.aprovado||0) - (p.valores.captado||0));
           const pctCap = p.valores.aprovado > 0 ? Math.round((p.valores.captado / p.valores.aprovado) * 100) : 0;
           const s0VA = document.getElementById('s0ValAprovado');
@@ -1700,9 +1691,9 @@
           const s0VR = document.getElementById('s0ValRestante');
           const s0CB = document.getElementById('s0CapBar');
           const s0VW = document.getElementById('s0ValoresWrap');
-          if (s0VA) s0VA.textContent = BRLs(p.valores.aprovado);
-          if (s0VC) s0VC.textContent = BRLs(p.valores.captado);
-          if (s0VR) s0VR.textContent = BRLs(rest);
+          if (s0VA) s0VA.textContent = BRL(p.valores.aprovado);
+          if (s0VC) s0VC.textContent = BRL(p.valores.captado);
+          if (s0VR) s0VR.textContent = BRL(rest);
           if (s0CB) s0CB.style.width = `${pctCap}%`;
           if (s0VW) s0VW.style.display = '';
         }
