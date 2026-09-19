@@ -1,16 +1,23 @@
 // Sobe a aplicacao inteira (backend + frontend) contra um Postgres em memoria,
 // com dados plausiveis ja carregados. Serve para clicar o fluxo no navegador
-// sem depender de um banco de verdade. NAO e usado em producao.
+// sem depender de um banco de verdade, e e o servidor contra o qual o E2E
+// (scripts/e2e.mjs) roda. NAO e usado em producao.
 //
 //   node tests/servidor-memoria.mjs [porta]
 //
-// Imprime os tokens de sessao para colar no localStorage.
+// Finge SEMPRE o site da Casa Azul (cliente white-label). Contas para entrar
+// pelo formulario, as duas com a senha "senha-bem-comprida":
+//
+//   maria@exemplo.gov.br    — destinadora, com tres destinacoes aguardando
+//   gestor@casazul.org.br   — gestora da organizacao (org_admin)
+//
+// Tambem imprime os tokens de sessao, para colar no localStorage.
 import { newDb } from 'pg-mem';
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const PORTA = Number(process.argv[2] || 3100);
@@ -18,6 +25,9 @@ const PORTA = Number(process.argv[2] || 3100);
 process.env.JWT_SECRET = 'teste';
 process.env.NODE_ENV = 'test';
 process.env.SIMULATION_MODE = process.env.SIMULATION_MODE || 'true';
+process.env.APP_URL = process.env.APP_URL || `http://localhost:${PORTA}`;
+
+export const SENHA_DE_TESTE = 'senha-bem-comprida';
 
 const db = newDb();
 db.public.registerFunction({
@@ -36,13 +46,30 @@ db.public.none(`
     -- Politica que precisa ser visto funcionando.
     encarregado_nome TEXT, encarregado_email TEXT
   );
+  -- As colunas que o login (SELECT) e o cadastro (INSERT) de routes/auth.js
+  -- tocam. Sem elas, o formulario de entrar nao serve para nada aqui.
   CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT, cpf TEXT, email TEXT, phone TEXT
+    nome TEXT, cpf TEXT, email TEXT, phone TEXT, senha_hash TEXT,
+    total_donated NUMERIC DEFAULT 0,
+    is_admin BOOLEAN DEFAULT false, is_superadmin BOOLEAN DEFAULT false,
+    is_org_admin BOOLEAN DEFAULT false,
+    organization_id UUID, email_verified BOOLEAN DEFAULT false,
+    accepted_terms_at TIMESTAMP, accepted_terms_version TEXT,
+    email_verification_token TEXT, email_verification_expires TIMESTAMPTZ,
+    reset_token TEXT, reset_token_expires TIMESTAMPTZ,
+    created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW()
   );
   CREATE TABLE organization_users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID, user_id UUID, role TEXT, is_active BOOLEAN DEFAULT true
+    organization_id UUID, user_id UUID, role TEXT, is_active BOOLEAN DEFAULT true,
+    accepted_at TIMESTAMP,
+    UNIQUE (organization_id, user_id)
+  );
+  CREATE TABLE audit_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID, user_id UUID, action TEXT, entity_type TEXT, entity_id UUID,
+    details TEXT, ip_address TEXT, user_agent TEXT, created_at TIMESTAMP DEFAULT NOW()
   );
   CREATE TABLE incentive_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -83,6 +110,24 @@ db.public.none(`
     rejected_at TIMESTAMP, rejected_by UUID, rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT NOW()
   );
+  -- A lista de avisos (migration 027), para a tela de interessados.
+  CREATE TABLE subscribers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT, nome TEXT, phone TEXT, orgao TEXT, organization_id UUID,
+    consent_prazos BOOLEAN DEFAULT FALSE, consent_projetos BOOLEAN DEFAULT FALSE,
+    consent_whatsapp BOOLEAN DEFAULT FALSE,
+    consent_text TEXT, consent_policy_version TEXT, consent_at TIMESTAMPTZ,
+    confirm_token TEXT, confirm_token_expires TIMESTAMPTZ, confirmed_at TIMESTAMPTZ,
+    access_token TEXT, revoked_at TIMESTAMPTZ, revoke_reason TEXT, anonymized_at TIMESTAMPTZ,
+    last_interaction_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  CREATE TABLE subscriber_consent_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), subscriber_id UUID, evento TEXT,
+    consent_prazos BOOLEAN, consent_projetos BOOLEAN, consent_whatsapp BOOLEAN,
+    consent_text TEXT, consent_policy_version TEXT, ip TEXT, user_agent TEXT,
+    detalhe TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+  );
 `);
 
 const pgMem = db.adapters.createPg();
@@ -91,47 +136,63 @@ const { default: poolReal } = await import('../config/database.js');
 poolReal.query = (...a) => poolFalso.query(...a);
 poolReal.connect = async () => ({ query: (...a) => poolFalso.query(...a), release() {} });
 
-const q = async (sql) => (await poolFalso.query(sql)).rows;
+const q = async (sql, p) => (await poolFalso.query(sql, p)).rows;
 
 const [{ id: orgId }] = await q(`
   INSERT INTO organizations (name, slug, contact_email, contact_whatsapp, contact_person,
                              mecenato_prazo_dias, primary_color, secondary_color)
   VALUES ('Casa Azul Felipe Augusto','casa-azul','contato@casazul.org.br','61999998888',
           'Coordenação', 10, '#273F77', '#EE985C') RETURNING id`);
+
+// Fator 4: e um fixture, nao uma conta. O login compara com bcrypt.compare,
+// que aceita qualquer fator.
+const senhaHash = bcrypt.hashSync(SENHA_DE_TESTE, 4);
 const [{ id: destinadorId }] = await q(`
-  INSERT INTO users (nome, cpf, email) VALUES
-  ('Maria Aparecida de Souza','12345678901','maria@exemplo.gov.br') RETURNING id`);
+  INSERT INTO users (nome, cpf, email, senha_hash, organization_id, email_verified)
+  VALUES ('Maria Aparecida de Souza','12345678901','maria@exemplo.gov.br',$1,$2,true) RETURNING id`,
+  [senhaHash, orgId]);
 const [{ id: gestorId }] = await q(`
-  INSERT INTO users (nome, cpf, email) VALUES
-  ('Gestor Casa Azul','98765432100','gestor@casazul.org.br') RETURNING id`);
+  INSERT INTO users (nome, cpf, email, senha_hash, organization_id, email_verified, is_org_admin)
+  VALUES ('Gestor Casa Azul','98765432100','gestor@casazul.org.br',$1,$2,true,true) RETURNING id`,
+  [senhaHash, orgId]);
 await q(`INSERT INTO organization_users (organization_id, user_id, role, is_active)
-         VALUES ('${orgId}','${gestorId}','org_admin', true)`);
+         VALUES ($1,$2,'org_admin', true)`, [orgId, gestorId]);
 await q(`INSERT INTO organization_users (organization_id, user_id, role, is_active)
-         VALUES ('${orgId}','${destinadorId}','member', true)`);
+         VALUES ($1,$2,'member', true)`, [orgId, destinadorId]);
 
 for (const [valor, status] of [[3200,'awaiting_confirmation'], [12500.50,'awaiting_confirmation'],
                                [800,'awaiting_confirmation']]) {
   await q(`INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido,
              fiscal_year, pronac, projeto_titulo, status, receipt_url, receipt_filename)
-           VALUES ('${destinadorId}','${orgId}',${valor},208342,2026,'2511274',
-                   'Mostra Casa Azul de Teatro Inclusivo','${status}',
-                   '/uploads/receipts/exemplo.pdf','comprovante-${valor}.pdf')`);
+           VALUES ($1,$2,$3,208342,2026,'2511274',
+                   'Mostra Casa Azul de Teatro Inclusivo',$4,
+                   '/uploads/receipts/exemplo.pdf',$5)`,
+    [destinadorId, orgId, valor, status, `comprovante-${valor}.pdf`]);
 }
 
-// Projeto da organizacao — e daqui que o frontend tira PRONAC e titulo agora
-// que eles sairam do codigo.
+// Projeto da organizacao — e daqui que o frontend tira PRONAC, titulo,
+// descricao e proponente agora que eles sairam do codigo.
 await q(`INSERT INTO org_projects
   (organization_id, pronac, titulo, area, segmento, descricao, uf,
    proponente_nome, proponente_cnpj, bank_name, bank_code, bank_agency, bank_account,
    is_active, is_featured)
-  VALUES ('${orgId}', '2511274', 'Mostra Casa Azul de Teatro Inclusivo',
+  VALUES ($1, '2511274', 'Mostra Casa Azul de Teatro Inclusivo',
           'Artes Cenicas', 'Teatro', 'Temporada de teatro inclusivo em Brasilia.', 'DF',
           'Casa Azul Felipe Augusto', '12.345.678/0001-90',
-          'Banco do Brasil', '001', '1234-5', '98765-4', true, true)`);
+          'Banco do Brasil', '001', '1234-5', '98765-4', true, true)`, [orgId]);
 
-const { default: donationsRoutes } = await import('../src/routes/donations.js');
-const { default: configRoutes }    = await import('../src/routes/config.js');
-const { default: salicRoutes }     = await import('../src/routes/salic.js');
+// Um inscrito na lista de avisos, para a tela de interessados ter o que mostrar.
+await q(`INSERT INTO subscribers (email, nome, orgao, organization_id, consent_prazos,
+                                  confirmed_at, access_token, consent_at)
+         VALUES ('joao@exemplo.gov.br','João da Silva','TJDFT',$1,true,NOW(),'token-fixture',NOW())`, [orgId]);
+
+const { default: authRoutes }         = await import('../src/routes/auth.js');
+const { default: calculatorRoutes }   = await import('../src/routes/calculator.js');
+const { default: donationsRoutes }    = await import('../src/routes/donations.js');
+const { default: configRoutes }       = await import('../src/routes/config.js');
+const { default: salicRoutes }        = await import('../src/routes/salic.js');
+const { default: interessadosRoutes } = await import('../src/routes/interessados.js');
+const { guardaDePaginasDaPlataforma } = await import('../src/lib/paginasDaPlataforma.js');
 
 const app = express();
 app.use(express.json());
@@ -142,18 +203,27 @@ app.use((req, _res, next) => {
   req.organization = { id: orgId, name: 'Casa Azul Felipe Augusto', slug: 'casa-azul',
                        contact_email: 'contato@casazul.org.br',
                        primary_color: '#273F77', secondary_color: '#EE985C' };
+  req.tenantSlug = 'casa-azul';
   next();
 });
+app.use('/api/auth', authRoutes);
+app.use('/api/calculator', calculatorRoutes);
 app.use('/api/donations', donationsRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/salic', salicRoutes);
+app.use('/api/interessados', interessadosRoutes);
+// Mesma ordem do server.js: a pagina que so a plataforma mostra e recusada
+// antes de o arquivo sair. Sem isto, o E2E nao teria como conferir a guarda.
+app.use(guardaDePaginasDaPlataforma);
 app.use(express.static(path.join(AQUI, '../../frontend')));
 
 const token = (userId) => jwt.sign({ userId, orgId }, 'teste', { expiresIn: '8h' });
 
 app.listen(PORTA, () => {
   console.log(`\nServidor de teste em http://localhost:${PORTA}`);
-  console.log('\nCole no console do navegador para entrar como GESTOR:');
+  console.log(`\nEntre pelo formulario com a senha "${SENHA_DE_TESTE}":`);
+  console.log('  maria@exemplo.gov.br   (destinadora)   gestor@casazul.org.br  (gestora)');
+  console.log('\n...ou cole no console do navegador para entrar como GESTOR:');
   console.log(`localStorage.setItem('incentivabr_token','${token(gestorId)}');` +
               `localStorage.setItem('incentivabr_user','{"nome":"Gestor Casa Azul"}');location.reload()`);
   console.log('\n...ou como DESTINADOR:');

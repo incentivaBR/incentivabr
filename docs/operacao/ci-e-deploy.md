@@ -33,6 +33,22 @@ falhou e qual caso. Todos os testes rodam em qualquer máquina com
 
 "Flake" não é diagnóstico: a suíte não usa rede nem relógio. Se falhou, é código.
 
+## Fluxos de ponta a ponta (E2E)
+
+Os três jobs acima conferem peças: cada rota, o banco, cada tela abrindo.
+Nenhum confere que as peças **encaixam** — que a calculadora leva ao projeto
+certo, que o formulário de entrar chega ao painel, que o gestor vê a fila e o
+destinador não. O job **"Fluxos no Chromium (E2E)"** faz isso: sobe
+`tests/servidor-memoria.mjs` (o site da Casa Azul, com dados plausíveis e sem
+banco) e `scripts/e2e.mjs` percorre os fluxos do
+`fluxo-das-paginas.md` como uma pessoa faria.
+
+Localmente: `cd backend && npm run e2e` (precisa de `npm i --no-save
+playwright && npx playwright install chromium`).
+
+A pasta `tests/` antiga (API + E2E de 2025, escritos para o DestineAI, o
+Circuito do Forró e páginas que já não existem) saiu: o CI nunca a executou.
+
 ## Postgres de verdade no CI
 
 A suíte (`npm test`) roda em pg-mem, sem infraestrutura — e isso é bom. Mas o

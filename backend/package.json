@@ -27,6 +27,7 @@
     "test:lista-interessados": "node tests/lista-interessados.test.mjs",
     "test:postgres": "node tests/postgres-real.test.mjs",
     "test:projeto-tenant": "node tests/projeto-do-tenant.test.mjs",
+    "e2e": "node scripts/e2e.mjs",
     "test:calculadora": "node tests/calculadora.test.mjs",
     "test:limpar-contas": "node tests/limpar-contas.test.mjs",
     "test:migracoes": "node tests/migracoes.test.mjs",
