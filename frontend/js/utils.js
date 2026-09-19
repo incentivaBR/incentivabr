@@ -157,37 +157,11 @@ const utils = {
   getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
     return params.get(name);
-  },
-
-  // Badge de status
-  getStatusBadge(status) {
-    const badges = {
-      active: '<span class="badge badge-success">Ativo</span>',
-      pending: '<span class="badge badge-warning">Pendente</span>',
-      confirmed: '<span class="badge badge-info">Confirmado</span>',
-      processed: '<span class="badge badge-success">Processado</span>',
-      cancelled: '<span class="badge badge-danger">Cancelado</span>',
-      completed: '<span class="badge badge-primary">Concluído</span>',
-      funded: '<span class="badge badge-success">Financiado</span>'
-    };
-    return badges[status] || `<span class="badge">${status}</span>`;
-  },
-
-  // Badge de fundo
-  getFundBadge(fundType) {
-    const badges = {
-      children: { color: '#4CAF50', label: 'Criança' },
-      elderly: { color: '#2196F3', label: 'Idoso' },
-      culture: { color: '#9C27B0', label: 'Cultura' },
-      sports: { color: '#FF9800', label: 'Esporte' },
-      audiovisual: { color: '#E91E63', label: 'Audiovisual' },
-      recycling: { color: '#00BCD4', label: 'Reciclagem' },
-      health_oncology: { color: '#F44336', label: 'Oncologia' },
-      health_pcd: { color: '#3F51B5', label: 'PCD' }
-    };
-    const badge = badges[fundType] || { color: '#607D8B', label: fundType };
-    return `<span class="badge" style="background-color: ${badge.color}">${badge.label}</span>`;
   }
+
+  // Havia aqui getStatusBadge() e getFundBadge(): ninguém chamava, e as duas
+  // devolviam o valor desconhecido dentro do HTML sem escape. Saíram em
+  // set/2026 (backend/tests/escape-innerhtml.test.mjs).
 };
 
 // Adicionar estilos do toast e loading dinamicamente

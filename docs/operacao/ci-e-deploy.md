@@ -46,6 +46,14 @@ banco) e `scripts/e2e.mjs` percorre os fluxos do
 Localmente: `cd backend && npm run e2e` (precisa de `npm i --no-save
 playwright && npx playwright install chromium`).
 
+O fixture é **envenenado**: nome de quem destina, título e descrição do
+projeto, órgão do interessado e nome do arquivo do comprovante terminam em
+`"><img data-veneno src=x>`. Se alguma tela puser um desses textos em
+`innerHTML` sem escapar, nasce um elemento `[data-veneno]` e o fluxo é
+recusado. Quatro fluxos ainda exigem que o veneno tenha chegado como texto —
+uma guarda que nunca vê o veneno não prova nada. A guarda estática
+correspondente é `tests/escape-innerhtml.test.mjs`, na suíte.
+
 Sem rede, `SEM_CDN=1` bloqueia os CDNs e dá ao Tailwind um dublê com as
 classes de display. O dublê existe porque o primeiro vermelho do E2E no
 GitHub só acontecia lá: com o Tailwind de verdade, `.flex` vence `[hidden]`

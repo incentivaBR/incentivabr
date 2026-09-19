@@ -79,6 +79,12 @@ const teste = async (nome, fn) => {
     await fn(pg, ctx);
     const graves = erros.filter(m => !(SEM_CDN && /tailwind is not defined/.test(m)));
     if (graves.length) throw new Error('erro de página: ' + graves.join(' | '));
+    // O fixture envenena nome, título, descrição e órgão com "><img
+    // data-veneno>. Se o veneno virou elemento, alguma tela pôs dado de fora
+    // em innerHTML sem escapar.
+    if (await pg.evaluate(() => !!document.querySelector('[data-veneno]'))) {
+      throw new Error('dado de fora virou HTML nesta tela (data-veneno)');
+    }
     ok.push(nome);
   } catch (e) {
     falhas.push([nome, e.message.split('\n')[0]]);
@@ -98,6 +104,11 @@ const ate = async (pg, cond, msg, ms = 8000) => {
 };
 const visivel = sel => `!!document.querySelector('${sel}') && document.querySelector('${sel}').getClientRects().length > 0`;
 const texto = async (pg, sel) => pg.evaluate(s => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || '', sel);
+/** O veneno do fixture tem de chegar à tela como TEXTO — senão a guarda de [data-veneno] não prova nada. */
+const chegouComoTexto = async (pg, sel) => {
+  if (await pg.evaluate(() => !!document.querySelector('[data-veneno]'))) throw new Error('dado de fora virou HTML nesta tela (data-veneno)');
+  if (!(await texto(pg, sel)).includes('data-veneno')) throw new Error(`o veneno do fixture não apareceu como texto em ${sel}`);
+};
 const ir = (pg, p) => pg.goto(BASE + '/' + p, { waitUntil: 'networkidle' });
 
 /** Entra pelo formulário, como uma pessoa. */
@@ -147,6 +158,7 @@ await teste('página do projeto: título, proponente e descrição vêm do cadas
   if (!desc.includes('teatro inclusivo')) throw new Error('descrição: ' + desc);
   const pronac = await texto(pg, '[data-projeto="pronac"]');
   if (pronac !== '2511274') throw new Error('pronac: ' + pronac);
+  await chegouComoTexto(pg, '#projectsContainer');
 });
 
 await teste('política de privacidade: a Casa Azul é a controladora, a IncentivaBR a operadora', async pg => {
@@ -184,6 +196,7 @@ await teste('destinadora entra pelo formulário e vê as três destinações del
   await entrar(pg, 'maria@exemplo.gov.br');
   await ate(pg, () => (document.querySelector('#donationsList')?.textContent.match(/Mostra Casa Azul/g) || []).length >= 3,
             'as três destinações não apareceram no painel');
+  await chegouComoTexto(pg, '#donationsList');
   await pg.waitForTimeout(800);   // os atalhos de operação acendem depois da resposta da API
   const veConferencia = await pg.evaluate(() => getComputedStyle(document.querySelector('#linkConferencia')).display !== 'none');
   if (veConferencia) throw new Error('destinadora comum vê o atalho da conferência');
@@ -214,6 +227,7 @@ await teste('conferência: as três destinações aguardam, com comprovante', as
             'contagem: ' + await texto(pg, '#contagem'));
   const botoes = await pg.evaluate(() => document.querySelectorAll('.btn-conf').length);
   if (botoes !== 3) throw new Error('botões de confirmar: ' + botoes);
+  await chegouComoTexto(pg, '#lista');
 });
 
 await teste('interessados: a lista da organização, com a situação de cada pessoa', async pg => {
@@ -222,6 +236,7 @@ await teste('interessados: a lista da organização, com a situação de cada pe
   await ate(pg, () => document.querySelector('#nAtivos')?.textContent === '1', 'resumo: ' + await texto(pg, '#resumo'));
   const linha = await texto(pg, 'tbody tr');
   if (!/joao@exemplo\.gov\.br/.test(linha) || !/ativo/.test(linha)) throw new Error('linha: ' + linha);
+  await chegouComoTexto(pg, 'tbody tr');
 });
 
 await teste('a tela de clientes recusa quem não é da plataforma', async pg => {

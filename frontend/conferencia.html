@@ -183,7 +183,7 @@
       }
 
       $('lista').innerHTML = itens.map(d => `
-        <div class="item" id="item-${d.id}">
+        <div class="item" id="item-${esc(d.id)}">
           <div class="item-topo">
             <div>
               <div class="item-nome">${esc(d.nome)}</div>
@@ -222,14 +222,14 @@
 
           <div class="acoes">
             ${d.comprovante_url
-              ? `<button class="btn btn-ver" onclick="verComprovante('${d.id}', this)">
+              ? `<button class="btn btn-ver" onclick="verComprovante('${esc(d.id)}', this)">
                    <i class="fas fa-file-invoice"></i> Ver comprovante${d.receipt_filename ? ' (' + esc(d.receipt_filename) + ')' : ''}
                  </button>`
               : `<span style="font-size:13px;color:#B91C1C">Sem comprovante anexado</span>`}
-            <button class="btn btn-conf" onclick="confirmar('${d.id}', this)">
+            <button class="btn btn-conf" onclick="confirmar('${esc(d.id)}', this)">
               <i class="fas fa-check"></i> Confirmar recebimento
             </button>
-            <button class="btn btn-rec" onclick="recusar('${d.id}', this)">
+            <button class="btn btn-rec" onclick="recusar('${esc(d.id)}', this)">
               <i class="fas fa-xmark"></i> Recusar comprovante
             </button>
           </div>
