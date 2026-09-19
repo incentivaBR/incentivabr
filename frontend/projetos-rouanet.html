@@ -55,7 +55,7 @@
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Projetos Disponíveis — IncentivaBR</title>
-  <meta name="description" content="Conheça o projeto e destine até 6% do seu IR para música e cultura popular. Aprovado pelo Ministério da Cultura. Zero custo para você.">
+  <meta name="description" content="Conheça o projeto apoiado por esta instituição e destine até 6% do seu IR para a cultura. Aprovado pelo Ministério da Cultura, 100% dedutível.">
   <link rel="icon" type="image/png" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,12 +80,12 @@
 
   <!-- ── HERO ─────────────────────────────────────────────────── -->
   <section class="relative min-h-[70vh] flex flex-col items-center justify-center overflow-hidden bg-[#0F1E3D]">
+    <!-- Aqui havia a foto do projeto do piloto. Não há campo de imagem no
+         cadastro do projeto; até haver, o fundo é a paleta, não a foto de um
+         projeto que pode não ser o deste site. -->
     <div class="absolute inset-0">
-      <img src="assets/orquestra-hero.webp"
-           alt="Orquestra das Periferias do DF — casais dançando com palco iluminado ao fundo"
-           class="w-full h-full object-cover object-center">
-      <div class="absolute inset-0 bg-[#0F1E3D]/75"></div>
-      <div class="absolute inset-0 bg-gradient-to-b from-[#0F1E3D]/60 via-transparent to-[#0F1E3D]"></div>
+      <div class="absolute inset-0 bg-gradient-to-br from-[#0F1E3D] via-[#132247] to-[#0F1E3D]"></div>
+      <div class="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-[var(--secondary-10)] blur-[120px]"></div>
     </div>
 
     <div class="relative z-10 max-w-3xl mx-auto px-6 text-center pt-12 pb-24">
@@ -108,12 +108,12 @@
         <span class="text-[var(--secondary-solid)] font-semibold text-sm">PRONAC <span data-projeto="pronac">—</span> · Aprovado pelo MinC</span>
       </div>
 
-      <h1 class="text-5xl sm:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5">
-        Orquestra das <span class="text-[var(--secondary-solid)]">Periferias do DF</span>
+      <h1 class="text-4xl sm:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5" data-projeto="titulo">
+        O projeto apoiado
       </h1>
 
       <p class="text-xl text-white/70 leading-relaxed mb-6">
-        Cultura popular brasileira. Música ao vivo. Tradição viva.<br>
+        <span data-projeto="area">Cultura</span> · <span data-projeto="uf">Brasil</span><br>
         Custo para você: <strong class="text-white">zero.</strong>
       </p>
 
@@ -157,7 +157,7 @@
 
       <div class="text-center mb-14">
         <h2 class="text-3xl sm:text-4xl font-extrabold text-[#0F1E3D] tracking-tight mb-3">
-          Por que o <span class="text-[var(--secondary-solid)]">Orquestra das Periferias do DF?</span>
+          Por que <span class="text-[var(--secondary-solid)]" data-projeto="titulo">este projeto</span>?
         </h2>
         <p class="text-gray-500 text-lg max-w-xl mx-auto">
           Seu IR pode financiar algo concreto e verificável. Aqui está a história.
@@ -173,9 +173,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-[#0F1E3D] mb-3">Quem são</h3>
+          <h3 class="text-xl font-bold text-[#0F1E3D] mb-3">Quem propõe</h3>
           <p class="text-gray-500 leading-relaxed text-sm">
-            Assoc. Cultural Orquestra das Periferias do DF, associação cultural sem fins lucrativos que forma jovens músicos nas periferias de Brasília. Com ensaios semanais e concertos públicos, transforma vidas pelo poder da música.
+            <span data-projeto="proponente">O proponente cadastrado no SALIC</span> — é ele quem recebe o valor na Conta de Captação e emite o Recibo de Mecenato.
           </p>
         </div>
 
@@ -187,8 +187,8 @@
             </svg>
           </div>
           <h3 class="text-xl font-bold text-[#0F1E3D] mb-3">O que fazem</h3>
-          <p class="text-gray-500 leading-relaxed text-sm">
-            Reúnem jovens de 14 a 24 anos de Ceilândia, Samambaia e Santa Maria para formação orquestral completa — instrumento, ensaio semanal e concertos públicos gratuitos.
+          <p class="text-gray-500 leading-relaxed text-sm" data-projeto="descricao">
+            A descrição do projeto vem do cadastro da instituição e, fora da simulação, do resumo oficial no SALIC.
           </p>
         </div>
 
@@ -202,7 +202,7 @@
           </div>
           <h3 class="text-xl font-bold text-[#0F1E3D] mb-3">Por que agora</h3>
           <p class="text-gray-500 leading-relaxed text-sm">
-            O projeto está em captação para o exercício fiscal 2026. Toda destinação feita agora aparece deduzida na sua declaração de IR — sem custo adicional algum.
+            Toda destinação feita até 31 de dezembro entra na declaração do ano seguinte — sem custo adicional algum. Depois disso, só no próximo exercício.
           </p>
         </div>
 
@@ -225,18 +225,6 @@
         </div>
       </div>
 
-    </div>
-  </section>
-
-  <!-- ── IMAGEM DESTAQUE ──────────────────────────────────────── -->
-  <section class="bg-white py-12 sm:py-16">
-    <div class="fade-up max-w-5xl mx-auto px-6">
-      <div class="rounded-2xl overflow-hidden shadow-xl border border-gray-100">
-        <img src="assets/orquestra-hero.webp"
-             alt="Orquestra das Periferias do DF — jovens músicos de Ceilândia, Samambaia e Santa Maria em concerto"
-             loading="lazy"
-             class="w-full block">
-      </div>
     </div>
   </section>
 

@@ -2,6 +2,16 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O projeto do piloto sai das páginas públicas (Raio-X, risco 11)
+- "Orquestra das Periferias do DF" — o projeto fictício do piloto de maio — estava escrito à mão em cinco páginas públicas (`calculadora`, `como-funciona`, `faq`, `passo-a-passo`, `projetos-rouanet`) e no assistente de destinação. O PRONAC já vinha do cadastro; a narrativa, não: **no site da Casa Azul, `como-funciona.html` pedia apoio a um projeto que não era dela.**
+- `tenant.js` passa a preencher `data-projeto="descricao"` (do cadastro; fora da simulação, o resumo ou os objetivos que o SALIC devolve) e `data-projeto="proponente"`, além de `titulo`, `pronac`, `area`, `segmento` e `uf`. O texto de reserva das marcações é neutro de propósito — reserva com nome de projeto é o mesmo defeito com outra roupa, e o teste recusa.
+- `projetos-rouanet.html` vira uma página de projeto: título, área, UF, proponente e descrição vêm do tenant. Os cartões "Quem são / O que fazem" com a história do piloto deram lugar a "Quem propõe" (razão social, quem emite o Recibo) e à descrição cadastrada.
+- As três fotos do projeto do piloto saíram (`assets/orquestra-*`). Não há campo de imagem no cadastro; até haver, o fundo é a paleta — a foto de um projeto no site de outro é o mesmo erro em imagem.
+- A tela de clientes ganha "O que o projeto faz" (`org_projects.descricao`, coluna que já existia e nenhuma tela preenchia).
+- No assistente, o mapa `segDesc` — texto do piloto, com "no Distrito Federal", aplicado a qualquer projeto orquestral — deu lugar à descrição do projeto.
+- Do risco 11 como o Raio-X o listou, três itens já não existiam (barras duplas, Tailwind inline, CSS órfão) e dois são desenho (aviso legal copiado para valer sem JavaScript; 13 páginas sem barra são redirecionamentos e telas de e-mail). Sobram, para depois: E2E morto e seis formatadores de moeda.
+- `backend/tests/projeto-do-tenant.test.mjs`.
+
 ### O CI passa a testar contra um Postgres de verdade
 - A suíte roda em pg-mem, sem infraestrutura, e isso continua. Mas o pg-mem é tolerante onde o Postgres não é: em setembro um `WHERE email = $2` recebendo `[null, email]` passou verde e derrubou todo cadastro sem CPF em produção. Guardas de texto foram escritas depois — remendo. O único juiz do que o Postgres aceita é o Postgres.
 - Job novo **"Postgres de verdade"** em `ci.yml`: sobe `postgres:16`, apaga o schema, aplica `schema.sql`, `seeds.sql`, a 003 legada e **todas** as migrations num banco vazio, confere que nada fica pendente e que o segundo boot não reaplica nada, e exercita cadastro sem CPF, e-mail repetido (409, não 500), CPF em uso e login contra o banco real. `backend/tests/postgres-real.test.mjs`, `npm run test:postgres`.

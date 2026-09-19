@@ -199,6 +199,11 @@
               <label for="pUf">UF</label>
               <input id="pUf" maxlength="2" placeholder="DF">
             </div>
+            <div style="grid-column:1 / -1">
+              <label for="pDescricao">O que o projeto faz</label>
+              <textarea id="pDescricao" rows="4" maxlength="1200" placeholder="Um ou dois parágrafos, como o proponente descreveria para o público."></textarea>
+              <p class="dica">Aparece na página do projeto e em "Como funciona". Em branco, a página mostra um texto neutro; fora da simulação, o resumo do SALIC entra no lugar.</p>
+            </div>
           </div>
           <div class="linha-acoes">
             <button class="btn" type="submit">Vincular projeto</button>
@@ -395,6 +400,7 @@
             titulo: el('pTitulo').value.trim(),
             proponente_nome: el('pProponente').value.trim() || null,
             uf: el('pUf').value.trim().toUpperCase() || null,
+            descricao: el('pDescricao').value.trim() || null,
             is_featured: true
           })
         });
