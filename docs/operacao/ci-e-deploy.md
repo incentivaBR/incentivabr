@@ -94,3 +94,20 @@ cd backend && DATABASE_URL=postgresql://incentivabr:incentivabr123@localhost:543
 
 Quando um teste novo tocar SQL que o pg-mem não executa (subconsulta
 correlacionada, `FILTER`, lock consultivo), o lugar dele é este arquivo.
+
+## A TINA responde? (manual)
+
+`/diagnostico` diz se a chave da Anthropic existe e se a última chamada
+falhou; o monitor de uptime alarma quando `assistente` vier com erro. Não diz
+se a assistente responde algo que preste. O workflow **"TINA responde"**
+(`.github/workflows/tina.yml`) faz uma pergunta real à TINA em produção e
+confere status 200, texto de resposta e o aviso de que a plataforma não
+substitui contador ou advogado. A resposta sai no log, para ler.
+
+É manual (aba Actions → TINA responde → Run workflow), porque cada execução
+gasta uma chamada ao modelo. Rode depois de mexer no prompt, na base de
+conhecimento (`scripts/sync-nucleo-tina.mjs`) ou na chave.
+
+A base de conhecimento é um retrato de seis páginas do site. Mexeu numa
+página-fonte, rode o script: `backend/tests/nucleo-em-dia.test.mjs` falha no
+CI se o arquivo não for o que o script geraria.

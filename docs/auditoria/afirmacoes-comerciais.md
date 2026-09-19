@@ -11,6 +11,7 @@ número de piloto só entra com a planilha de onde saiu.**
 
 | Afirmação | Onde aparecia | O que o código mostra | Providência |
 |---|---|---|---|
+| "73% nunca receberam orientação do seu contador — Piloto IncentivaBR, 2026" | `espaco-contador.html`, cartão de abertura | Nenhuma planilha do piloto no repositório (`docs/piloto-fgv/resultados.md` não existe). A página alimenta a TINA, que repetiria o número | Saiu em set/2026; `separacao-white-label.test.mjs` passa a olhar esta página também. Volta com a planilha |
 | "OAuth Gov.br ativo" / "Gov.br e SALIC já ativos" | pitch FGV, roteiro ASJDF | Só as colunas `govbr_*` em `organizations`. **Nenhuma linha de código** troca dado com o gov.br. Login é e-mail e senha | Roteiro corrigido: Gov.br é roadmap |
 | "Microsserviços — se um cair os outros continuam" | pitch, roteiro | **Um processo** Node.js serve API e frontend (`backend/server.js`). Módulos, não serviços | Roteiro corrigido; e é vantagem, não vergonha: menos peças |
 | "Trilha de auditoria imutável, append-only, SHA-256 por evento" | pitch, roteiro, `SPEC_FLUXO_DESTINACAO.md` R6 | `audit_log` é tabela comum: sem trigger, sem regra, sem hash por evento. Quem tem acesso ao banco altera | Roteiro corrigido. O que protege é acesso restrito + backup diário |

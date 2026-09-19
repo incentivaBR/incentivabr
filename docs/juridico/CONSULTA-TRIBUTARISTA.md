@@ -174,6 +174,24 @@ automática só será ligada com a resposta a esta pergunta.
 
 ---
 
+## 10. Ficha e código da DIRPF para a dedução da Rouanet (art. 18)
+
+O site diz duas coisas diferentes, e a TINA lê as duas. O guia do servidor
+(`guia-ir-servidor.html`) manda lançar em **"Doações Efetuadas", código 41**.
+A tabela do Espaço do Contador diz **"Deduções → Incentivos Fiscais →
+PRONAC/Cultura"** e dá o **código 41 ao Fundo do Idoso** e o 40 ao FDCA.
+
+Em qual ficha e com qual código o servidor lança a destinação à Rouanet no
+programa da DIRPF vigente? E os demais mecanismos (Esporte, FDCA, FDI, PRONON,
+PRONAS, Recicla+)? Pedimos a referência no manual do programa ou no Perguntas
+e Respostas da Receita do ano.
+
+Enquanto não houver resposta, a versão do Espaço do Contador fica fora da base
+da TINA, e os códigos seguem marcados no site como "não confirmados em fonte
+primária" (`lib/textosFiscais.js`).
+
+---
+
 ## Como pretendemos usar o parecer
 
 1. **No código.** Os tetos vivem em tabela (`tetos_deducao`), não em constante —

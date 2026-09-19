@@ -457,12 +457,18 @@ app.get('/diagnostico', async (req, res) => {
   // O detalhe continua existindo, e continua acessível durante uma queda
   // (não depende do banco nem de login, que é justamente quando falta). Só
   // que agora pede o DIAG_TOKEN.
+  // Uma assistente morta é indistinguível de uma ociosa até alguém reclamar.
+  // O status entra no resumo público, para o monitor de uptime alarmar: sem
+  // chave a TINA responde 503 a todo mundo, e a última falha de rede ou de
+  // crédito fica registrada pela rota do chat.
+  diagnostico.services.assistente = {
+    status: (!process.env.ANTHROPIC_API_KEY || ultimaFalhaDaIA()) ? 'error' : 'ok'
+  };
+
   if (temAcessoAoDetalhe(req)) {
     // Só aqui: é chamada de rede, e a resposta diz respeito à segurança da conta.
     diagnostico.services.email.chave = await escopoDaChaveResend();
-    // Uma assistente morta é indistinguível de uma ociosa até alguém reclamar.
-    diagnostico.services.assistente = {
-      status: ultimaFalhaDaIA() ? 'error' : 'ok',
+    Object.assign(diagnostico.services.assistente, {
       chave: process.env.ANTHROPIC_API_KEY ? 'configurada' : 'ausente',
       ultima_falha: ultimaFalhaDaIA(),
       // A chave é uma só, da IncentivaBR: toda pergunta em qualquer white label
@@ -470,7 +476,7 @@ app.get('/diagnostico', async (req, res) => {
       // responder "quanto me custa este cliente?" — que é a pergunta que decide
       // se o custo cabe no setup ou vira linha na proposta.
       consumo: consumoDeHoje()
-    };
+    });
     // Sem isto, um login que nao funciona e indistinguivel de senha errada,
     // conta inexistente, variavel nao lida e promocao que falhou — quatro
     // causas com quatro consertos diferentes.
