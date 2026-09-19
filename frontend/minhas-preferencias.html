@@ -45,6 +45,8 @@
     #conteudo { display:none; }
     @media (max-width:640px){ .card{padding:22px} h1{font-size:22px} .btn{width:100%} }
   </style>
+  <!-- O Encarregado é o do controlador: no site de um cliente, o dele. -->
+  <script src="js/tenant.js"></script>
 </head>
 <body>
 
@@ -105,8 +107,10 @@
         <p class="nota">
           Direitos garantidos pelo art. 18 da LGPD: confirmação do tratamento, acesso,
           correção, portabilidade em formato aberto e eliminação. Dúvidas ou pedidos
-          pelo Encarregado de Proteção de Dados:
-          <a href="mailto:privacidade@incentivabr.com.br">privacidade@incentivabr.com.br</a>.
+          pelo Encarregado de Proteção de Dados de
+          <span data-privacidade="controlador">esta instituição</span>:
+          <a data-privacidade="encarregado_email" data-privacidade-href="mailto:"
+             href="mailto:privacidade@incentivabr.com.br">privacidade@incentivabr.com.br</a>.
         </p>
       </div>
     </div>

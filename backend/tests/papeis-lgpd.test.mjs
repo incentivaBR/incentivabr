@@ -189,6 +189,41 @@ teste('a versao da Politica no HTML e a mesma de config/lgpd.js', () => {
   }
 });
 
+teste('nenhuma pagina escreve o e-mail do Encarregado da plataforma a mao', () => {
+  // O e-mail da IncentivaBR pode aparecer como reserva, mas so dentro de
+  // [data-privacidade="encarregado_email"], que o tenant.js troca pelo do
+  // controlador. Escrito solto, o interessado de um cliente escreveria para
+  // o Encarregado errado. Foi assim em minhas-preferencias e cadastro-avisos
+  // ate set/2026.
+  const culpadas = [];
+  for (const nome of fs.readdirSync(FRONTEND).filter(f => f.endsWith('.html'))) {
+    const html = leia(nome);
+    if (!html.includes(ENCARREGADO.email)) continue;
+    const ocorrencias = html.split(ENCARREGADO.email).length - 1;
+    const embrulhadas = (html.match(/<a[^>]*data-privacidade="encarregado_email"[^>]*>[^<]*<\/a>/g) || [])
+      .filter(a => a.includes(ENCARREGADO.email)).length;
+    // Cada <a data-privacidade> traz o e-mail duas vezes: no href e no texto.
+    if (ocorrencias !== embrulhadas * 2) culpadas.push(`${nome} (${ocorrencias} ocorrencias, ${embrulhadas} embrulhadas)`);
+    if (!html.includes('src="js/tenant.js"')) culpadas.push(`${nome} nao carrega tenant.js`);
+  }
+  if (culpadas.length) throw new Error(culpadas.join('; '));
+});
+
+teste('o texto do consentimento nomeia o controlador pelo tenant, nao a mao', () => {
+  // O texto e enviado como esta e guardado como prova (art. 8 par. 2). Dizia
+  // "autorizo o IncentivaBR" no site de qualquer cliente — a prova nomeava o
+  // operador, nao o controlador.
+  const html = leia('cadastro-avisos.html');
+  const ini = html.indexOf('id="textoConsentimento"');
+  const consentimento = html.slice(ini, html.indexOf('</div>', ini));
+  if (!consentimento.includes('data-privacidade="controlador"')) {
+    throw new Error('o consentimento nao usa [data-privacidade="controlador"]');
+  }
+  if (!todasDentroDe(consentimento, ['data-privacidade'], 'IncentivaBR')) {
+    throw new Error('o consentimento escreve IncentivaBR fora de [data-privacidade]');
+  }
+});
+
 console.log('\n' + '='.repeat(64));
 ok.forEach(n => console.log('  ok    ' + n));
 falhas.forEach(([n, m]) => console.log('  FALHA ' + n + '\n          ' + m));

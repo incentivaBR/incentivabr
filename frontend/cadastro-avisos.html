@@ -55,6 +55,8 @@
     .direitos a { color: var(--primary-color); }
     @media (max-width: 640px) { .card { padding: 24px; } h1 { font-size: 23px; } }
   </style>
+  <!-- O Encarregado é o do controlador: no site de um cliente, o dele. -->
+  <script src="js/tenant.js"></script>
 </head>
 <body>
 
@@ -121,7 +123,8 @@
           viver num só lugar.
         -->
         <div class="consentimento" id="textoConsentimento">
-          Concordo em receber as comunicações que marquei acima e autorizo o IncentivaBR
+          Concordo em receber as comunicações que marquei acima e autorizo
+          <span data-privacidade="controlador">o IncentivaBR</span>
           a tratar meu e-mail (e os demais dados que eu tiver informado) apenas para
           esse fim, conforme a
           <a href="politica-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.
@@ -135,8 +138,10 @@
         Não pedimos CPF nem senha: para avisar você sobre um prazo, o e-mail basta.
         A qualquer momento você pode consultar, corrigir, exportar ou eliminar seus
         dados — o link para isso vai em toda mensagem que enviamos.
-        Encarregado de Proteção de Dados:
-        <a href="mailto:privacidade@incentivabr.com.br">privacidade@incentivabr.com.br</a>.
+        Encarregado de Proteção de Dados de
+        <span data-privacidade="controlador">esta instituição</span>:
+        <a data-privacidade="encarregado_email" data-privacidade-href="mailto:"
+           href="mailto:privacidade@incentivabr.com.br">privacidade@incentivabr.com.br</a>.
       </p>
     </div>
   </div>
