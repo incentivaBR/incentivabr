@@ -32,3 +32,35 @@ falhou e qual caso. Todos os testes rodam em qualquer máquina com
 `cd backend && npm ci && npm test`; reproduza antes de corrigir.
 
 "Flake" não é diagnóstico: a suíte não usa rede nem relógio. Se falhou, é código.
+
+## Postgres de verdade no CI
+
+A suíte (`npm test`) roda em pg-mem, sem infraestrutura — e isso é bom. Mas o
+pg-mem é tolerante onde o Postgres não é: em setembro de 2026 um `WHERE email
+= $2` recebendo `[null, email]` passou verde no pg-mem e derrubou todo
+cadastro sem CPF em produção. Guardas de texto foram escritas; o único juiz
+do que o Postgres aceita, porém, é o Postgres.
+
+O job **"Postgres de verdade"** (`.github/workflows/ci.yml`) sobe um
+`postgres:16` e roda `tests/postgres-real.test.mjs`, que:
+
+1. apaga o schema e aplica `schema.sql`, `seeds.sql`, a 003 legada e **todas**
+   as migrations num banco vazio;
+2. confere que nada fica pendente e que o segundo boot não reaplica nada;
+3. exercita o cadastro sem CPF, o e-mail repetido (409, não 500), o CPF em uso
+   e o login contra o banco real.
+
+Ele **não** entra no `npm test`: sem `DATABASE_URL` é pulado. E só aceita
+banco cujo nome termine em `_teste` ou `_test`, porque apaga o schema antes de
+começar — apontar para produção por engano não pode custar o banco.
+
+### Rodar localmente
+
+```bash
+docker compose up -d db
+docker compose exec db createdb -U incentivabr incentivabr_teste   # uma vez
+cd backend && DATABASE_URL=postgresql://incentivabr:incentivabr123@localhost:5432/incentivabr_teste npm run test:postgres
+```
+
+Quando um teste novo tocar SQL que o pg-mem não executa (subconsulta
+correlacionada, `FILTER`, lock consultivo), o lugar dele é este arquivo.

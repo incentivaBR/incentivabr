@@ -46,6 +46,49 @@ jobs:
         env:
           NODE_ENV: test
 
+  # A suíte em pg-mem é tolerante onde o Postgres não é, e isso já derrubou o
+  # cadastro em produção com o CI verde. Este job sobe um Postgres 16 real,
+  # roda schema + seeds + todas as migrations num banco vazio, confere que o
+  # segundo boot não reaplica nada, e exercita o cadastro e o login contra o
+  # banco de verdade. Só o Postgres decide o que o Postgres aceita.
+  postgres:
+    name: Postgres de verdade
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          # O teste apaga o schema antes de começar e só aceita banco cujo
+          # nome termine em _teste ou _test.
+          POSTGRES_DB: incentivabr_teste
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run test:postgres
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/incentivabr_teste
+
   # Abre cada página num Chromium contra o servidor local com a CSP ligada.
   # Falha se a política bloquear alguma coisa ou se Tailwind, Font Awesome ou
   # Montserrat não carregarem. É o que impede uma CSP apertada demais (ou um

@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O CI passa a testar contra um Postgres de verdade
+- A suíte roda em pg-mem, sem infraestrutura, e isso continua. Mas o pg-mem é tolerante onde o Postgres não é: em setembro um `WHERE email = $2` recebendo `[null, email]` passou verde e derrubou todo cadastro sem CPF em produção. Guardas de texto foram escritas depois — remendo. O único juiz do que o Postgres aceita é o Postgres.
+- Job novo **"Postgres de verdade"** em `ci.yml`: sobe `postgres:16`, apaga o schema, aplica `schema.sql`, `seeds.sql`, a 003 legada e **todas** as migrations num banco vazio, confere que nada fica pendente e que o segundo boot não reaplica nada, e exercita cadastro sem CPF, e-mail repetido (409, não 500), CPF em uso e login contra o banco real. `backend/tests/postgres-real.test.mjs`, `npm run test:postgres`.
+- Fora do `npm test`: sem `DATABASE_URL` é pulado com saída 0. E só aceita banco cujo nome termine em `_teste` ou `_test`, porque apaga o schema — apontar para produção por engano não pode custar o banco (recusa com saída 2, conferido).
+- Conferido num Postgres 16.13 real: 9 de 9. Reintroduzido o defeito de setembro, 4 vermelhos com o mesmo "Erro interno ao registrar." de produção; restaurado, 9 verdes.
+- `docs/operacao/ci-e-deploy.md` explica como rodar localmente com `docker compose`.
+
 ### Material comercial: só o que o código sustenta (Raio-X, risco 12)
 - `docs/auditoria/afirmacoes-comerciais.md` confere cada afirmação de pitch, roteiro e página inicial contra o repositório. Sete eram falsas: "OAuth Gov.br ativo" (não há uma linha de código), "microsserviços" (um processo), "trilha imutável / append-only / SHA-256 por evento" (`audit_log` é tabela comum), "AES em repouso" (não há), "URL assinada com TTL" (é rota autenticada — mais restritivo), "segregação de PII" (mesma tabela), "laudo com assinatura digital" (o PDF é registro de operação; o documento fiscal é o Recibo de Mecenato).
 - **Os números do piloto saíram da home** (NPS +64, 88% concluíram, 84% não sabiam) e os três depoimentos também. Não existe no repositório a planilha de onde teriam saído; um deles era a opção de múltipla escolha de um questionário — caixa marcada não é frase dita. Numa plataforma que fala de imposto, número que não se confere é passivo. Um teste impede que voltem sem `docs/piloto-fgv/resultados.md`.
