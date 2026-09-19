@@ -136,12 +136,52 @@ destinar e não abater nada.
 
 ---
 
+## 9. Prazo de guarda do registro fiscal da destinação (de que data conta?)
+
+Esta pergunta não é sobre limite de dedução; é sobre **retenção de dados**, e
+trava uma rotina de proteção de dados que já está escrita e desligada.
+
+**O que a plataforma guarda de cada destinação confirmada:** nome, CPF e valor
+do servidor, o comprovante da transferência que ele enviou, e a cópia do Recibo
+de Mecenato que o proponente emitiu. É o que o servidor precisa se for
+questionado na declaração, e o que o proponente precisa na prestação de contas.
+
+**O que a Política de Privacidade promete (seção 7):** guardar esses documentos
+por **5 anos, "conforme legislação tributária"**, e anonimizar depois. Quando o
+servidor pede a eliminação da conta (LGPD, art. 18, VI), e-mail, telefone e
+senha somem na hora; nome, CPF, valor, comprovante e recibo ficam "até o fim do
+prazo", e a tela diz até que ano.
+
+**O que precisamos saber:**
+
+1. **De que data conta o prazo?** Do ano-base da destinação, da entrega da
+   declaração, ou do primeiro dia do exercício seguinte ao da declaração? Se a
+   referência for o prazo decadencial do CTN (art. 173), qual é o termo inicial
+   no caso concreto de uma dedução na DIRPF?
+2. **O prazo se aplica à plataforma?** A obrigação de guardar o comprovante é do
+   contribuinte e a do recibo é do proponente. A IncentivaBR não é parte da
+   relação fiscal. Há base para a plataforma **reter** nome e CPF de quem pediu
+   eliminação, ou a retenção deveria ficar só com o proponente, cabendo à
+   plataforma apagar tudo? (Hoje retemos, pela leitura mais protetiva do
+   servidor; se a resposta for "não há base", mudamos.)
+3. **Anonimizar basta ao fim do prazo**, ou o registro deve ser apagado?
+
+**O que o código faz hoje, à espera da resposta:** o fim da guarda é calculado
+como ano-base + 1 + 5 (`backend/src/config/lgpd.js`, `anoFinalDaGuarda`) — a
+contagem mais conservadora, a partir do ano da declaração. **Nada é apagado por
+prazo**: uma rota do superadmin lista o que já venceu, e a anonimização
+automática só será ligada com a resposta a esta pergunta.
+
+---
+
 ## Como pretendemos usar o parecer
 
 1. **No código.** Os tetos vivem em tabela (`tetos_deducao`), não em constante —
    a resposta vira um `UPDATE`, com a base legal registrada no próprio registro.
 2. **Na página do contador.** Publicamos a base legal citada, para ele conferir.
 3. **Na defesa do servidor.** Se algum for questionado, é o parecer que responde.
+4. **Na retenção.** A resposta à pergunta 9 vira a regra de `config/lgpd.js`
+   e liga a anonimização automática do que venceu o prazo.
 
 Por isso pedimos a **citação do dispositivo** em cada resposta, e não apenas a
 conclusão.
