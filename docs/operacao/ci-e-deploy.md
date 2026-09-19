@@ -46,6 +46,12 @@ banco) e `scripts/e2e.mjs` percorre os fluxos do
 Localmente: `cd backend && npm run e2e` (precisa de `npm i --no-save
 playwright && npx playwright install chromium`).
 
+Sem rede, `SEM_CDN=1` bloqueia os CDNs e dá ao Tailwind um dublê com as
+classes de display. O dublê existe porque o primeiro vermelho do E2E no
+GitHub só acontecia lá: com o Tailwind de verdade, `.flex` vence `[hidden]`
+e o cartão que vende o white-label aparecia no site do cliente. O CI não
+define `SEM_CDN` — lá o Tailwind é o real, e é essa a rodada que vale.
+
 A pasta `tests/` antiga (API + E2E de 2025, escritos para o DestineAI, o
 Circuito do Forró e páginas que já não existem) saiu: o CI nunca a executou.
 

@@ -113,6 +113,18 @@ await teste('o cartao que vende o white-label so aparece na IncentivaBR', () => 
   }
 });
 
+await teste('tenant.js esconde por display em linha, nao so pelo atributo hidden', () => {
+  // O cartao acima tem classe `flex`. Com o Tailwind carregado, `.flex`
+  // vence `[hidden]` (mesma especificidade, vem depois) e o cartao aparece
+  // no site do cliente — o E2E do CI pegou isso em set/2026, e so la, porque
+  // localmente o CDN nao responde. `el.style.display = 'none'` vence tudo.
+  const tenant = fs.readFileSync(path.join(FRONTEND, 'js/tenant.js'), 'utf8');
+  const trecho = tenant.slice(tenant.indexOf('[data-so-cliente]'), tenant.indexOf('[data-tenant]'));
+  if (!trecho || !/style\.display\s*=/.test(trecho)) {
+    throw new Error('o bloco que liga [data-so-cliente]/[data-so-plataforma] nao mexe em style.display');
+  }
+});
+
 await teste('numeros e depoimentos do piloto nao voltam para a home sem fonte', () => {
   // Sairam em setembro de 2026: nao existe no repositorio a planilha de onde
   // teriam saido (docs/auditoria/afirmacoes-comerciais.md). Voltam quando

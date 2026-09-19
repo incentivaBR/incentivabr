@@ -19,8 +19,9 @@
  *
  * Precisa do pacote `playwright` (npm i --no-save playwright && npx playwright
  * install chromium), ou de PW_MODULE apontando para um playwright-core. Com
- * SEM_CDN=1, os CDNs são bloqueados e "tailwind is not defined" deixa de
- * contar como erro de página.
+ * SEM_CDN=1, os CDNs são bloqueados, o Tailwind vira um dublê com as classes
+ * de display (ver TAILWIND_DUBLE) e "tailwind is not defined" deixa de
+ * contar como erro de página. No CI o Tailwind é o de verdade.
  */
 import { spawn } from 'child_process';
 import path from 'path';
@@ -30,6 +31,13 @@ const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const SEM_CDN = process.env.SEM_CDN === '1';
 const CDNS = ['cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const SENHA = 'senha-bem-comprida';   // a do fixture
+// O que o Tailwind de verdade faz e importa aqui: as classes de display têm
+// a mesma especificidade de `[hidden]` e vêm depois, logo vencem.
+const TAILWIND_DUBLE = `window.tailwind = window.tailwind || {};
+(function(){var s=document.createElement('style');s.textContent=
+'[hidden]{display:none}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}'+
+'.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}';
+document.head.appendChild(s);})();`;
 
 const { chromium } = await import(process.env.PW_MODULE || 'playwright');
 
@@ -58,7 +66,15 @@ const teste = async (nome, fn) => {
   const erros = [];
   const pg = await ctx.newPage();
   pg.on('pageerror', e => erros.push(e.message));
-  if (SEM_CDN) for (const cdn of CDNS) await pg.route(`**://${cdn}/**`, r => r.abort());
+  if (SEM_CDN) {
+    for (const cdn of CDNS) await pg.route(`**://${cdn}/**`, r => r.abort());
+    // Sem rede, o Tailwind vira um dublê com o que interage com a página: as
+    // classes de display. É a regra `.flex{display:flex}` do Tailwind de
+    // verdade que vence o atributo `hidden` e mostrou o cartão "Associação /
+    // ONG" no site do cliente — só no CI, onde o CDN responde. Sem o dublê o
+    // teste passa aqui e falha lá.
+    await pg.route('**://cdn.tailwindcss.com/**', r => r.fulfill({ contentType: 'application/javascript', body: TAILWIND_DUBLE }));
+  }
   try {
     await fn(pg, ctx);
     const graves = erros.filter(m => !(SEM_CDN && /tailwind is not defined/.test(m)));
