@@ -1,0 +1,57 @@
+# A TINA responde de verdade em produção?
+#
+# O /diagnostico diz se a chave existe e se a última chamada falhou; não diz
+# se a assistente responde algo que preste. Este workflow faz UMA pergunta à
+# TINA no site e confere: status 200, texto de resposta, e o aviso de que a
+# plataforma não substitui contador ou advogado. Cada execução gasta uma
+# chamada ao modelo — por isso é manual (workflow_dispatch), não agendado.
+#
+# Rode pela aba Actions depois de mexer no prompt, na base de conhecimento ou
+# na chave. O texto da resposta sai no log, para ler.
+name: TINA responde
+
+on:
+  workflow_dispatch:
+    inputs:
+      pergunta:
+        description: 'Pergunta a fazer à TINA'
+        required: false
+        default: 'Quem pode destinar parte do imposto de renda pela Lei Rouanet?'
+
+permissions:
+  contents: read
+
+jobs:
+  pergunta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      URL: https://www.incentivabr.com.br
+      PERGUNTA: ${{ inputs.pergunta || 'Quem pode destinar parte do imposto de renda pela Lei Rouanet?' }}
+    steps:
+      - name: A TINA responde, e responde com o aviso
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, urllib.request
+          url = os.environ['URL'] + '/api/chat/tina'
+          corpo = json.dumps({'message': os.environ['PERGUNTA'], 'history': []}).encode()
+          req = urllib.request.Request(url, data=corpo, headers={'Content-Type': 'application/json'}, method='POST')
+          try:
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  status, texto = r.status, r.read().decode()
+          except urllib.error.HTTPError as e:
+              status, texto = e.code, e.read().decode()
+          print('status:', status)
+          print(texto[:2000])
+          if status != 200:
+              print(f'::error::a TINA respondeu {status}'); sys.exit(1)
+          d = json.loads(texto)
+          resposta = d.get('reply') or ''
+          if len(resposta) < 40:
+              print('::error::resposta curta demais ou vazia'); sys.exit(1)
+          baixo = resposta.lower()
+          if 'contador' not in baixo and 'advogado' not in baixo:
+              print('::error::a resposta nao traz o aviso de que a plataforma nao substitui contador ou advogado')
+              sys.exit(1)
+          print('ok: a TINA respondeu com', len(resposta), 'caracteres e com o aviso')
+          PY

@@ -80,6 +80,12 @@ for (const p of paginas) {
     const u = r.url();
     if (u.startsWith(BASE + '/api')) return;
     if (SEM_CDN && ehCdn(u)) { cdnForaDoAr.push(u.slice(0, 60)); return; }
+    // ERR_ABORTED é a própria página cancelando o pedido — o painel sem sessão
+    // redireciona para o login enquanto tina.js ainda carrega. Num runner
+    // lento isso aparecia como "falha" num run e não no outro, do mesmo
+    // commit. Bloqueio de CSP não vem por aqui: vem pelo console ("Refused
+    // to") e pelo relatório de violação, conferidos abaixo.
+    if (r.failure()?.errorText === 'net::ERR_ABORTED') return;
     falhas.push(`${u.slice(0, 90)} :: ${r.failure()?.errorText}`);
   });
   const consoleCsp = [];

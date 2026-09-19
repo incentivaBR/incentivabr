@@ -493,24 +493,24 @@ O excedente não é deduzível — você perderá o benefício fiscal sobre o va
 É seguro?
 Sim. Os projetos são aprovados pelo MinC e listados no SALIC (sistema oficial do governo federal). A Conta de Captação de cada projeto é aberta pelo Ministério da Cultura no Banco do Brasil e fica bloqueada até a liberação.
 ### O projeto fala com você
-O Orquestra das Periferias do DF é cultura popular que ressoa em cada área do serviço público.
+O projeto apoiado é cultura que ressoa em cada área do serviço público.
 #### Justiça e Judiciário
-O Orquestra das Periferias do DF leva cultura popular brasileira a praças, teatros e centros culturais. Você pode fazer isso acontecer.
+Cultura leva arte a praças, teatros e centros culturais — e o acesso a ela é um direito que a Justiça garante. Você pode fazer isso acontecer.
 #### Educação
-O Orquestra das Periferias do DF preserva e difunde a cultura popular brasileira — amplia o que você faz na sala de aula.
+Um projeto cultural preserva e difunde o que você ensina — amplia o que acontece na sala de aula.
 🛡️
 #### Segurança Pública
-Cultura fortalece comunidades. O Orquestra das Periferias do DF leva arte e identidade cultural a quem mais precisa.
+Cultura fortalece comunidades: leva arte e identidade a quem mais precisa, onde a presença do Estado é mais rara.
 #### Saúde
-Arte e música têm impacto comprovado na saúde mental. O Orquestra das Periferias do DF é saúde pública pela via cultural.
+Arte e música têm impacto na saúde mental. Apoiar cultura é saúde pública pela via cultural.
 #### Fazenda e Finanças
 É o mesmo imposto que você já pagaria ao governo — só redirecionado. Você sabe disso melhor do que ninguém.
 #### Cultura e Artes
-Apoiar o Orquestra das Periferias do DF fortalece o ecossistema cultural brasileiro e abre portas para o próximo grande nome da música popular.
+Apoiar um projeto aprovado fortalece o ecossistema cultural brasileiro e abre portas para quem ainda não teve a primeira chance.
 ### Pronto para destinar?
 Comece pelo MeuLimite — descubra exatamente quanto pode direcionar.
 Calcular meu limite
-Ver o Orquestra das Periferias do DF
+Ver o projeto apoiado
 Guia do Servidor →
 IncentivaBR programa de computador registrado no INPI sob o n BR512025000647-0.
 Marca mista depositada no INPI sob os processos n 939403005 (NCL 35) e n 939403110 (NCL 42).
@@ -536,9 +536,9 @@ Não sabe o IR Devido? O contracheque de dezembro mostra o IRRF acumulado — é
 Abrir o MeuLimite
 PASSO 2
 ~2 minutos
-### Conheça o Orquestra das Periferias do DF
+### Conheça o projeto apoiado
 Acesse a página do projeto para ver o PRONAC, o proponente, a meta de captação e o impacto cultural. Você verifica tudo no SALIC (sistema oficial do governo federal) antes de destinar.
-Ver o Orquestra das Periferias do DF
+Ver o projeto
 PASSO 3
 ~3 minutos
 ### Registre sua destinação no sistema
@@ -589,8 +589,6 @@ Lei Rouanet
 Servidores Públicos
 Processo
 Declaração IR
-#### Nenhuma pergunta encontrada
-Tente buscar com outras palavras.
 ### Lei Rouanet
 Vou perder dinheiro ou pagar mais imposto?
 Não! O valor destinado é deduzido integralmente do IR devido. Você redireciona dinheiro que já iria para o governo para um projeto cultural. Custo adicional: zero.
@@ -658,7 +656,7 @@ Com destinação de R$ 1.500 → novo IR: R$ 20.500 → nova restituição: R$ 3
 Você destinou R$ 1.500 para a cultura e ainda recebe R$ 1.500 a mais de restituição. Custo real: zero.
 Posso destinar para mais de um projeto cultural?
 Sim. Você pode distribuir seu limite entre quantos projetos SALIC quiser, desde que a soma não ultrapasse 6% do IR devido.
-Exemplo: IR devido R$ 20.000 → limite R$ 1.200 → R$ 700 para o Orquestra das Periferias do DF + R$ 500 para outro projeto = R$ 1.200 ✅
+Exemplo: IR devido R$ 20.000 → limite R$ 1.200 → R$ 700 para o projeto apoiado + R$ 500 para outro projeto = R$ 1.200 ✅
 Sou isento de IR. Posso destinar?
 Infelizmente não. A destinação é um percentual do IR devido. Quem é isento tem IR devido = R$ 0, então não há base para a dedução.
 Use nossa Calculadora IR → para verificar se você tem IR devido.
@@ -672,3 +670,34 @@ IncentivaBR programa de computador registrado no INPI sob o n BR512025000647-0.
 Marca mista depositada no INPI sob os processos n 939403005 (NCL 35) e n 939403110 (NCL 42).
 Documenta o t cnica registrada no 2 Of cio de Registro Civil, T tulos e Documentos e Pessoas Jur dicas de Bras lia/DF.
 2026 Adacto Artur Dornas de Oliveira. Todos os direitos reservados. vedada a reprodu o, distribui o ou engenharia reversa, total ou parcial, sem autoriza o expressa.
+
+---
+
+# PERGUNTAS QUE O CONTADOR FAZ
+<!-- fonte: frontend/espaco-contador.html (#faq) -->
+
+Dúvidas Frequentes
+### FAQ do Contador
+Perguntas que seus clientes vão fazer — e as respostas tecnicamente corretas.
+O limite é sobre o IR Devido ou sobre a renda bruta?
+Sobre o IR Devido — nunca sobre a renda bruta ou tributável. O IR Devido é o imposto calculado após todas as deduções legais (dependentes, saúde, educação, RPPS). É sempre um valor menor que o imposto calculado sobre a renda bruta.
+O cliente precisa declarar no modelo completo obrigatoriamente?
+Sim. A destinação de IR por incentivos fiscais é exclusiva para quem declara no modelo completo (deduções legais). O modelo simplificado usa o desconto padrão de 20% e não permite esse tipo de dedução adicional. Clientes que já declaram no modelo completo para usar deduções de dependentes e saúde já estão automaticamente elegíveis.
+Qual a diferença entre Art. 18 e Art. 26 da Lei Rouanet?
+Art. 18 — Destinação direta: 100% do valor abate do IR Devido. Sem contrapartida. Mais comum para Pessoa Física. Limite: 6%.
+Art. 26 — Patrocínio: o patrocinador recebe exposição de marca (contrapartida comercial). Apenas 80% do valor abate. Limite: 6%. Mais adequado para PJ (empresas).
+Para clientes PF, oriente sempre o Art. 18 — mais simples e com abatimento integral.
+Preciso assinar ou me responsabilizar pela destinação do cliente?
+Não. O contador orienta e lança na declaração. A relação jurídica da destinação é entre o cliente (doador) e o projeto ou fundo. Sua responsabilidade profissional é garantir que o lançamento esteja correto na DIRPF e que o comprovante recebido pelo cliente seja válido (PRONAC ativo, CNPJ correto, dados completos).
+E se o cliente já tiver pago o IR e quiser fazer a destinação depois?
+A destinação precisa ocorrer antes do encerramento do prazo da DIRPF (geralmente 31 de maio). Após o prazo, não é possível incluir na declaração já entregue sem retificação.
+Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve — ser feita ao longo do ano-calendário, antes do prazo da declaração. A plataforma IncentivaBR é projetada exatamente para isso.
+Posicionamento correto agora (pós-maio/2026): "A destinação de 2027 começa agora. Você tem o ano inteiro para planejar."
+Posso destinar para mais de uma modalidade no mesmo ano?
+Sim — com atenção aos limites individuais de cada modalidade.
+Exemplo: um cliente com R$ 10.000 de IR devido tem R$ 600 no total — pode dividir entre Rouanet, FDCA e Fundo do Idoso como quiser, mas a soma não passa disso. A Lei de Incentivo ao Esporte também concorre com esse teto para pessoa física, e teve seu marco alterado pela LC 222/2025: confira a vigência no ano-calendário antes de orientar.
+FDCA (ECA art. 260, II) e FDI (Lei 12.213/2010) dividem o mesmo teto de 6%, junto com a Lei Rouanet e o audiovisual. Não são limites independentes: destinar aos dois no mesmo ano reparte os 6%, não os soma.
+O limite absoluto final: a soma de todas as destinações não pode exceder o IR Devido total do cliente.
+Como verificar se um projeto Rouanet tem PRONAC ativo?
+Consulte o SALIC (Sistema de Apoio às Leis de Incentivo à Cultura) do Ministério da Cultura. Projetos aprovados aparecem com status "Em execução" e dentro do prazo de captação.
+A IncentivaBR lista apenas projetos com PRONAC ativo e verificado — isso elimina o risco de o cliente fazer uma destinação para um projeto vencido ou irregular.

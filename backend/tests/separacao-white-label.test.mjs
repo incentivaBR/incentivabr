@@ -129,10 +129,14 @@ await teste('numeros e depoimentos do piloto nao voltam para a home sem fonte', 
   // Sairam em setembro de 2026: nao existe no repositorio a planilha de onde
   // teriam saido (docs/auditoria/afirmacoes-comerciais.md). Voltam quando
   // docs/piloto-fgv/resultados.md existir — e ai esta guarda muda junto.
-  const semFonte = ['NPS', 'concluíram', 'Servidores que já simularam', 'Piloto com servidores'];
-  const texto = inicial.replace(/<!--[\s\S]*?-->/g, '');
-  for (const t of semFonte) {
-    if (texto.includes(t)) throw new Error('voltou sem fonte: ' + t);
+  const semFonte = ['NPS', 'concluíram', 'Servidores que já simularam', 'Piloto com servidores', 'Piloto IncentivaBR'];
+  // A home e o Espaco do Contador, que trazia "73% — Piloto IncentivaBR, 2026"
+  // ate set/2026, e alimenta a TINA.
+  for (const pagina of ['index.html', 'espaco-contador.html']) {
+    const texto = fs.readFileSync(path.join(FRONTEND, pagina), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+    for (const t of semFonte) {
+      if (texto.includes(t)) throw new Error(`voltou sem fonte em ${pagina}: ${t}`);
+    }
   }
   if (!fs.existsSync(path.join(RAIZ, 'docs/auditoria/afirmacoes-comerciais.md'))) {
     throw new Error('sumiu a tabela que explica por que sairam');
