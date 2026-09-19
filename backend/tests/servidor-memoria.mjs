@@ -147,10 +147,18 @@ const [{ id: orgId }] = await q(`
 // Fator 4: e um fixture, nao uma conta. O login compara com bcrypt.compare,
 // que aceita qualquer fator.
 const senhaHash = bcrypt.hashSync(SENHA_DE_TESTE, 4);
+
+// Veneno. Vai no fim de campos que vêm de gente ou do SALIC — nome de quem
+// destina, título e descrição do projeto, órgão de quem pediu avisos, nome do
+// arquivo do comprovante. Se alguma tela puser o texto em innerHTML sem
+// escapar, nasce um <img data-veneno>, e o E2E recusa a página. Fecha aspas e
+// tag de propósito: pega tanto texto solto quanto atributo.
+export const VENENO = '"><img data-veneno src=x>';
+
 const [{ id: destinadorId }] = await q(`
   INSERT INTO users (nome, cpf, email, senha_hash, organization_id, email_verified)
-  VALUES ('Maria Aparecida de Souza','12345678901','maria@exemplo.gov.br',$1,$2,true) RETURNING id`,
-  [senhaHash, orgId]);
+  VALUES ($3,'12345678901','maria@exemplo.gov.br',$1,$2,true) RETURNING id`,
+  [senhaHash, orgId, 'Maria Aparecida de Souza ' + VENENO]);
 const [{ id: gestorId }] = await q(`
   INSERT INTO users (nome, cpf, email, senha_hash, organization_id, email_verified, is_org_admin)
   VALUES ('Gestor Casa Azul','98765432100','gestor@casazul.org.br',$1,$2,true,true) RETURNING id`,
@@ -164,10 +172,10 @@ for (const [valor, status] of [[3200,'awaiting_confirmation'], [12500.50,'awaiti
                                [800,'awaiting_confirmation']]) {
   await q(`INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido,
              fiscal_year, pronac, projeto_titulo, status, receipt_url, receipt_filename)
-           VALUES ($1,$2,$3,208342,2026,'2511274',
-                   'Mostra Casa Azul de Teatro Inclusivo',$4,
+           VALUES ($1,$2,$3,208342,2026,'2511274',$6,$4,
                    '/uploads/receipts/exemplo.pdf',$5)`,
-    [destinadorId, orgId, valor, status, `comprovante-${valor}.pdf`]);
+    [destinadorId, orgId, valor, status, `comprovante-${valor}${VENENO}.pdf`,
+     'Mostra Casa Azul de Teatro Inclusivo ' + VENENO]);
 }
 
 // Projeto da organizacao — e daqui que o frontend tira PRONAC, titulo,
@@ -176,15 +184,19 @@ await q(`INSERT INTO org_projects
   (organization_id, pronac, titulo, area, segmento, descricao, uf,
    proponente_nome, proponente_cnpj, bank_name, bank_code, bank_agency, bank_account,
    is_active, is_featured)
-  VALUES ($1, '2511274', 'Mostra Casa Azul de Teatro Inclusivo',
-          'Artes Cenicas', 'Teatro', 'Temporada de teatro inclusivo em Brasilia.', 'DF',
-          'Casa Azul Felipe Augusto', '12.345.678/0001-90',
-          'Banco do Brasil', '001', '1234-5', '98765-4', true, true)`, [orgId]);
+  VALUES ($1, '2511274', $2,
+          'Artes Cenicas', 'Teatro', $3, 'DF',
+          $4, '12.345.678/0001-90',
+          'Banco do Brasil', '001', '1234-5', '98765-4', true, true)`,
+  [orgId, 'Mostra Casa Azul de Teatro Inclusivo ' + VENENO,
+   'Temporada de teatro inclusivo em Brasilia. ' + VENENO,
+   'Casa Azul Felipe Augusto ' + VENENO]);
 
 // Um inscrito na lista de avisos, para a tela de interessados ter o que mostrar.
 await q(`INSERT INTO subscribers (email, nome, orgao, organization_id, consent_prazos,
                                   confirmed_at, access_token, consent_at)
-         VALUES ('joao@exemplo.gov.br','João da Silva','TJDFT',$1,true,NOW(),'token-fixture',NOW())`, [orgId]);
+         VALUES ('joao@exemplo.gov.br','João da Silva',$2,$1,true,NOW(),'token-fixture',NOW())`,
+  [orgId, 'TJDFT ' + VENENO]);
 
 const { default: authRoutes }         = await import('../src/routes/auth.js');
 const { default: calculatorRoutes }   = await import('../src/routes/calculator.js');

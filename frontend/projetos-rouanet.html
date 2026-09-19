@@ -383,7 +383,7 @@
 
         const p   = data.projeto;
         const cap = pct(p.valores?.captado, p.valores?.aprovado);
-        const destinarUrl = `destinar-rouanet.html?pronac=${p.pronac}&titulo=${encodeURIComponent(p.nome)}${valorParam ? '&valor=' + encodeURIComponent(valorParam) : ''}`;
+        const destinarUrl = `destinar-rouanet.html?pronac=${encodeURIComponent(p.pronac)}&titulo=${encodeURIComponent(p.nome)}${valorParam ? '&valor=' + encodeURIComponent(valorParam) : ''}`;
 
         document.getElementById('btnDestinar').href = destinarUrl;
 
@@ -483,7 +483,7 @@
 
               <!-- Botões -->
               <div class="flex flex-col sm:flex-row gap-3">
-                <a href="${destinarUrl}"
+                <a href="${escapeHtml(destinarUrl)}"
                   class="flex-1 inline-flex items-center justify-center gap-2 btn-acento text-[#0F1E3D] font-bold px-6 py-3.5 rounded-xl transition-all duration-200 hover:scale-[1.02] text-sm no-underline">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -491,7 +491,7 @@
                   Destinar para este projeto
                 </a>
                 ${p.link_salic ? `
-                <a href="${p.link_salic}" target="_blank" rel="noopener"
+                <a href="${escapeHtml(p.link_salic)}" target="_blank" rel="noopener"
                   class="inline-flex items-center justify-center gap-2 border border-gray-200 text-gray-500 hover:border-[#0F1E3D] hover:text-[#0F1E3D] font-semibold px-5 py-3.5 rounded-xl transition-all duration-200 text-sm no-underline whitespace-nowrap">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>

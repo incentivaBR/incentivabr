@@ -650,7 +650,7 @@
       // e link direto não o envia — daria 401. Vai por fetch + blob, como o
       // comprovante.
       const baixar = emitido
-        ? `<button class="btn-recibo" onclick="baixarMecenato('${d.id}', this)">
+        ? `<button class="btn-recibo" onclick="baixarMecenato('${esc(d.id)}', this)">
              <i class="fas fa-file-invoice"></i> Baixar Recibo de Mecenato
            </button>` : '';
 
@@ -775,14 +775,14 @@
 
           <div class="donation-actions">
             ${isConfirmed
-              ? `<button class="btn-comprovante" onclick="baixarComprovante('${d.id}', this)">
+              ? `<button class="btn-comprovante" onclick="baixarComprovante('${esc(d.id)}', this)">
                    <i class="fas fa-file-pdf"></i> Baixar Comprovante PDF
                  </button>`
               : `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                    <span style="font-size:13px;color:#92400E;background:#FEF9C3;padding:8px 14px;border-radius:8px">
                      <i class="fas fa-clock"></i> Aguardando pagamento
                    </span>
-                   <button class="btn-cancel" onclick="cancelarDoacao('${d.id}', this)">
+                   <button class="btn-cancel" onclick="cancelarDoacao('${esc(d.id)}', this)">
                      <i class="fas fa-trash-alt"></i> Remover
                    </button>
                  </div>`

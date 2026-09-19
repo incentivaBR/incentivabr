@@ -468,7 +468,7 @@
             <td><strong>${esc(u.nome || '—')}</strong><br><span style="color:#8B96A8">${esc(u.email)}</span>
                 ${u.is_superadmin ? '<br><span class="selo aceito">super-admin</span>' : ''}</td>
             <td style="font-variant-numeric:tabular-nums">${esc(u.cpf_mascarado)}</td>
-            <td>${u.destinacoes}</td>
+            <td>${esc(u.destinacoes)}</td>
             <td>${u.is_superadmin ? ''
               : `<button class="btn perigo" data-apagar="${esc(u.id)}" data-quem="${esc(u.email)}">Apagar</button>`}</td>
           </tr>`).join('');
