@@ -2,6 +2,9 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O avatar da TINA
+- A imagem anterior tinha fundo navy, cílios e batom marcados, e o rosto pequeno no círculo. A nova (`assets/tina-avatar.svg`) é um traço simples: fundo creme, olhos fechados sorrindo, flor coral no cabelo na cor de acento da marca. Desenho próprio em vetor, escolhido entre três candidatas conferidas nos três tamanhos em que a TINA aparece (botão flutuante, cabeçalho do chat, bolha de mensagem).
+
 ### A TINA em dia: o retrato das páginas volta a ser conferido, e o contador entra
 - A base de conhecimento da TINA (`nucleo.md`) é um retrato de páginas do site, gerado por `scripts/sync-nucleo-tina.mjs`. Ninguém rodava o script: o projeto do piloto saiu das páginas em 14 de setembro (PR #44) e a TINA seguiu citando **"Orquestra das Periferias do DF" dez vezes**, no site de qualquer cliente, por cinco dias. Nada quebrava, porque nada conferia. `backend/tests/nucleo-em-dia.test.mjs` regenera o retrato em memória e falha se o arquivo estiver diferente: o CI não passa com a TINA desatualizada.
 - **O FAQ do Espaço do Contador entra** na base (sete perguntas: limite sobre o IR devido, modelo completo, art. 18 × art. 26, responsabilidade do contador, IR já pago, mais de uma modalidade, PRONAC ativo). O guia do servidor, a biblioteca jurídica e o FAQ já estavam. Só o FAQ do contador: a calculadora é interativa, o material é comercial, e a **tabela de fichas da DIRPF diverge do guia do servidor** (o guia manda lançar a Rouanet em "Doações Efetuadas", código 41; a tabela do contador diz "Incentivos Fiscais → PRONAC" e dá o 41 ao Fundo do Idoso). Nenhuma das duas entra pela segunda vez até o tributarista dizer qual está certa — pergunta 10 da consulta.
