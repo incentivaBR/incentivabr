@@ -1,63 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
-  <!-- Fundo azul da marca -->
-  <circle cx="40" cy="40" r="40" fill="#0D1B3E"/>
-
-  <!-- Corpo / blusa -->
-  <path d="M 10 80 Q 12 62 40 60 Q 68 62 70 80 Z" fill="#273F77"/>
-
-  <!-- Pescoço -->
-  <rect x="34" y="52" width="12" height="10" rx="5" fill="#F5C5A3"/>
-
-  <!-- Cabelo longo atrás (cobre toda a parte de baixo) -->
-  <ellipse cx="40" cy="50" rx="24" ry="20" fill="#3D1F0F"/>
-
-  <!-- Rosto -->
-  <ellipse cx="40" cy="37" rx="16" ry="18" fill="#F5C5A3"/>
-
-  <!-- Cabelo em cima da cabeça -->
-  <ellipse cx="40" cy="22" rx="18" ry="10" fill="#3D1F0F"/>
-
-  <!-- Franja (cobre a testa levemente) -->
-  <path d="M 24 26 Q 26 18 40 17 Q 54 18 56 26 Q 48 22 40 23 Q 32 22 24 26 Z" fill="#3D1F0F"/>
-
-  <!-- Cabelo lateral esquerdo — longo, não toca o rosto -->
-  <rect x="22" y="26" width="5" height="28" rx="2.5" fill="#3D1F0F"/>
-
-  <!-- Cabelo lateral direito — longo, não toca o rosto -->
-  <rect x="53" y="26" width="5" height="28" rx="2.5" fill="#3D1F0F"/>
-
-  <!-- Olhos — branco -->
-  <ellipse cx="33" cy="36" rx="4" ry="3.5" fill="white"/>
-  <ellipse cx="47" cy="36" rx="4" ry="3.5" fill="white"/>
-  <!-- Íris verde-escuro -->
-  <circle cx="33" cy="37" r="2.5" fill="#2E4A1E"/>
-  <circle cx="47" cy="37" r="2.5" fill="#2E4A1E"/>
-  <!-- Brilho -->
-  <circle cx="34" cy="36" r="1" fill="white"/>
-  <circle cx="48" cy="36" r="1" fill="white"/>
-
-  <!-- Cílios superiores -->
-  <path d="M 29 33 Q 31 31 33 32" stroke="#2C1810" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <path d="M 33 32 Q 35 31 37 33" stroke="#2C1810" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <path d="M 43 33 Q 45 31 47 32" stroke="#2C1810" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <path d="M 47 32 Q 49 31 51 33" stroke="#2C1810" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-
-  <!-- Sobrancelhas arqueadas (femininas) -->
-  <path d="M 28 31 Q 33 28 38 30" stroke="#3D1F0F" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <path d="M 42 30 Q 47 28 52 31" stroke="#3D1F0F" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-
-  <!-- Nariz delicado -->
-  <path d="M 39 41 Q 38 44 40 44 Q 42 44 41 41" stroke="#D4956A" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-
-  <!-- Boca com batom rosa -->
-  <path d="M 34 48 Q 40 52 46 48" fill="#E87A8A"/>
-  <path d="M 34 48 Q 37 46 40 47 Q 43 46 46 48" fill="#F4A0AA"/>
-
-  <!-- Bochechas rosadas -->
-  <circle cx="26" cy="43" r="5" fill="#F08080" opacity="0.2"/>
-  <circle cx="54" cy="43" r="5" fill="#F08080" opacity="0.2"/>
-
-  <!-- Brinco dourado (cor da marca) -->
-  <circle cx="23.5" cy="42" r="2.5" fill="#FFD700"/>
-  <circle cx="56.5" cy="42" r="2.5" fill="#FFD700"/>
+  <!-- TINA, set/2026: traço simples, fundo creme, olhos fechados sorrindo, flor coral no cabelo (cor de acento da marca). Desenho próprio, vetor. -->
+  <circle cx="40" cy="40" r="40" fill="#FBF4EC"/>
+  <!-- cabelo solto, um só volume macio -->
+  <path d="M 21 46 C 17 30 26 15 40 15 C 54 15 63 30 59 46 C 61 56 56 64 52 68 L 28 68 C 24 64 19 56 21 46 Z" fill="#3E2A22"/>
+  <!-- rosto -->
+  <path d="M 27 33 C 27 24 33 20 40 20 C 47 20 53 24 53 33 L 53 42 C 53 51 47 56 40 56 C 33 56 27 51 27 42 Z" fill="#F7DCC8"/>
+  <!-- franja em curva -->
+  <path d="M 26 34 C 27 22 34 18 42 18 C 50 18 55 23 55 33 C 51 27 45 26 39 27 C 34 28 29 30 26 34 Z" fill="#3E2A22"/>
+  <!-- olhos fechados, sorrindo -->
+  <path d="M 31.5 38.5 Q 34.5 35.5 37.5 38.5" stroke="#3E2A22" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M 42.5 38.5 Q 45.5 35.5 48.5 38.5" stroke="#3E2A22" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <!-- bochechas -->
+  <circle cx="32" cy="44" r="3.2" fill="#F3A48E" opacity="0.45"/>
+  <circle cx="48" cy="44" r="3.2" fill="#F3A48E" opacity="0.45"/>
+  <!-- nariz mínimo e boca -->
+  <path d="M 39.5 42 Q 40 45 41 45" stroke="#D9A78C" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M 35.5 49 Q 40 52.5 44.5 49" stroke="#C9606C" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+  <!-- flor de acento no cabelo -->
+  <g transform="translate(55 30)">
+    <circle r="2.2" cx="0" cy="-3.2" fill="#EE985C"/><circle r="2.2" cx="3" cy="-1" fill="#EE985C"/>
+    <circle r="2.2" cx="1.9" cy="2.6" fill="#EE985C"/><circle r="2.2" cx="-1.9" cy="2.6" fill="#EE985C"/>
+    <circle r="2.2" cx="-3" cy="-1" fill="#EE985C"/><circle r="1.5" fill="#FBF4EC"/>
+  </g>
+  <!-- blusa navy -->
+  <path d="M 24 80 C 24 66 31 62 40 62 C 49 62 56 66 56 80 Z" fill="#0F1E3D"/>
 </svg>
