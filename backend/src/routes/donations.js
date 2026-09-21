@@ -5,6 +5,7 @@ import { gerarComprovante } from '../services/pdfGenerator.js';
 import { notifyDestinationRegistered, notifyDestinationConfirmed, notifyAdminNewDonation, notifyProponenteMecenatoPendente } from '../services/notificationService.js';
 import { podeGerirOrganizacao } from '../lib/permissoes.js';
 import { saldoDisponivel, bloqueiaContribuinte } from '../lib/tetos.js';
+import { codigoDoMecanismo } from '../lib/mecanismos.js';
 import { limpaCPF, cpfValido } from '../lib/cpf.js';
 
 const router = express.Router();
@@ -257,7 +258,7 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
     //     inclusive por outros mecanismos;
     //   - a regra vale também em simulação. Um teste que não exercita o teto
     //     não testa o que importa.
-    const codigoGrupo = org?.incentive_group_code || 'ROUANET';
+    const codigoGrupo = codigoDoMecanismo(org);
     const valor = Number(donation_amount);
 
     await client.query('BEGIN');

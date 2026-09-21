@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../../config/database.js';
 import { tetoDoMecanismo } from '../lib/tetos.js';
+import { codigoDoMecanismo } from '../lib/mecanismos.js';
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ const DEDUCAO_EDUCACAO_MAX = 3561.50;
  * mais conservador pode; nenhum cliente pode liberar acima da lei.
  */
 async function getOrganizationLimits(org) {
-  const teto = await tetoDoMecanismo(org?.incentive_group_code || 'ROUANET');
+  const teto = await tetoDoMecanismo(codigoDoMecanismo(org));
   const tetoLegal = teto.percentual / 100;
 
   const maxPercent = org?.max_percentage

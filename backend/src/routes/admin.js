@@ -8,6 +8,7 @@ import express from 'express';
 import pool from '../../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { mascaraCPF } from '../lib/cpf.js';
+import { mecanismosDisponiveis, podeSerDoCliente, MECANISMO_PADRAO } from '../lib/mecanismos.js';
 
 const router = express.Router();
 
@@ -51,7 +52,7 @@ router.get('/orgs', async (req, res) => {
     const result = await pool.query(`
       SELECT
         o.id, o.name, o.slug, o.custom_domain, o.website_url, o.cnpj,
-        o.plan_type, o.fund_type, o.fund_name, o.max_percentage,
+        o.plan_type, o.fund_type, o.fund_name, o.max_percentage, o.incentive_group_code,
         o.contact_email, o.contact_phone,
         o.primary_color, o.secondary_color, o.logo_url,
         o.hero_titulo, o.hero_subtitulo, o.sobre,
@@ -82,6 +83,7 @@ router.get('/orgs', async (req, res) => {
         fund_type:      o.fund_type,
         fund_name:      o.fund_name,
         max_percentage: parseFloat(o.max_percentage),
+        incentive_group_code: o.incentive_group_code,
         contact_email:  o.contact_email,
         contact_phone:  o.contact_phone,
         primary_color:  o.primary_color,
@@ -121,7 +123,8 @@ router.post('/orgs', async (req, res) => {
       contact_email, contact_phone,
       primary_color = '#0F1E3D',
       secondary_color = '#EE985C',
-      hero_titulo, hero_subtitulo, sobre
+      hero_titulo, hero_subtitulo, sobre,
+      incentive_group_code = MECANISMO_PADRAO
     } = req.body;
 
     if (!name || !slug) {
@@ -132,6 +135,14 @@ router.post('/orgs', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'slug deve conter apenas letras minúsculas, números e hífens.' });
     }
 
+    // Mecanismo sem teto resolvido não pode ir para um cliente: a rota de
+    // registro cairia no teto global de 6%, que é permissivo demais para
+    // quase todos (migration 043).
+    const mecanismo = await podeSerDoCliente(incentive_group_code);
+    if (!mecanismo.ok) {
+      return res.status(400).json({ status: 'error', message: mecanismo.motivo });
+    }
+
     const result = await pool.query(`
       INSERT INTO organizations (
         name, slug, custom_domain, website_url, cnpj,
@@ -139,16 +150,18 @@ router.post('/orgs', async (req, res) => {
         contact_email, contact_phone,
         primary_color, secondary_color,
         hero_titulo, hero_subtitulo, sobre,
+        incentive_group_code,
         contracted_at, is_active
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW(),true)
-      RETURNING id, name, slug, plan_type, created_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW(),true)
+      RETURNING id, name, slug, plan_type, incentive_group_code, created_at
     `, [name, slug, custom_domain || null, website_url || null, cnpj || null,
         plan_type, fund_type, fund_name, max_percentage,
         contact_email || null, contact_phone || null,
         primary_color, secondary_color,
         textoDoCliente(hero_titulo, 'hero_titulo') || null,
         textoDoCliente(hero_subtitulo, 'hero_subtitulo') || null,
-        textoDoCliente(sobre, 'sobre') || null]);
+        textoDoCliente(sobre, 'sobre') || null,
+        incentive_group_code]);
 
     const org = result.rows[0];
 
@@ -185,8 +198,17 @@ router.put('/orgs/:id', async (req, res) => {
       contact_email, contact_phone,
       primary_color, secondary_color, logo_url,
       is_active,
-      govbr_client_id, govbr_client_secret, govbr_redirect_uri
+      govbr_client_id, govbr_client_secret, govbr_redirect_uri,
+      incentive_group_code
     } = req.body;
+
+    // Só valida quando vem no corpo: `undefined` significa "não mexa".
+    if (incentive_group_code !== undefined) {
+      const mecanismo = await podeSerDoCliente(incentive_group_code);
+      if (!mecanismo.ok) {
+        return res.status(400).json({ status: 'error', message: mecanismo.motivo });
+      }
+    }
 
     // Os textos aceitam string vazia para apagar, e o COALESCE não distingue
     // "apagar" de "não mexer". Cada um vai em dois parâmetros: se muda, e
@@ -219,16 +241,18 @@ router.put('/orgs/:id', async (req, res) => {
         hero_subtitulo    = CASE WHEN $21 THEN $22::text ELSE hero_subtitulo    END,
         sobre             = CASE WHEN $23 THEN $24::text ELSE sobre             END,
         encarregado_nome  = CASE WHEN $25 THEN $26::text ELSE encarregado_nome  END,
-        encarregado_email = CASE WHEN $27 THEN $28::text ELSE encarregado_email END
+        encarregado_email = CASE WHEN $27 THEN $28::text ELSE encarregado_email END,
+        incentive_group_code = COALESCE($29, incentive_group_code)
       WHERE id = $18
-      RETURNING id, name, slug, plan_type, is_active
+      RETURNING id, name, slug, plan_type, incentive_group_code, is_active
     `, [name, custom_domain, website_url, cnpj,
         plan_type, fund_type, fund_name, max_percentage,
         contact_email, contact_phone,
         primary_color, secondary_color, logo_url,
         is_active, govbr_client_id, govbr_client_secret, govbr_redirect_uri,
         id,
-        ...textos.flat()]);
+        ...textos.flat(),
+        incentive_group_code ?? null]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Cliente não encontrado.' });
@@ -544,6 +568,22 @@ router.delete('/usuarios/:id', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Erro interno ao apagar a conta.' });
   } finally {
     client.release();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin/mecanismos — o catálogo de mecanismos de incentivo
+//
+// Os bloqueados vêm junto, com o motivo. Esconder o Fundo do Idoso faria a
+// tela parecer um sistema que só sabe Rouanet; mostrá-lo cinza, com o que
+// falta decidir, diz a verdade.
+// ─────────────────────────────────────────────────────────────
+router.get('/mecanismos', async (req, res) => {
+  try {
+    res.json({ status: 'success', mecanismos: await mecanismosDisponiveis() });
+  } catch (error) {
+    console.error('[Admin] Erro ao listar mecanismos:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
   }
 });
 

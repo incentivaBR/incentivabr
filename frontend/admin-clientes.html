@@ -98,6 +98,13 @@
               <input id="cSec" type="color" value="#EE985C" style="height:42px;padding:4px">
               <p class="dica">Precisa contrastar com a principal — é a cor dos botões.</p>
             </div>
+            <div>
+              <label for="cMecanismo">Mecanismo de incentivo</label>
+              <select id="cMecanismo"></select>
+              <p class="dica" id="dicaMecanismo">
+                A lei pela qual este cliente capta. Um por cliente.
+              </p>
+            </div>
           </div>
           <div class="linha-acoes">
             <button class="btn" type="submit">Criar cliente</button>
@@ -306,6 +313,31 @@
       return d;
     }
 
+    // ── Mecanismos de incentivo ─────────────────────────────────
+    //
+    // Os bloqueados aparecem cinza, com o motivo, em vez de sumirem: uma
+    // lista com um item só pareceria um sistema que só sabe Rouanet. O
+    // servidor recusa de novo se alguém contornar o `disabled`.
+    async function carregaMecanismos() {
+      const sel = el('cMecanismo');
+      try {
+        const d = await chamar('/api/admin/mecanismos');
+        sel.innerHTML = d.mecanismos.map(m =>
+          `<option value="${esc(m.code)}"${m.disponivel_para_cliente ? '' : ' disabled'}>` +
+          `${esc(m.name)}${m.disponivel_para_cliente ? '' : ' — aguarda parecer'}</option>`
+        ).join('');
+        const bloqueados = d.mecanismos.filter(m => !m.disponivel_para_cliente);
+        if (bloqueados.length) {
+          el('dicaMecanismo').textContent =
+            `A lei pela qual este cliente capta. Um por cliente. ` +
+            `${bloqueados.length} mecanismo(s) aguardam o parecer do tributarista: ` +
+            bloqueados.map(m => m.name).join(', ') + '.';
+        }
+      } catch (erro) {
+        sel.innerHTML = '<option value="rouanet">Lei Rouanet</option>';
+      }
+    }
+
     // ── Clientes ────────────────────────────────────────────────────
     let clientes = [];
     async function carregaClientes(selecionar) {
@@ -358,7 +390,8 @@
             slug: el('cSlug').value.trim(),
             contact_email: el('cEmail').value.trim() || null,
             primary_color: el('cPrim').value,
-            secondary_color: el('cSec').value
+            secondary_color: el('cSec').value,
+            incentive_group_code: el('cMecanismo').value
           })
         });
         avisar('avisoCliente', d.message || 'Cliente criado.', true);
@@ -499,6 +532,7 @@
       try {
         await carregaClientes();
         el('conteudo').hidden = false;
+        carregaMecanismos();  // idem: o seletor tem reserva se a rota falhar
         carregaContas();   // depois de liberar a tela: falha aqui não tranca o resto
       } catch {
         // 403 aqui significa conta sem superadmin — dizer isso é melhor que

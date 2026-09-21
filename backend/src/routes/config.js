@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../../config/database.js';
 import { tetoDoMecanismo } from '../lib/tetos.js';
+import { codigoDoMecanismo, mecanismoDaOrg } from '../lib/mecanismos.js';
 import { textosFiscais } from '../lib/textosFiscais.js';
 import { papeisDaPrivacidade } from '../lib/papeisLgpd.js';
 
@@ -108,11 +109,17 @@ router.get('/brand', async (req, res) => {
   // diria uma coisa e a calculadora mostraria outra.
   let teto = null;
   let fiscal = null;
+  let mecanismo = null;
   try {
-    teto = await tetoDoMecanismo(org?.incentive_group_code || 'ROUANET');
+    teto = await tetoDoMecanismo(codigoDoMecanismo(org));
     // A fonte única dos textos fiscais (lib/textosFiscais.js): teto, ficha da
     // DIRPF, recibo, art. 18/26. tenant.js preenche os [data-fiscal] com isto.
     fiscal = await textosFiscais(org);
+    // O mecanismo deste cliente (migration 043). Vai para a marca porque a
+    // página precisa dizer QUAL lei ela está operando: hoje só a Rouanet está
+    // disponível, mas a página não deve escrever "Rouanet" à mão — foi assim
+    // que o projeto do piloto vazou para o site de outro cliente.
+    mecanismo = await mecanismoDaOrg(org);
   } catch (erro) {
     console.error('[config] falha ao ler o teto:', erro.message);
   }
@@ -147,6 +154,16 @@ router.get('/brand', async (req, res) => {
     teto_percentual: teto?.percentual ?? null,
     teto_base_legal: teto?.base_legal ?? null,
     fiscal,
+
+    // O mecanismo de incentivo do cliente. `codigo` é o do catálogo
+    // (`incentive_groups`), os demais campos vêm de `laws`.
+    mecanismo: mecanismo ? {
+      codigo:          mecanismo.code,
+      nome:            mecanismo.name,
+      base_legal:      mecanismo.base_legal || null,
+      orgao:           mecanismo.orgao || null,
+      sistema_oficial: mecanismo.sistema_oficial || null
+    } : null,
 
     // Quem responde pelos dados neste site, e quem é o Encarregado a divulgar
     // (art. 41 §1º). Na IncentivaBR é ela mesma; no site de um cliente é o
