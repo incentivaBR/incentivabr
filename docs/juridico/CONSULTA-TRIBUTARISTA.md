@@ -220,6 +220,32 @@ rodada. Corrigimos (migration 044), e queremos a confirmação por escrito.
 cálculo — só falta a jornada, que é engenharia, não parecer. É o que destrava
 o primeiro cliente white-label fora da Lei Rouanet.
 
+---
+
+## O que pesquisamos antes de perguntar
+
+Parte do que está acima se resolve em fonte primária, sem consumir hora de
+tributarista. Registramos aqui o que vamos levantar por conta própria, e o que
+cada levantamento resolve — para o parecer tratar do que é de fato
+interpretação.
+
+| O que pesquisar | Onde | Qual pergunta encurta |
+|---|---|---|
+| Ficha e código de cada modalidade no programa da DIRPF do ano | Manual da DIRPF e Perguntas e Respostas da Receita Federal | 10 |
+| Texto vigente da Lei de Incentivo ao Esporte depois da LC 222/2025 | Planalto, texto compilado; Decreto 12.861/2026 e Portaria MESP 10/2026 | 1 |
+| Regulamentação do Recicla+ (Lei 14.260/2021), publicada em 2024 | Planalto e Ministério do Meio Ambiente | 4 |
+| Redação atual dos arts. 260 e 260-A do ECA e da Lei 12.213/2010 | Planalto, texto compilado | 7 e 11 |
+| Art. 22 da Lei 9.532/1997 e art. 12 da Lei 9.250/1995, com as alterações | Planalto, texto compilado | seção "o que já consideramos resolvido" |
+| Prazo decadencial do art. 173 do CTN e termo inicial na DIRPF | CTN e jurisprudência administrativa do CARF | 9 |
+
+**Fora da lei federal, e por isso não é pergunta de tributarista:** se o
+Conselho dos Direitos da Criança e do Adolescente do município do cliente exige
+aprovação prévia do projeto, e qual recibo o fundo emite. Varia por município,
+e é o que define se a jornada do FDCA cabe no assistente que temos. Levantar
+com o Conselho, no município de cada cliente.
+
+---
+
 ## Como pretendemos usar o parecer
 
 1. **No código.** Os tetos vivem em tabela (`tetos_deducao`), não em constante —
