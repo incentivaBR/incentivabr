@@ -192,32 +192,33 @@ primária" (`lib/textosFiscais.js`).
 
 ---
 
-## 11. FDCA e Fundo do Idoso: qual o limite da destinação DURANTE o ano?
+## 11. FDCA e Fundo do Idoso: confirmar a leitura que já operamos
 
-Que os dois dividem o teto global de 6% já consideramos resolvido (seção
-inicial). Falta o limite do fluxo que esta plataforma opera.
+Nossa leitura, e o que o sistema faz:
 
-O que temos registrado, e não fecha:
+- **durante o ano-calendário**, a destinação ao FDCA ou ao Fundo do Idoso é
+  dedutível até **6% do imposto devido**, dentro do teto do art. 22 da Lei
+  9.532/1997 — o mesmo teto que a Lei Rouanet divide. Não são 6% para cada
+  um: a soma de todos cabe em 6%;
+- os **3% do art. 260-A do ECA** são a via de destinar **na própria declaração
+  de ajuste**, caminho que não operamos.
 
-- o catálogo da plataforma diz **"destinação durante o ano até 3%; doação na
-  declaração até 6%"**;
-- a pergunta 7 acima trata do art. 260-A do ECA como sendo **os 3% no ajuste
-  anual** — o inverso.
+Perguntamos porque o catálogo interno desta plataforma registrava o inverso
+("durante o ano até 3%; na declaração até 6%") e isso nos travou por uma
+rodada. Corrigimos (migration 044), e queremos a confirmação por escrito.
 
-Uma das duas leituras está errada, e a diferença é o dobro.
+**As perguntas:**
 
-**A pergunta:** um servidor que transfere para um Fundo Municipal da Criança e
-do Adolescente **em agosto**, com recibo do fundo, e lança na declaração do ano
-seguinte, pode deduzir até **3% ou até 6%** do imposto devido? E para o Fundo
-do Idoso, o mesmo? Os dois juntos somam 6% ou cada um tem o seu?
+1. A leitura acima está correta para pessoa física?
+2. Um servidor que transfere a um Fundo Municipal da Criança e do Adolescente
+   em agosto, com recibo do fundo, deduz **6%** na declaração do ano seguinte,
+   somando com o que tiver destinado à Rouanet dentro do mesmo teto?
+3. Os 3% do art. 260-A são **adicionais** ao que foi destinado durante o ano,
+   ou o total continua limitado a 6%? (É a pergunta 7 vista do outro lado.)
 
-**O que muda no sistema:** hoje o Fundo do Idoso e o FDCA existem no catálogo
-mas **não podem ser atribuídos a um cliente** (`incentive_groups.
-disponivel_para_cliente = false`, migration 043), justamente porque oferecer 6%
-onde a lei permite 3% seria liberar o dobro. A resposta destrava o primeiro
-cliente white-label fora da Lei Rouanet.
-
----
+**O que muda no sistema:** confirmada, FDCA e Fundo do Idoso ficam prontos no
+cálculo — só falta a jornada, que é engenharia, não parecer. É o que destrava
+o primeiro cliente white-label fora da Lei Rouanet.
 
 ## Como pretendemos usar o parecer
 

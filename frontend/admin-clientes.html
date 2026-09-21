@@ -324,14 +324,16 @@
         const d = await chamar('/api/admin/mecanismos');
         sel.innerHTML = d.mecanismos.map(m =>
           `<option value="${esc(m.code)}"${m.disponivel_para_cliente ? '' : ' disabled'}>` +
-          `${esc(m.name)}${m.disponivel_para_cliente ? '' : ' — aguarda parecer'}</option>`
+          `${esc(m.name)}${m.disponivel_para_cliente ? '' : ' — indisponível'}</option>`
         ).join('');
         const bloqueados = d.mecanismos.filter(m => !m.disponivel_para_cliente);
         if (bloqueados.length) {
+          // O motivo vem do banco, um por mecanismo: uns aguardam o
+          // tributarista, outros aguardam a jornada. Escrever "aguarda
+          // parecer" para todos poria a culpa no lugar errado.
           el('dicaMecanismo').textContent =
-            `A lei pela qual este cliente capta. Um por cliente. ` +
-            `${bloqueados.length} mecanismo(s) aguardam o parecer do tributarista: ` +
-            bloqueados.map(m => m.name).join(', ') + '.';
+            'A lei pela qual este cliente capta. Um por cliente. Indisponíveis: ' +
+            bloqueados.map(m => `${m.name} (${m.motivo_indisponivel || 'motivo não registrado'})`).join(' · ');
         }
       } catch (erro) {
         sel.innerHTML = '<option value="rouanet">Lei Rouanet</option>';

@@ -37,7 +37,7 @@ export async function mecanismoDaOrg(org, executor = pool) {
   const codigo = codigoDoMecanismo(org);
   try {
     const { rows } = await executor.query(
-      `SELECT g.code, g.name, g.teto_codigo, g.disponivel_para_cliente, g.pendencia_parecer,
+      `SELECT g.code, g.name, g.teto_codigo, g.disponivel_para_cliente, g.motivo_indisponivel,
               l.base_legal, l.orgao, l.sistema_oficial, l.sistema_url
          FROM incentive_groups g
          LEFT JOIN laws l ON l.slug = g.law_slug
@@ -62,7 +62,7 @@ export async function mecanismoDaOrg(org, executor = pool) {
  */
 export async function mecanismosDisponiveis(executor = pool) {
   const { rows } = await executor.query(
-    `SELECT g.code, g.name, g.disponivel_para_cliente, g.pendencia_parecer,
+    `SELECT g.code, g.name, g.disponivel_para_cliente, g.motivo_indisponivel,
             l.base_legal, l.orgao
        FROM incentive_groups g
        LEFT JOIN laws l ON l.slug = g.law_slug
@@ -81,7 +81,7 @@ export async function mecanismosDisponiveis(executor = pool) {
 export async function podeSerDoCliente(codigo, executor = pool) {
   if (!codigo) return { ok: false, motivo: 'Informe o mecanismo de incentivo.' };
   const { rows } = await executor.query(
-    'SELECT name, disponivel_para_cliente, pendencia_parecer FROM incentive_groups WHERE code = $1 LIMIT 1',
+    'SELECT name, disponivel_para_cliente, motivo_indisponivel FROM incentive_groups WHERE code = $1 LIMIT 1',
     [codigo]
   );
   const m = rows[0];
@@ -90,7 +90,7 @@ export async function podeSerDoCliente(codigo, executor = pool) {
     return {
       ok: false,
       motivo: `${m.name} ainda não pode ser atribuído a um cliente. ` +
-              (m.pendencia_parecer || 'Falta resolver o teto aplicável.')
+              (m.motivo_indisponivel || 'Falta resolver o teto aplicável.')
     };
   }
   return { ok: true };

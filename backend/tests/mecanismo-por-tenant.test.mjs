@@ -42,7 +42,7 @@ db.public.none(`
     code TEXT UNIQUE NOT NULL, name TEXT, max_percentage NUMERIC,
     period_type TEXT, description TEXT, teto_codigo TEXT, law_slug TEXT,
     disponivel_para_cliente BOOLEAN NOT NULL DEFAULT FALSE,
-    pendencia_parecer TEXT
+    motivo_indisponivel TEXT
   );
   CREATE TABLE tetos_deducao (
     codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC, base_legal TEXT,
@@ -77,7 +77,7 @@ db.public.none(`
          ('idoso','Fundo dos Direitos da Pessoa Idosa','Fundo do Idoso','Lei 12.213/2010','Conselhos','—',6.00),
          ('pronon','PRONON','PRONON','Lei 12.715/2012','Ministério da Saúde','Transferegov',1.00);
 
-  INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo, law_slug, disponivel_para_cliente, pendencia_parecer)
+  INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo, law_slug, disponivel_para_cliente, motivo_indisponivel)
   VALUES ('rouanet','Lei Rouanet — Incentivo à Cultura',6.00,'irpf_global_6','rouanet',true,NULL),
          ('idoso','Fundo do Idoso',6.00,NULL,'idoso',false,'Item 11 da consulta ao tributarista.'),
          ('pronon','PRONON',1.00,NULL,'pronon',false,'Item 3 da consulta ao tributarista.'),
@@ -201,7 +201,7 @@ await teste('o catalogo mostra os bloqueados, com o motivo', async () => {
   const bloqueados = lista.filter(m => !m.disponivel_para_cliente);
   if (!bloqueados.length) throw new Error('nenhum bloqueado aparece');
   for (const b of bloqueados) {
-    if (!b.pendencia_parecer) throw new Error(`${b.code} bloqueado sem motivo escrito`);
+    if (!b.motivo_indisponivel) throw new Error(`${b.code} bloqueado sem motivo escrito`);
   }
 });
 
@@ -271,11 +271,36 @@ await teste('a tela de clientes oferece o seletor e o manda ao servidor', () => 
   }
 });
 
-await teste('a migration 043 existe e cria a coluna que o codigo lia', () => {
+await teste('a migration 043 cria a coluna que o codigo lia', () => {
   const sql = fs.readFileSync(path.join(RAIZ, 'backend/src/migrations/043_mecanismo_por_cliente.sql'), 'utf8');
-  for (const t of ['incentive_group_code', 'disponivel_para_cliente', 'pendencia_parecer', 'law_slug']) {
+  for (const t of ['incentive_group_code', 'disponivel_para_cliente', 'law_slug']) {
     if (!sql.includes(t)) throw new Error('043 sem ' + t);
   }
+});
+
+await teste('a migration 044 corrige o 3%/6% invertido e renomeia o motivo', () => {
+  const sql = fs.readFileSync(path.join(RAIZ, 'backend/src/migrations/044_fdca_idoso_teto_corrigido.sql'), 'utf8');
+  if (!/RENAME COLUMN pendencia_parecer TO motivo_indisponivel/.test(sql)) {
+    throw new Error('044 nao renomeia a coluna');
+  }
+  // O teto de FDCA e Idoso e o global de 6% durante o ano — os 3% sao a via
+  // do art. 260-A, que esta plataforma nao opera. O catalogo dizia o inverso.
+  if (!/teto_codigo = 'irpf_global_6'[\s\S]{0,400}'fia', 'idoso'/.test(sql)) {
+    throw new Error('044 nao aponta fia/idoso para o teto global');
+  }
+  if (!/260-A/.test(sql)) throw new Error('044 nao registra de onde vem os 3%');
+});
+
+await teste('o que a 044 GRAVA no banco nao repete o 3%/6% invertido', () => {
+  // "destinação durante o ano até 3%" foi semeado na 018 e repetido na 043.
+  // A guarda olha o que a migration AFIRMA — as linhas de SQL —, nao os
+  // comentarios, que precisam citar o texto errado para explicar a correcao.
+  const sql = fs.readFileSync(path.join(RAIZ, 'backend/src/migrations/044_fdca_idoso_teto_corrigido.sql'), 'utf8')
+    .split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
+  const invertido = /durante o ano[^.]{0,40}at[ée] 3%|Destina[çc][ãa]o 3% no ano-calend/i;
+  if (invertido.test(sql)) throw new Error('a 044 grava o 3% durante o ano');
+  // E grava o certo: 6% durante o ano, no teto compartilhado.
+  if (!/6% durante o ano/.test(sql)) throw new Error('a 044 nao grava o 6% durante o ano');
 });
 
 servidor.close();
