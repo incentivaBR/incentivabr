@@ -2,6 +2,23 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### PRONON e PRONAS: o site dizia que dividiam 1%, e a lei dá 1% a cada um
+- Quatro páginas no ar (`biblioteca-juridica`, `validador`, `espaco-contador`, `agenda-fiscal`) e a base da TINA afirmavam que **"PRONON e PRONAS compartilham 1% do IR devido"**. A Lei 12.715/2012 dá **1% a cada programa**, independentes entre si e fora do teto geral do art. 22 da Lei 9.532/1997.
+- Pior que o texto: o **validador calculava assim**. Somava as duas destinações (`V.pronon_pronas`) e conferia contra um único `L.pronon`, acusando excesso onde a lei permite o dobro — numa ferramenta que se chama Validador Anti-Malha Fina. Agora cada programa tem o seu limite e é conferido contra ele; o card dos dois mostra o pior dos dois, como o card FDCA + FDI já fazia, em vez da soma.
+- Quatro cópias da mesma frase falsa, cada página guardando a sua — o padrão que o Raio-X (risco 04) já tinha apontado. `backend/tests/limites-por-mecanismo.test.mjs` impede a volta, com 8 casos, e foi conferido reintroduzindo o defeito.
+- A vigência ficou marcada como **não confirmada**: a Lei 12.715/2012 autorizava a dedução da pessoa física até o ano-calendário de 2025, e não confirmamos se a prorrogação virou lei. Virou a pergunta 2 da consulta.
+
+### O teto do esporte é registro, não cálculo
+- A LC 222/2025 substituiu a Lei 11.438/2006 e fixa, para pessoa física, **7% do imposto devido em conjunto** com os incisos I a III do art. 12 da Lei 9.250/1995: a cesta inteira sobe de 6% para 7% quando o esporte entra, em vez de abrir um teto separado. A migration 031 tinha acertado a parte difícil (o esporte concorre, não tem teto próprio) e parado no percentual.
+- O `irpf_global_7` entra em `tetos_deducao` como **registro, sem nenhum mecanismo apontando para ele** — do mesmo jeito que o `desporto_7` entrou na 030. O cálculo segue em 6%: o teto condicional é lógica de `saldoDisponivel()`, não dado, e não se escreve regra fiscal nova sobre documento não assinado. Manter 6% erra para menos, e errar para menos é recuperável no ano seguinte.
+- A guarda de `textos-fiscais.test.mjs` que proibia qualquer "7%" na tela foi **reescrita, não apagada**: ela travava a crença anterior de que 7% é sempre erro. Agora exige que todo "7%" apareça dito como teto conjunto, e nunca como teto próprio ou adicional. A proibição no cálculo continua absoluta, em `limites-por-mecanismo.test.mjs`.
+- Recicla+ também corrigido no catálogo: 100% do valor é dedutível, mas dentro do teto geral — não é limite autônomo de 6%.
+
+### A consulta ao tributarista encolheu de onze perguntas para quatro
+- Uma nota técnica de **pesquisa** — não assinada, sem responsabilidade técnica — revisou as onze perguntas. Está arquivada em `docs/juridico/nota-tecnica-pesquisa-2026-09.md` com a ressalva no topo. **Nada nela virou `confirmado_por_parecer`, nada saiu da simulação, nenhum mecanismo foi liberado para cliente.**
+- Sete perguntas caíram: confirmou a leitura que o sistema já operava (base é o imposto devido, art. 18 e 26 no mesmo teto, sem ordem legal de imputação, modelo completo como requisito) e resolveu três erros de cadastro. Restaram os 3% do art. 260-A, a vigência do PRONON/PRONAS, os códigos da DIRPF e a retenção.
+- O texto legal **não foi lido**: o ambiente de trabalho não alcança o `planalto.gov.br`. Os dois pontos que mudaram o produto foram conferidos em fontes secundárias (Senado, Mattos Filho, Oncoguia, Câmara), e por isso tudo o que entrou nas páginas está marcado como "não confirmado em fonte primária", como já estão os códigos da DIRPF.
+
 ### FDCA e Fundo do Idoso: o catálogo tinha 3% e 6% trocados
 - A migration 018 semeou, na observação das duas leis, **"destinação durante o ano até 3%; doação na declaração até 6%"**. É o inverso. Durante o ano-calendário vale o teto de 6% do art. 22 da Lei 9.532/1997, o mesmo que a Rouanet divide — exatamente o que a seção "O que já consideramos resolvido" da consulta registra e o que `saldoDisponivel()` sempre fez. Os 3% são a via do art. 260-A do ECA, destinar na própria declaração, caminho que a plataforma não opera.
 - A migration 043 leu a observação invertida e bloqueou os dois mecanismos **pelo motivo errado**: "falta o limite da destinação durante o ano". Não falta. A 044 corrige o catálogo, aponta FDCA e Idoso para o teto global e troca o motivo do bloqueio pelo verdadeiro, que não é jurídico: o assistente pede PRONAC e consulta o SALIC, e um fundo municipal não tem PRONAC — tem CNPJ do fundo, e é o fundo que emite o recibo.

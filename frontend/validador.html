@@ -105,7 +105,7 @@
               <span>⚽</span>
               <div>
                 <div class="font-semibold text-sm">Lei do Esporte</div>
-                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-esporte">—</strong> · divide o teto de <span data-fiscal="teto_pct">6%</span> · Lei 11.438/2006</div>
+                <div class="text-white/40 text-xs">Limite: <strong class="text-gold/80" id="lim-esporte">—</strong> · divide o teto geral, que a LC 222/2025 eleva a 7% · percentual não confirmado</div>
               </div>
             </div>
             <span id="icon-esporte" class="text-lg">—</span>
@@ -165,8 +165,8 @@
         <div class="card" id="card-pronon">
           <div class="flex items-center justify-between mb-1">
             <div>
-              <div class="font-semibold text-sm">PRONON + PRONAS — Saúde</div>
-              <div class="text-white/40 text-xs">Limite conjunto: <strong class="text-gold/80" id="lim-pronon">—</strong> · 1% do IR Devido · Lei 12.715/2012</div>
+              <div class="font-semibold text-sm">PRONON e PRONAS/PCD — Saúde</div>
+              <div class="text-white/40 text-xs">1% do IR Devido <strong class="text-gold/80">para cada um</strong>: <strong class="text-gold/80" id="lim-pronon">—</strong> cada · Lei 12.715/2012</div>
             </div>
             <span id="icon-pronon" class="text-lg">—</span>
           </div>
@@ -262,7 +262,7 @@
         </div>
         <div class="flex gap-3">
           <span class="flex-shrink-0">ℹ️</span>
-          <span>Pode destinar a mais de uma modalidade no mesmo ano, mas os percentuais <strong class="text-white">não se somam</strong>: Rouanet, Esporte, FDCA, FDI e Reciclagem dividem um teto único de <span data-fiscal="teto_pct">6%</span> do IR devido (Lei 9.532/1997, art. 22). Só PRONON + PRONAS ficam fora, com 1% entre si.</span>
+          <span>Pode destinar a mais de uma modalidade no mesmo ano, mas os percentuais <strong class="text-white">não se somam</strong>: Rouanet, Esporte, FDCA, FDI e Reciclagem dividem um teto único de <span data-fiscal="teto_pct">6%</span> do IR devido (Lei 9.532/1997, art. 22). Fora dele ficam o PRONON e o PRONAS/PCD, com <strong class="text-white">1% cada</strong>, independentes entre si.</span>
         </div>
       </div>
     </div>
@@ -328,7 +328,15 @@
     // deduções a 6% do imposto devido. Sem esta conta, a ferramenta aprovava
     // 6% + 7% + 6% + 6% = 25% do IR — e ela se chama Validador Anti-Malha Fina.
     //
-    // Fora do teto global ficam apenas PRONON + PRONAS, que dividem 1% entre si.
+    // Fora do teto global ficam o PRONON e o PRONAS/PCD, com 1% CADA: um não
+    // consome o do outro. O validador tratava os dois como um limite conjunto
+    // de 1%, e por isso acusava excesso onde a lei permite o dobro.
+    //
+    // O teto global segue em 6%. A LC 222/2025 eleva o conjunto a 7% quando há
+    // incentivo ao esporte, mas isso não está implementado aqui de propósito:
+    // 6% é a direção conservadora (o servidor destina menos do que podia, e
+    // recupera no ano seguinte) e o percentual ainda não foi confirmado em
+    // fonte primária. Ver docs/juridico/CONSULTA-TRIBUTARISTA.md, item 1.
     const TETO_GLOBAL = ir * (window.TETO_FRACAO || 0.06);
     // O percentual em texto, para as mensagens: vem do banco por tenant.js.
     const tetoPct = `${Math.round((window.TETO_PERCENTUAL || 6) * 100) / 100}%`;
@@ -342,7 +350,8 @@
       fia:        ir * (window.TETO_FRACAO || 0.06),  // FDCA
       fdi:        ir * (window.TETO_FRACAO || 0.06),  // FDI — Idoso
       reciclagem: ir * (window.TETO_FRACAO || 0.06),  // Recicla+ — Lei 14.260/2021
-      pronon:     ir * 0.01,  // PRONON + PRONAS — limite conjunto
+      pronon:     ir * 0.01,  // PRONON — 1% próprio, Lei 12.715/2012
+      pronas:     ir * 0.01,  // PRONAS/PCD — outro 1%, independente do PRONON
     };
 
     // Valores
@@ -412,27 +421,33 @@
     setCard('fidfia', (V.fia > 0 || V.fdi > 0) ? clsFidFia : 'ok');
     setMsg('fidfia', '', 'ok');
 
-    // PRONON — Oncologia (mensagem individual)
+    // PRONON — Oncologia (1% próprio)
     const clsPronon = statusClass(V.pronon, L.pronon);
-    if (V.pronon > 0) setMsg('pronon', `PRONON: ${BRL(V.pronon)}`, clsPronon);
+    if (V.pronon > 0) setMsg('pronon', `PRONON: ${BRL(V.pronon)} de ${BRL(L.pronon)}`, clsPronon);
     else setMsg('pronon', '', 'ok');
 
-    // PRONAS — Deficiência (mensagem individual)
-    const clsPronas = statusClass(V.pronas, L.pronon);
-    if (V.pronas > 0) setMsg('pronas', `PRONAS: ${BRL(V.pronas)}`, clsPronas);
+    // PRONAS/PCD — Deficiência (1% próprio, contra o SEU limite)
+    const clsPronas = statusClass(V.pronas, L.pronas);
+    if (V.pronas > 0) setMsg('pronas', `PRONAS/PCD: ${BRL(V.pronas)} de ${BRL(L.pronas)}`, clsPronas);
     else setMsg('pronas', '', 'ok');
 
-    // Card combinado PRONON + PRONAS — limite conjunto de 1%
-    const clsPrononTotal = statusClass(V.pronon_pronas, L.pronon);
-    setBar('pronon', V.pronon_pronas, L.pronon);
+    // Card dos dois. Cada um responde pelo próprio 1%; o card mostra o pior
+    // dos dois, como o card FDCA + FDI faz — e não a soma, que juntaria dois
+    // limites que a lei mantém separados.
+    const clsPrononTotal = (V.pronon > L.pronon || V.pronas > L.pronas) ? 'over'
+                         : (clsPronon === 'warn' || clsPronas === 'warn') ? 'warn' : 'ok';
+    setBar('pronon', Math.max(V.pronon / L.pronon, V.pronas / L.pronas) * L.pronon, L.pronon);
     document.getElementById('icon-pronon').textContent = (V.pronon > 0 || V.pronas > 0) ? statusIcon(clsPrononTotal) : '—';
     setCard('pronon', (V.pronon > 0 || V.pronas > 0) ? clsPrononTotal : 'ok');
     const elPT = document.getElementById('msg-pronon-total');
     if (V.pronon_pronas > 0) {
       let m = '';
-      if (clsPrononTotal === 'over') m = `Total excede o limite conjunto em ${BRL(V.pronon_pronas - L.pronon)}. Reduza para até ${BRL(L.pronon)}.`;
-      else if (clsPrononTotal === 'warn') m = `Total próximo do limite conjunto (${Math.round(V.pronon_pronas/L.pronon*100)}% de ${BRL(L.pronon)}).`;
-      else m = `✓ Total: ${BRL(V.pronon_pronas)} de ${BRL(L.pronon)} disponível.`;
+      if (V.pronon > L.pronon && V.pronas > L.pronas)
+        m = `Os dois excedem: reduza ${BRL(V.pronon - L.pronon)} no PRONON e ${BRL(V.pronas - L.pronas)} no PRONAS/PCD.`;
+      else if (V.pronon > L.pronon)  m = `PRONON excede em ${BRL(V.pronon - L.pronon)}. Reduza para até ${BRL(L.pronon)}.`;
+      else if (V.pronas > L.pronas)  m = `PRONAS/PCD excede em ${BRL(V.pronas - L.pronas)}. Reduza para até ${BRL(L.pronas)}.`;
+      else if (clsPrononTotal === 'warn') m = `Próximo do limite. Cada programa tem 1% do IR devido — ${BRL(L.pronon)} cada.`;
+      else m = `✓ Dentro dos limites: 1% para cada programa, ${BRL(L.pronon)} cada.`;
       elPT.textContent = m;
       elPT.className = 'text-xs mt-2 ' + (clsPrononTotal === 'over' ? 'text-red-400' : clsPrononTotal === 'warn' ? 'text-yellow-400' : 'text-green-400');
       elPT.classList.remove('hidden');
@@ -459,7 +474,8 @@
     if (V.fia > L.fia)                   problemas.push(`FDCA excede o limite de ${tetoPct}`);
     if (V.fdi > L.fdi)                   problemas.push(`FDI excede o limite de ${tetoPct}`);
     if (V.reciclagem > L.reciclagem)     problemas.push('Reciclagem excede o limite');
-    if (V.pronon_pronas > L.pronon)      problemas.push('PRONON+PRONAS excede o limite conjunto de 1%');
+    if (V.pronon > L.pronon)             problemas.push('PRONON excede o limite de 1%');
+    if (V.pronas > L.pronas)             problemas.push('PRONAS/PCD excede o limite de 1%');
     if (total > ir)                      problemas.push('Total destinado excede o IR Devido');
 
     const warns = [];
@@ -469,7 +485,8 @@
       if (V.fia/L.fia >= 0.85 && V.fia > 0)                     warns.push('FDCA próximo do limite');
       if (V.fdi/L.fdi >= 0.85 && V.fdi > 0)                     warns.push('FDI próximo do limite');
       if (V.reciclagem/L.reciclagem >= 0.85 && V.reciclagem > 0) warns.push('Reciclagem próximo do limite');
-      if (V.pronon_pronas/L.pronon >= 0.85 && V.pronon_pronas > 0) warns.push('Saúde próximo do limite conjunto');
+      if (V.pronon/L.pronon >= 0.85 && V.pronon > 0) warns.push('PRONON próximo do limite de 1%');
+      if (V.pronas/L.pronas >= 0.85 && V.pronas > 0) warns.push('PRONAS/PCD próximo do limite de 1%');
     }
 
     const geral = document.getElementById('status-geral');
@@ -511,9 +528,8 @@
     if (V.fia > 0)        itens.push(`FDCA — Criança e Adolescente: ${BRL(V.fia)} de ${BRL(L.fia)} disponível (${tetoPct}) ${V.fia <= L.fia ? '✅' : '❌'}`);
     if (V.fdi > 0)        itens.push(`FDI — Idoso: ${BRL(V.fdi)} de ${BRL(L.fdi)} disponível (${tetoPct}) ${V.fdi <= L.fdi ? '✅' : '❌'}`);
     if (V.reciclagem > 0) itens.push(`Recicla+ (Lei 14.260/2021): ${BRL(V.reciclagem)} de ${BRL(L.reciclagem)} disponível (${tetoPct}) ${V.reciclagem <= L.reciclagem ? '✅' : '❌'}`);
-    if (V.pronon > 0)     itens.push(`PRONON — Oncologia: ${BRL(V.pronon)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
-    if (V.pronas > 0)     itens.push(`PRONAS — Deficiência: ${BRL(V.pronas)} ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
-    if (V.pronon_pronas > 0) itens.push(`PRONON+PRONAS total: ${BRL(V.pronon_pronas)} de ${BRL(L.pronon)} disponível (limite conjunto 1%) ${V.pronon_pronas <= L.pronon ? '✅' : '❌'}`);
+    if (V.pronon > 0)     itens.push(`PRONON — Oncologia: ${BRL(V.pronon)} de ${BRL(L.pronon)} (1% próprio) ${V.pronon <= L.pronon ? '✅' : '❌'}`);
+    if (V.pronas > 0)     itens.push(`PRONAS/PCD — Deficiência: ${BRL(V.pronas)} de ${BRL(L.pronas)} (1% próprio) ${V.pronas <= L.pronas ? '✅' : '❌'}`);
     if (total > 0)      itens.push(`Total destinado: ${BRL(total)} | IR Devido: ${BRL(ir)} ${total <= ir ? '✅' : '❌'}`);
     itens.push(`Conclusão: ${problemas.length ? 'NÃO CONFORME — ' + problemas.join('; ') : 'CONFORME — dentro dos limites legais vigentes'}`);
 

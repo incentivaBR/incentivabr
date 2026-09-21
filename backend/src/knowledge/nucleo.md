@@ -46,14 +46,14 @@ Validar PRONAC ativo em salic.cultura.gov.br — projetos com captação encerra
 #### Lei de Incentivo ao Esporte
 Projetos desportivos e paradesportivos aprovados pelo Ministério do Esporte
 Lei nº 11.438/2006
-Divide o teto de 6% do IR Devido
+Divide o teto geral, que sobe a 7% do IR Devido
 DIRPF: Doações Efetuadas → Código 43
 Base Legal
-Lei nº 11.438, de 29 de dezembro de 2006 — incentivo a projetos desportivos e paradesportivos aprovados e habilitados pelo Ministério do Esporte.
+Lei Complementar nº 222, de 26 de novembro de 2025 — tornou permanente o incentivo a projetos desportivos e paradesportivos aprovados e habilitados pelo Ministério do Esporte, no lugar da Lei nº 11.438/2006. Regulamentada pelo Decreto nº 12.861/2026 e pela Portaria MESP nº 10/2026.
 Norma RFB
 Instrução Normativa RFB nº 1.339/2013 e atualizações. Consulte a IN vigente no exercício da declaração.
 Limite
-Concorre com o teto de 6% — para pessoa física, a Lei de Incentivo ao Esporte disputa o mesmo limite da Lei Rouanet; não é percentual adicional. A LC 222/2025 revogou o marco anterior: confirme o percentual e a vigência no ano-calendário antes de orientar o cliente.
+Concorre com o teto geral, elevando-o a 7% — para pessoa física, a LC 222/2025 fixa o limite em 7% do imposto devido em conjunto com as deduções dos incisos I a III do art. 12 da Lei 9.250/1995. Não é percentual adicional: a cesta inteira sobe dos 6% de hoje para 7% quando há esporte, em vez de abrir um teto à parte. Percentual não confirmado em fonte primária — confira antes de orientar o cliente.
 Quem pode usar
 Pessoa Física com IR Devido positivo, declaração obrigatória no modelo completo.
 Ficha DIRPF
@@ -109,14 +109,14 @@ Lei nº 12.715, de 17 de setembro de 2012, Art. 1º — Programa Nacional de Apo
 Norma RFB
 Instrução Normativa RFB vigente para o exercício. A entidade deve estar habilitada pelo Ministério da Saúde e constar no CNES (Cadastro Nacional de Estabelecimentos de Saúde).
 Limite
-Até 1% do IR Devido — este é o limite conjunto entre PRONON e PRONAS somados. Os dois mecanismos compartilham esse teto de 1%.
+Até 1% do IR Devido — limite próprio do PRONON, que não se soma ao do PRONAS/PCD nem entra no teto geral do art. 22 da Lei 9.532/1997. Quem usa os dois programas tem 1% em cada.
 Quem pode usar
 Pessoa Física com IR Devido positivo, declaração obrigatória no modelo completo.
 Ficha DIRPF
 Deduções → Incentivos Fiscais → PRONON
 Comprovante
 Recibo emitido pela entidade habilitada contendo: CNPJ da entidade, número CNES, valor destinado e data da transferência. Guardar também o comprovante bancário.
-⚠️ Limite conjunto: PRONON e PRONAS somados não podem ultrapassar 1% do IR Devido. Se o cliente usar ambos, a soma das duas destinações deve respeitar esse teto de 1%.
+⚠️ Vigência não confirmada: a Lei 12.715/2012 autorizava a dedução da pessoa física até o ano-calendário de 2025. Não confirmamos em fonte primária se houve prorrogação para os anos seguintes. Confira a vigência do ano antes de orientar o cliente.
 #### PRONAS — Atenção à Pessoa com Deficiência
 Destinação a entidade habilitada de atenção à pessoa com deficiência
 Lei nº 12.715/2012, Art. 3º
@@ -127,14 +127,14 @@ Lei nº 12.715, de 17 de setembro de 2012, Art. 3º — Programa Nacional de Apo
 Norma RFB
 Instrução Normativa RFB vigente para o exercício. A entidade deve estar habilitada pelo Ministério da Saúde e constar no CNES.
 Limite
-Até 1% do IR Devido — este é o limite conjunto entre PRONON e PRONAS somados. Os dois mecanismos compartilham esse teto de 1%.
+Até 1% do IR Devido — limite próprio do PRONAS/PCD, que não se soma ao do PRONON nem entra no teto geral do art. 22 da Lei 9.532/1997. Quem usa os dois programas tem 1% em cada.
 Quem pode usar
 Pessoa Física com IR Devido positivo, declaração obrigatória no modelo completo.
 Ficha DIRPF
 Deduções → Incentivos Fiscais → PRONAS
 Comprovante
 Recibo emitido pela entidade habilitada contendo: CNPJ da entidade, número CNES, valor destinado e data da transferência. Guardar também o comprovante bancário.
-⚠️ Limite conjunto: PRONON e PRONAS somados não podem ultrapassar 1% do IR Devido. Se o cliente usar ambos, a soma das duas destinações deve respeitar esse teto de 1%.
+⚠️ Vigência não confirmada: a Lei 12.715/2012 autorizava a dedução da pessoa física até o ano-calendário de 2025. Não confirmamos em fonte primária se houve prorrogação para os anos seguintes. Confira a vigência do ano antes de orientar o cliente.
 #### Recicla+ — Lei de Incentivo à Reciclagem
 Destinação a cooperativas de catadores habilitadas pelo MAPA
 Lei nº 14.260/2021
@@ -165,8 +165,8 @@ Ficha DIRPF
 Lei 8.313/1991
 Incentivos Fiscais → PRONAC/Cultura
 ⚽ Lei do Esporte
-Lei 11.438/2006
-6% *
+LC 222/2025
+7% conjunto**
 Doações Efetuadas → Código 43
 👧 FDCA
 Lei 8.069/1990, Art. 260 II
@@ -185,7 +185,9 @@ Incentivos Fiscais → PRONON
 Lei 12.715/2012, Art. 3º
 1%*
 Incentivos Fiscais → PRONAS
-* PRONON e PRONAS compartilham limite conjunto de 1% do IR Devido, fora dos 6%. As demais modalidades — Rouanet, FDCA, Fundo do Idoso, audiovisual e, para pessoa física, o incentivo ao esporte — dividem um teto único de 6% (Lei 9.532/1997, art. 22). Nunca some os percentuais para apresentar um total ao cliente: o disponível é 6% no conjunto, a ser distribuído. Clique em qualquer linha para ver a ficha completa.
+* PRONON e PRONAS/PCD têm 1% cada, um não consome o do outro, e nenhum dos dois entra no teto geral. A autorização da pessoa física ia até o ano-calendário de 2025; vigência posterior não confirmada em fonte primária.
+** Rouanet, FDCA, Fundo do Idoso, audiovisual e reciclagem dividem um teto único de 6% (Lei 9.532/1997, art. 22). O incentivo ao esporte divide esse mesmo teto, mas a LC 222/2025 eleva o conjunto a 7% quando ele entra — a cesta sobe, não se abre uma segunda. Percentual não confirmado em fonte primária.
+Nunca some os percentuais para apresentar um total ao cliente: o disponível é um teto só, a ser distribuído. Clique em qualquer linha para ver a ficha completa.
 DÚVIDAS DE COMPLIANCE
 ### Perguntas que o contador precisa responder
 As 5 dúvidas mais frequentes de quem valida tudo antes de assinar.
@@ -211,8 +213,8 @@ Para cada destinação, guardar por mínimo 5 anos:
 - Reciclagem: CNPJ da cooperativa com habilitação MAPA ativa
 O Recibo de Mecenato gerado pela plataforma IncentivaBR já contém automaticamente todos os dados exigidos por modalidade.
 Posso orientar o mesmo cliente em mais de uma modalidade?
-Sim, pode destinar a mais de uma modalidade no mesmo ano — mas os percentuais não se somam. O art. 22 da Lei 9.532/1997 limita a soma das deduções dos incisos I a III do art. 12 da Lei 9.250/1995 — fundos da criança e do idoso, projetos culturais do PRONAC e audiovisual — a 6% do imposto devido, sem limite específico para nenhuma delas. Para pessoa física, o incentivo ao esporte também concorre com esse teto.
-Na prática: um cliente com R$ 10.000 de IR devido tem R$ 600 no total, a distribuir entre Rouanet, FDCA e Fundo do Idoso como preferir — e não R$ 600 em cada. A única modalidade com limite à parte é PRONON + PRONAS, que compartilham 1% entre si.
+Sim, pode destinar a mais de uma modalidade no mesmo ano — mas os percentuais não se somam. O art. 22 da Lei 9.532/1997 limita a soma das deduções dos incisos I a III do art. 12 da Lei 9.250/1995 — fundos da criança e do idoso, projetos culturais do PRONAC e audiovisual — a 6% do imposto devido, sem limite específico para nenhuma delas. Para pessoa física, o incentivo ao esporte também concorre com esse teto, e a LC 222/2025 eleva o conjunto a 7% quando ele entra.
+Na prática: um cliente com R$ 10.000 de IR devido tem R$ 600 no total, a distribuir entre Rouanet, FDCA e Fundo do Idoso como preferir — e não R$ 600 em cada. Fora desse teto ficam o PRONON e o PRONAS/PCD, que têm 1% cada, independentes entre si.
 Apresente ao cliente um teto único de 6% a ser dividido. Somar percentuais por modalidade leva a destinar acima do permitido — e a glosa recai sobre ele, na malha fina.
 Use o Validador Anti-Malha Fina para verificar os limites de cada cliente de forma segura.
 FERRAMENTAS RELACIONADAS
@@ -695,7 +697,7 @@ Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve �
 Posicionamento correto agora (pós-maio/2026): "A destinação de 2027 começa agora. Você tem o ano inteiro para planejar."
 Posso destinar para mais de uma modalidade no mesmo ano?
 Sim — com atenção aos limites individuais de cada modalidade.
-Exemplo: um cliente com R$ 10.000 de IR devido tem R$ 600 no total — pode dividir entre Rouanet, FDCA e Fundo do Idoso como quiser, mas a soma não passa disso. A Lei de Incentivo ao Esporte também concorre com esse teto para pessoa física, e teve seu marco alterado pela LC 222/2025: confira a vigência no ano-calendário antes de orientar.
+Exemplo: um cliente com R$ 10.000 de IR devido tem R$ 600 no total — pode dividir entre Rouanet, FDCA e Fundo do Idoso como quiser, mas a soma não passa disso. A Lei de Incentivo ao Esporte também concorre com esse teto para pessoa física: a LC 222/2025 eleva o conjunto a 7% quando ela entra, em vez de abrir um teto à parte. Percentual não confirmado em fonte primária — confira a vigência no ano-calendário antes de orientar.
 FDCA (ECA art. 260, II) e FDI (Lei 12.213/2010) dividem o mesmo teto de 6%, junto com a Lei Rouanet e o audiovisual. Não são limites independentes: destinar aos dois no mesmo ano reparte os 6%, não os soma.
 O limite absoluto final: a soma de todas as destinações não pode exceder o IR Devido total do cliente.
 Como verificar se um projeto Rouanet tem PRONAC ativo?
