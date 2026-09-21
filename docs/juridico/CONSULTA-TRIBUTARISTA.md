@@ -101,10 +101,16 @@ de Mecenato que o proponente emitiu.
    pesquisa aponta que anonimizar não resolve, porque o comprovante e o recibo
    reidentificam por si — nome, banco, data e valor no próprio documento.
 
-**O que o código faz hoje:** o fim da guarda é `ano-base + 1 + 5`
-(`backend/src/config/lgpd.js`). **Nada é apagado por prazo**: uma rota do
-superadmin lista o que já venceu, e a anonimização automática só será ligada
-com a resposta a esta pergunta.
+**O que o código faz hoje:** o fim da guarda é `ano-base + 1 + 5`, e termina em
+**31 de dezembro** desse ano, não em 1º de janeiro (`backend/src/config/lgpd.js`).
+**Nada é apagado por prazo**: uma rota do superadmin lista o que já venceu, e a
+anonimização automática só será ligada com a resposta a esta pergunta.
+
+Já existe **trava de retenção** (migration 046): havendo fiscalização,
+impugnação ou processo sobre a destinação de alguém, o superadmin trava aquela
+conta com o motivo escrito, e o prazo deixa de correr para ela. Foi feita antes
+de ligar qualquer eliminação, de propósito — é mais seguro do que ligar
+primeiro e lembrar da exceção depois.
 
 ---
 

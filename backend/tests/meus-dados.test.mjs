@@ -47,6 +47,8 @@ db.public.none(`
     accepted_terms_at TIMESTAMP, accepted_terms_version TEXT,
     email_verification_token TEXT, reset_token TEXT,
     encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP,
+    -- migration 046: a trava de retenção. /api/admin/retencao lê as três.
+    retencao_travada_em TIMESTAMP, retencao_travada_motivo TEXT, retencao_travada_por UUID,
     created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW()
   );
   CREATE TABLE organization_users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

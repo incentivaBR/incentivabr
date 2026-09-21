@@ -599,21 +599,27 @@ router.get('/mecanismos', async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 router.get('/retencao', async (req, res) => {
   try {
-    const { RETENCAO_INTERESSADO_MESES, RETENCAO_FISCAL_ANOS, anoFinalDaGuarda } =
+    const { RETENCAO_INTERESSADO_MESES, RETENCAO_FISCAL_ANOS, anoFinalDaGuarda,
+            guardaVencida, ANONIMIZAR_ALCANCA_ARQUIVOS } =
       await import('../config/lgpd.js');
-    const anoAtual = new Date().getFullYear();
 
     // Contas encerradas a pedido, com registro fiscal: vencem quando o
     // último ano-base sai da guarda.
     const { rows: encerradas } = await pool.query(
-      `SELECT u.id, u.encerrada_em, MAX(d.fiscal_year)::int AS ultimo_ano_base, COUNT(d.id)::int AS destinacoes
+      `SELECT u.id, u.encerrada_em, u.retencao_travada_em, u.retencao_travada_motivo,
+              MAX(d.fiscal_year)::int AS ultimo_ano_base, COUNT(d.id)::int AS destinacoes
          FROM users u
          JOIN donations d ON d.user_id = u.id
         WHERE u.encerrada_em IS NOT NULL AND u.anonimizada_em IS NULL
-        GROUP BY u.id, u.encerrada_em`);
-    const contasVencidas = encerradas
-      .map(c => ({ ...c, guarda_ate: anoFinalDaGuarda(c.ultimo_ano_base) }))
-      .filter(c => c.guarda_ate < anoAtual);
+        GROUP BY u.id, u.encerrada_em, u.retencao_travada_em, u.retencao_travada_motivo`);
+
+    const comPrazo = encerradas.map(c => ({ ...c, guarda_ate: anoFinalDaGuarda(c.ultimo_ano_base) }));
+
+    // Travado nunca vence. Sai da fila e entra numa lista própria, para o
+    // superadmin ver que existe e por quê — e não para sumir do relatório.
+    const travadas = comPrazo.filter(c => c.retencao_travada_em);
+    const contasVencidas = comPrazo.filter(
+      c => !c.retencao_travada_em && guardaVencida(c.ultimo_ano_base));
 
     const corte = new Date();
     corte.setMonth(corte.getMonth() - RETENCAO_INTERESSADO_MESES);
@@ -628,18 +634,104 @@ router.get('/retencao', async (req, res) => {
       regra: {
         fiscal_anos: RETENCAO_FISCAL_ANOS,
         contagem: 'a partir do ano seguinte ao ano-base; data exata a confirmar com o tributarista',
-        interessado_meses: RETENCAO_INTERESSADO_MESES
+        marco: '31/12 do ano final — o prazo termina no último instante do ano, não no primeiro',
+        interessado_meses: RETENCAO_INTERESSADO_MESES,
+        anonimizar_alcanca_arquivos: ANONIMIZAR_ALCANCA_ARQUIVOS
       },
       contas_encerradas_vencidas: contasVencidas.map(c => ({
         id: c.id, encerrada_em: c.encerrada_em, ultimo_ano_base: c.ultimo_ano_base,
         guarda_ate: c.guarda_ate, destinacoes: c.destinacoes
       })),
-      contas_encerradas_em_guarda: encerradas.length - contasVencidas.length,
+      contas_encerradas_em_guarda: comPrazo.length - contasVencidas.length - travadas.length,
+      contas_travadas: travadas.map(c => ({
+        id: c.id, travada_em: c.retencao_travada_em, motivo: c.retencao_travada_motivo,
+        ultimo_ano_base: c.ultimo_ano_base, guarda_ate: c.guarda_ate,
+        destinacoes: c.destinacoes
+      })),
       interessados_inativos_vencidos: interessados[0]?.quantos || 0,
       apaga_automaticamente: false
     });
   } catch (error) {
     console.error('[Admin] Erro no relatorio de retencao:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/admin/retencao/:userId/travar — o prazo para de correr
+//
+// Para quando houver fiscalização, impugnação ou processo sobre a destinação
+// daquela pessoa. Enquanto travado, ela nunca aparece como vencida, e nenhuma
+// rotina de eliminação futura pode alcançá-la.
+//
+// O motivo é obrigatório. Trava sem motivo escrito vira trava eterna: seis
+// meses depois ninguém sabe se ainda vale, e no caso de dúvida ninguém destrava
+// — o dado fica guardado para sempre, que é o oposto do que a LGPD quer.
+// ─────────────────────────────────────────────────────────────
+router.post('/retencao/:userId/travar', async (req, res) => {
+  try {
+    const motivo = String(req.body?.motivo || '').trim();
+    if (motivo.length < 10) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Escreva o motivo da trava (processo, ofício, fiscalização). Mínimo de 10 caracteres.'
+      });
+    }
+
+    const { rows } = await pool.query(
+      `UPDATE users
+          SET retencao_travada_em     = COALESCE(retencao_travada_em, NOW()),
+              retencao_travada_motivo = $2,
+              retencao_travada_por    = $3
+        WHERE id = $1 AND anonimizada_em IS NULL
+        RETURNING id, retencao_travada_em, retencao_travada_motivo`,
+      [req.params.userId, motivo, req.user.userId]);
+
+    if (!rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Conta não encontrada ou já anonimizada.' });
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)
+       VALUES ($1, 'retencao.travada', 'user', $2, $3)`,
+      [req.user.userId, rows[0].id, JSON.stringify({ motivo })]);
+
+    res.json({ status: 'success', trava: rows[0] });
+  } catch (error) {
+    console.error('[Admin] Erro ao travar retencao:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/admin/retencao/:userId/travar — o prazo volta a correr
+//
+// Destravar não apaga nada: só devolve a conta à fila normal, onde ela volta a
+// contar o prazo. Como nada apaga por prazo hoje, o efeito imediato é apenas
+// voltar a aparecer na lista de vencidas.
+// ─────────────────────────────────────────────────────────────
+router.delete('/retencao/:userId/travar', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users
+          SET retencao_travada_em = NULL, retencao_travada_motivo = NULL,
+              retencao_travada_por = NULL
+        WHERE id = $1 AND retencao_travada_em IS NOT NULL
+        RETURNING id`,
+      [req.params.userId]);
+
+    if (!rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Conta não encontrada ou não estava travada.' });
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (user_id, action, entity_type, entity_id)
+       VALUES ($1, 'retencao.destravada', 'user', $2)`,
+      [req.user.userId, rows[0].id]);
+
+    res.json({ status: 'success', id: rows[0].id });
+  } catch (error) {
+    console.error('[Admin] Erro ao destravar retencao:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno.' });
   }
 });
