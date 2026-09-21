@@ -2,6 +2,12 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### FDCA e Fundo do Idoso: o catálogo tinha 3% e 6% trocados
+- A migration 018 semeou, na observação das duas leis, **"destinação durante o ano até 3%; doação na declaração até 6%"**. É o inverso. Durante o ano-calendário vale o teto de 6% do art. 22 da Lei 9.532/1997, o mesmo que a Rouanet divide — exatamente o que a seção "O que já consideramos resolvido" da consulta registra e o que `saldoDisponivel()` sempre fez. Os 3% são a via do art. 260-A do ECA, destinar na própria declaração, caminho que a plataforma não opera.
+- A migration 043 leu a observação invertida e bloqueou os dois mecanismos **pelo motivo errado**: "falta o limite da destinação durante o ano". Não falta. A 044 corrige o catálogo, aponta FDCA e Idoso para o teto global e troca o motivo do bloqueio pelo verdadeiro, que não é jurídico: o assistente pede PRONAC e consulta o SALIC, e um fundo municipal não tem PRONAC — tem CNPJ do fundo, e é o fundo que emite o recibo.
+- Por isso a coluna deixa de se chamar `pendencia_parecer`: ela prometia que o bloqueio era sempre do tributarista, e mentiu no primeiro caso real. Agora é `motivo_indisponivel`, e a tela mostra o motivo de cada um em vez de dizer "aguarda parecer" para todos.
+- A pergunta 11 da consulta estava montada sobre a premissa invertida. Reescrita: pede confirmação da leitura correta, e pergunta se os 3% do art. 260-A são adicionais ao destinado durante o ano.
+
 ### O mecanismo de incentivo é escolha do cliente, e o interruptor finalmente existe
 - **Uma coluna fantasma, lida por quatro rotas.** `lib/textosFiscais.js`, `routes/calculator.js`, `routes/donations.js` e `routes/config.js` escolhiam o mecanismo lendo `org.incentive_group_code`, com reserva `'ROUANET'`. A coluna **nunca existiu**: `req.organization` vem de `SELECT *`, então a leitura era sempre `undefined` e todo cliente caía na reserva. O interruptor por tenant foi desenhado e nunca ligado — nenhum white label podia operar outro mecanismo, e a tela de clientes sequer oferecia a escolha. Em JavaScript, ler campo que não existe não é erro: nada quebrou, e por isso ninguém viu.
 - **A conta já estava certa.** `saldoDisponivel()` soma o que a pessoa destinou contra o **mesmo teto**, cruzando mecanismos: quem usar 3% pela Rouanet e 3% no Fundo do Idoso é barrado no quarto por cento. Essa era a parte difícil e não precisou mudar.
