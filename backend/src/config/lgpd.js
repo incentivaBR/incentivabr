@@ -64,7 +64,40 @@ export function anoFinalDaGuarda(anoBase) {
   return Number(anoBase) + 1 + RETENCAO_FISCAL_ANOS;
 }
 
+/**
+ * O mesmo prazo, com a data que ele de fato termina.
+ *
+ * `anoFinalDaGuarda()` devolve um ano, e ano sozinho é ambíguo: guardar "até
+ * 2032" pode ser 1º de janeiro ou 31 de dezembro, e a diferença é um ano
+ * inteiro de documento apagado cedo demais. O fim é o ÚLTIMO instante do ano,
+ * que é a leitura conservadora e a que casa com o exercício fiscal.
+ */
+export function dataFinalDaGuarda(anoBase) {
+  return new Date(Date.UTC(anoFinalDaGuarda(anoBase), 11, 31, 23, 59, 59));
+}
+
+/** Já venceu a guarda deste ano-base? */
+export function guardaVencida(anoBase, agora = new Date()) {
+  return agora > dataFinalDaGuarda(anoBase);
+}
+
+/**
+ * O que "anonimizar ao fim do prazo" tem de alcançar.
+ *
+ * A Política (§7) promete anonimizar. Trocar o CPF por hash na linha do banco
+ * NÃO anonimiza nada enquanto o comprovante e o recibo continuarem guardados:
+ * os dois documentos trazem nome, banco, data e valor no próprio PDF, e
+ * reidentificam a pessoa sozinhos.
+ *
+ * Isto é fato técnico, não interpretação jurídica: qualquer rotina de fim de
+ * prazo tem de alcançar os arquivos, não só as colunas. O que continua sendo
+ * pergunta ao tributarista é se a plataforma precisa guardá-los — item 4 de
+ * docs/juridico/CONSULTA-TRIBUTARISTA.md.
+ */
+export const ANONIMIZAR_ALCANCA_ARQUIVOS = true;
+
 export default {
   POLITICA_VERSAO, ENCARREGADO, RETENCAO_INTERESSADO_MESES,
-  RETENCAO_FISCAL_ANOS, anoFinalDaGuarda
+  RETENCAO_FISCAL_ANOS, anoFinalDaGuarda, dataFinalDaGuarda, guardaVencida,
+  ANONIMIZAR_ALCANCA_ARQUIVOS
 };

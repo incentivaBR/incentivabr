@@ -2,6 +2,14 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Trava de retenção: o prazo não corre enquanto houver processo em aberto
+- `/api/admin/retencao` lista quem já passou do prazo de guarda. Hoje é só uma lista — nada apaga por prazo. Mas é o **rascunho da fila de eliminação**: no dia em que a rotina for ligada, ela vai agir sobre exatamente essas linhas. Apagar o comprovante de alguém no meio de uma fiscalização destrói a prova de quem a plataforma deveria estar protegendo, e é irreversível.
+- A trava (migration 046) resolve isso **agora, enquanto a fila ainda é só uma lista**. O superadmin trava a conta com o motivo escrito — número do processo, ofício, o que for — e ela some da fila de vencidas, aparecendo numa lista própria com o motivo à vista. Ligar a eliminação depois, sobre uma base que já sabe o que não pode ser tocado, é mais seguro do que ligar primeiro e lembrar da exceção depois.
+- **Motivo é obrigatório** (mínimo de 10 caracteres). Trava sem motivo escrito vira trava eterna: seis meses depois ninguém sabe se ainda vale, e na dúvida ninguém destrava — o dado fica guardado para sempre, o oposto do que a LGPD quer. Travar e destravar vão para o `audit_log`, com dono.
+- **A trava é por pessoa, não por destinação.** Uma fiscalização é sobre o contribuinte e a declaração dele: alcança o ano inteiro e normalmente mais de uma destinação. Travar uma a uma deixaria o superadmin esquecendo alguma.
+- **O prazo termina em 31/12**, não em 1º de janeiro. `anoFinalDaGuarda()` devolvia um ano, e ano sozinho é ambíguo — a diferença entre as duas leituras é um ano inteiro de documento apagado cedo demais. Agora há `dataFinalDaGuarda()` e `guardaVencida()`, e um teste prova que durante todo o ano final o documento ainda está na guarda.
+- **Anonimizar a linha não anonimiza nada** enquanto o comprovante e o recibo continuarem guardados: os dois trazem nome, banco, data e valor no próprio PDF e reidentificam sozinhos. Isso é fato técnico, não interpretação — está registrado em `config/lgpd.js` e sai na resposta da rota. O que continua sendo pergunta ao tributarista é se a plataforma precisa guardá-los.
+
 ### PRONON e PRONAS: o site dizia que dividiam 1%, e a lei dá 1% a cada um
 - Quatro páginas no ar (`biblioteca-juridica`, `validador`, `espaco-contador`, `agenda-fiscal`) e a base da TINA afirmavam que **"PRONON e PRONAS compartilham 1% do IR devido"**. A Lei 12.715/2012 dá **1% a cada programa**, independentes entre si e fora do teto geral do art. 22 da Lei 9.532/1997.
 - Pior que o texto: o **validador calculava assim**. Somava as duas destinações (`V.pronon_pronas`) e conferia contra um único `L.pronon`, acusando excesso onde a lei permite o dobro — numa ferramenta que se chama Validador Anti-Malha Fina. Agora cada programa tem o seu limite e é conferido contra ele; o card dos dois mostra o pior dos dois, como o card FDCA + FDI já fazia, em vez da soma.
