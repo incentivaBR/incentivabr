@@ -124,15 +124,43 @@ await teste('nenhuma pagina traz "6%" fora de um [data-fiscal] (fora de <script>
   if (soltos.length) throw new Error('6% escrito a mao em: ' + soltos.join(', '));
 });
 
-await teste('nenhuma pagina afirma "7%" do IR (o esporte concorre no teto unico, migration 031)', () => {
+// Esta guarda nasceu proibindo qualquer "7%" na tela: o Raio-X achou paginas
+// dizendo que o esporte tinha teto proprio de 7% ao lado dos 6% da Rouanet, o
+// que liberava 13%. A proibicao total era certa enquanto o esporte "concorria
+// no teto unico de 6%" (migration 031).
+//
+// A LC 222/2025 mudou o fato, nao a regra. Para pessoa fisica o limite e de 7%
+// EM CONJUNTO com os incisos I a III do art. 12 da Lei 9.250/1995: a cesta
+// inteira sobe de 6% para 7% quando o esporte entra. Continua nao havendo dois
+// tetos — e e isso, e so isso, que esta guarda tem de impedir.
+//
+// O lado do CALCULO fica em limites-por-mecanismo.test.mjs: nenhuma pagina
+// pode multiplicar por 0.07 enquanto saldoDisponivel() nao souber o
+// condicional e o parecer nao existir.
+await teste('"7%" so aparece como teto CONJUNTO, nunca como teto proprio do esporte', () => {
   const achados = [];
   for (const p of paginas) {
-    fs.readFileSync(path.join(FRONTEND, p), 'utf8').split('\n').forEach((l, i) => {
-      if (l.trim().startsWith('//')) return;
-      if (/(?<![\d.,%])7%\s*do\s+IR/i.test(l) || /at[ée]\s+7%/i.test(l)) achados.push(`${p}:${i + 1}`);
+    fs.readFileSync(path.join(FRONTEND, p), 'utf8').split('\n').forEach((linha, i) => {
+      if (linha.trim().startsWith('//')) return;
+      // URL-encode tem "%" para todo lado: "associa%C3%A7%C3%A3o" carrega um
+      // "7%" que nao e percentual nenhum. Apaga antes de procurar.
+      const l = linha.replace(/%[0-9A-Fa-f]{2}/g, '..');
+      if (!/(?<![\d.,%])7%/.test(l)) return;
+
+      // A linha fala em 7%. So passa se disser, na mesma frase, que o teto e
+      // conjunto/da cesta — e nunca se disser que e proprio ou adicional.
+      const conjunto = /conjunt|cesta|mesmo teto|teto geral|divide|sobe|eleva/i.test(l);
+      const proprio  = /teto pr[oó]prio|limite pr[oó]prio|adicional|[aà] parte|separad/i.test(l);
+      const negado   = /n[aã]o (é|e) (percentual )?(adicional|teto pr[oó]prio)|em vez de/i.test(l);
+
+      if (!conjunto || (proprio && !negado)) achados.push(`${p}:${i + 1}`);
     });
   }
-  if (achados.length) throw new Error('"7% do IR" em: ' + achados.join(', '));
+  if (achados.length) {
+    throw new Error(
+      '"7%" sem deixar claro que e o teto conjunto (LC 222/2025), em: ' + achados.join(', ')
+    );
+  }
 });
 
 await teste('toda pagina com [data-fiscal] carrega o tenant.js que o preenche', () => {
