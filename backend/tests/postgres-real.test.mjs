@@ -158,6 +158,86 @@ await teste('o audit_log registrou o login com IP e user-agent (colunas reais)',
   if (!linha) throw new Error('nenhuma linha de user.login em 3 s');
 });
 
+// ── coluna fantasma ─────────────────────────────────────────────────────────
+//
+// Quatro rotas escolhiam o mecanismo de incentivo lendo
+// `org.incentive_group_code`. A coluna nunca existiu. `req.organization` vem
+// de `SELECT * FROM organizations`, entao a leitura era sempre `undefined` e
+// todo cliente caia na reserva 'ROUANET' — por mais de um ano, em silencio.
+// Nada quebrava: em JavaScript, ler campo que nao existe nao e erro.
+//
+// Nenhum teste podia pegar isso em pg-mem, onde o schema e escrito a mao no
+// proprio teste. So o Postgres real sabe quais colunas existem. Esta guarda
+// cruza o que o codigo LE com o que a tabela TEM.
+await teste('nenhuma rota le coluna de organizations que nao existe', async () => {
+  const { rows } = await pool.query(
+    `SELECT column_name FROM information_schema.columns WHERE table_name = 'organizations'`);
+  const reais = new Set(rows.map(r => r.column_name));
+
+  // Campos que o JavaScript acrescenta ao objeto depois de carrega-lo, ou que
+  // sao metodos/propriedades da propria linguagem. Nao vem da tabela.
+  const calculados = new Set(['rows', 'length', 'map', 'filter', 'find', 'toString', 'then']);
+
+  // Apaga texto e comentario antes de procurar: 'org.created' e 'org.updated'
+  // sao nomes de acao no audit_log, e '@casazul.org.br' e um e-mail. Nenhum
+  // dos tres e leitura de coluna.
+  const semTexto = js => js
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
+    .replace(/'(?:\\.|[^'\\])*'/g, "''")
+    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/`(?:\\.|[^`\\])*`/g, '``');
+
+  const arquivos = [];
+  const varre = dir => {
+    for (const nome of fs.readdirSync(dir, { withFileTypes: true })) {
+      const caminho = path.join(dir, nome.name);
+      if (nome.isDirectory()) varre(caminho);
+      else if (nome.name.endsWith('.js')) arquivos.push(caminho);
+    }
+  };
+  varre(path.join(AQUI, '../src'));
+  arquivos.push(path.join(AQUI, '../server.js'));
+
+  const fantasmas = [];
+  for (const caminho of arquivos) {
+    const js = semTexto(fs.readFileSync(caminho, 'utf8'));
+    for (const m of js.matchAll(/\b(?:req\.organization|org|organization)\s*\??\.\s*([a-z_][a-zA-Z0-9_]*)/g)) {
+      const campo = m[1];
+      if (reais.has(campo) || calculados.has(campo)) continue;
+      const linha = js.slice(0, m.index).split('\n').length;
+      fantasmas.push(`${path.relative(path.join(AQUI, '../..'), caminho)}:${linha}  org.${campo}`);
+    }
+  }
+  if (fantasmas.length) {
+    throw new Error('lendo coluna inexistente em organizations:\n          ' + [...new Set(fantasmas)].join('\n          '));
+  }
+});
+
+await teste('o catalogo de mecanismos esta inteiro e sem duplicata', async () => {
+  const grupos = await q('SELECT code, teto_codigo, disponivel_para_cliente FROM incentive_groups ORDER BY code');
+  const codigos = grupos.map(g => g.code);
+  if (codigos.length !== new Set(codigos).size) throw new Error('codigo repetido: ' + codigos.join(','));
+  if (codigos.some(c => c !== c.toLowerCase())) throw new Error('codigo em maiuscula: ' + codigos.join(','));
+  // Os sete de `laws` viraram grupo (migration 043).
+  const leis = (await q('SELECT slug FROM laws')).map(l => l.slug);
+  for (const slug of leis) {
+    if (!codigos.includes(slug)) throw new Error(`a lei ${slug} nao virou mecanismo`);
+  }
+  // Quem esta disponivel para cliente tem teto declarado. Sem isso,
+  // tetoDoMecanismo() cai no global de 6% — permissivo demais para quase todos.
+  for (const g of grupos.filter(g => g.disponivel_para_cliente)) {
+    if (!g.teto_codigo) throw new Error(`${g.code} esta disponivel para cliente e sem teto declarado`);
+  }
+  // E toda organizacao aponta para um mecanismo que existe (a chave
+  // estrangeira garante, mas o teste diz qual quebrou se alguem a remover).
+  const orfas = await q(
+    `SELECT o.slug FROM organizations o
+      LEFT JOIN incentive_groups g ON g.code = o.incentive_group_code
+      WHERE g.code IS NULL`);
+  if (orfas.length) throw new Error('organizacao com mecanismo inexistente: ' + orfas.map(o => o.slug).join(','));
+});
+
 servidor.close();
 await pool.end();
 

@@ -24,6 +24,7 @@
  */
 import pool from '../../config/database.js';
 import { tetosVigentes, tetoDoMecanismo } from './tetos.js';
+import { codigoDoMecanismo } from './mecanismos.js';
 
 /**
  * Códigos da ficha "Doações Efetuadas" do programa IRPF.
@@ -72,7 +73,7 @@ export function formataPercentual(n) {
  * @param {{query: Function}} [executor]
  */
 export async function textosFiscais(org, executor = pool) {
-  const teto = await tetoDoMecanismo(org?.incentive_group_code || 'ROUANET', executor);
+  const teto = await tetoDoMecanismo(codigoDoMecanismo(org), executor);
   const tetos = await tetosVigentes(executor);
 
   let grupos = [];

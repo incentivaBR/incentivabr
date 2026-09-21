@@ -192,6 +192,33 @@ primária" (`lib/textosFiscais.js`).
 
 ---
 
+## 11. FDCA e Fundo do Idoso: qual o limite da destinação DURANTE o ano?
+
+Que os dois dividem o teto global de 6% já consideramos resolvido (seção
+inicial). Falta o limite do fluxo que esta plataforma opera.
+
+O que temos registrado, e não fecha:
+
+- o catálogo da plataforma diz **"destinação durante o ano até 3%; doação na
+  declaração até 6%"**;
+- a pergunta 7 acima trata do art. 260-A do ECA como sendo **os 3% no ajuste
+  anual** — o inverso.
+
+Uma das duas leituras está errada, e a diferença é o dobro.
+
+**A pergunta:** um servidor que transfere para um Fundo Municipal da Criança e
+do Adolescente **em agosto**, com recibo do fundo, e lança na declaração do ano
+seguinte, pode deduzir até **3% ou até 6%** do imposto devido? E para o Fundo
+do Idoso, o mesmo? Os dois juntos somam 6% ou cada um tem o seu?
+
+**O que muda no sistema:** hoje o Fundo do Idoso e o FDCA existem no catálogo
+mas **não podem ser atribuídos a um cliente** (`incentive_groups.
+disponivel_para_cliente = false`, migration 043), justamente porque oferecer 6%
+onde a lei permite 3% seria liberar o dobro. A resposta destrava o primeiro
+cliente white-label fora da Lei Rouanet.
+
+---
+
 ## Como pretendemos usar o parecer
 
 1. **No código.** Os tetos vivem em tabela (`tetos_deducao`), não em constante —
