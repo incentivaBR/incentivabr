@@ -8,6 +8,16 @@
 #
 # Rode pela aba Actions depois de mexer no prompt, na base de conhecimento ou
 # na chave. O texto da resposta sai no log, para ler.
+#
+# A PORTARIA. Com SITE_SENHA ligada no painel da Railway, o site inteiro
+# responde 401 — inclusive /api/chat/tina. Sem a senha aqui, este workflow
+# falharia com 401 e pareceria a TINA quebrada, quando o problema é a porta.
+#
+# Por isso ele manda a senha como Basic auth quando o segredo existe. O
+# segredo é do repositório (Settings → Secrets and variables → Actions →
+# SITE_SENHA) e tem de ter o MESMO valor da variável na Railway: trocou lá,
+# troca aqui. Sem o segredo, o workflow roda como antes — o que continua
+# certo depois da virada, quando o site abrir e a portaria sair.
 name: TINA responde
 
 on:
@@ -28,14 +38,27 @@ jobs:
     env:
       URL: https://www.incentivabr.com.br
       PERGUNTA: ${{ inputs.pergunta || 'Quem pode destinar parte do imposto de renda pela Lei Rouanet?' }}
+      SITE_SENHA: ${{ secrets.SITE_SENHA }}
     steps:
       - name: A TINA responde, e responde com o aviso
         run: |
           python3 - <<'PY'
-          import json, os, sys, urllib.request
+          import base64, json, os, sys, urllib.request
           url = os.environ['URL'] + '/api/chat/tina'
           corpo = json.dumps({'message': os.environ['PERGUNTA'], 'history': []}).encode()
-          req = urllib.request.Request(url, data=corpo, headers={'Content-Type': 'application/json'}, method='POST')
+          cabecalhos = {'Content-Type': 'application/json'}
+
+          # A portaria confere só a senha; o usuário vai para preencher o
+          # formato "usuario:senha" e não é olhado (server.js).
+          senha = (os.environ.get('SITE_SENHA') or '').strip()
+          if senha:
+              cred = base64.b64encode(f'ci:{senha}'.encode()).decode()
+              cabecalhos['Authorization'] = 'Basic ' + cred
+              print('portaria: mandando a senha do segredo SITE_SENHA')
+          else:
+              print('portaria: sem segredo SITE_SENHA — só funciona com o site aberto')
+
+          req = urllib.request.Request(url, data=corpo, headers=cabecalhos, method='POST')
           try:
               with urllib.request.urlopen(req, timeout=60) as r:
                   status, texto = r.status, r.read().decode()
@@ -43,6 +66,14 @@ jobs:
               status, texto = e.code, e.read().decode()
           print('status:', status)
           print(texto[:2000])
+
+          # 401 é a porta, não a assistente. Dizer isso evita a caçada ao
+          # defeito errado — foi para isso que a mensagem existe.
+          if status == 401:
+              print('::error::401 na portaria do site, não na TINA. Confira o segredo '
+                    'SITE_SENHA do repositório: ele tem de ter o mesmo valor da variável '
+                    'SITE_SENHA no painel da Railway.')
+              sys.exit(1)
           if status != 200:
               print(f'::error::a TINA respondeu {status}'); sys.exit(1)
           d = json.loads(texto)
