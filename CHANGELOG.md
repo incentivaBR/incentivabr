@@ -2,6 +2,14 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### Sublimite por mecanismo: o FDCA a 3%, dentro dos 6% compartilhados
+- A RN 125/2026 do CDCA/DF diz, no art. 2º, § 1º, II, que a dedução da pessoa física não passa de **3%** do imposto apurado na declaração — e o § 3º aplica o mesmo limite tanto à doação feita na própria declaração quanto às feitas durante o ano. A plataforma calculava 6%, pelo art. 22 da Lei 9.532/1997. **Decisão: seguir a RN 125.** Não porque saibamos que o conselho está certo — a pergunta 1 da consulta continua aberta —, mas porque 3% é menor que 6% sob qualquer leitura, e é o número que o órgão que dá o recibo ao servidor publica.
+- **A armadilha que esta migration evita.** O jeito intuitivo seria criar um teto `irpf_fdca_3` e apontar o FDCA para ele. Seria **pior do que não fazer nada**: `saldoDisponivel()` soma contra o mesmo `teto_codigo`, e é esse cruzamento que impede destinar 6% pela Rouanet e mais 6% ao FDCA. Um teto próprio quebraria o cruzamento e liberaria 6% + 3% = **nove por cento**, acima de qualquer leitura.
+- Por isso o FDCA **continua apontando para `irpf_global_6`** — segue dividindo o bolo com a Rouanet — e ganha um **sublimite** que limita a fatia dele a 3%. São duas perguntas: "quanto cabe no bolo?" e "quanto cabe na fatia deste fundo?". Vale o menor, e a mensagem de recusa diz qual dos dois barrou — citar "teto de 6%" quando quem barrou foi a fatia de 3% faz a pessoa conferir a conta errada.
+- **Só o FDCA recebe.** A RN 125 é do Conselho da Criança e do Adolescente; o Fundo da Pessoa Idosa tem conselho e norma próprios, que não lemos. Aplicar a ele os 3% seria inventar limite sem fonte — o erro da 044, na direção oposta. Fica registrado em `motivo_indisponivel` que a pergunta equivalente do Idoso está aberta.
+- **Um bug meu que o teste pegou, e uma lição sobre o pg-mem.** A soma da fatia usava `SUM(...) FILTER (WHERE ...)`. O pg-mem **ignora o FILTER sem reclamar** e devolve a soma inteira: a fatia do FDCA aparecia consumida por destinação da Rouanet. Virou `SUM(CASE WHEN ...)`, que é portável, e o resultado foi conferido contra o Postgres real — 650 no bolo, 150 na fatia, como esperado.
+- **O que isto destrava:** o motivo de segurar o FDCA era colocar o servidor num número acima do que o CDCA/DF publica. Com 3%, isso acaba. O parecer deixa de ser o que impede começar e passa a ser o que eventualmente permite subir a 6%.
+
 ### Certificado de Autorização para Captação
 - No FDCA/DF uma OSC não capta porque quer: pede autorização ao CDCA/DF (RN 125/2026, art. 12), o pedido passa pelo Conselho de Administração do Fundo e pelo Plenário (art. 13) e, concedida, sai resolução no Diário Oficial e é emitido o **Certificado de Autorização para Captação**. Hoje isso vive em planilha.
 - Não é o equivalente do PRONAC. O PRONAC identifica o projeto e vale enquanto o projeto vale; o Certificado é uma **autorização com prazo**, e o prazo tem consequência dura.

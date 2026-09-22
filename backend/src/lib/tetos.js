@@ -80,21 +80,41 @@ export function limpaCache() {
  * @param {{query: Function}} [executor] - ver tetosVigentes()
  * @returns {Promise<{codigo: string, percentual: number, base_legal: string}>}
  */
+/**
+ * A regra do mecanismo: qual teto ele divide e qual é a fatia dele.
+ *
+ * Uma consulta só, porque as duas perguntas são da mesma linha. Devolve
+ * objeto vazio quando não dá para resolver — quem chama trata a ausência
+ * pelo lado conservador.
+ *
+ * @param {string} [codigoGrupo]
+ * @param {{query: Function}} [executor]
+ */
+async function regraDoMecanismo(codigoGrupo, executor = pool) {
+  if (!codigoGrupo) return {};
+  try {
+    const { rows } = await executor.query(
+      'SELECT teto_codigo, sublimite_pct, sublimite_base_legal FROM incentive_groups WHERE code = $1 LIMIT 1',
+      [codigoGrupo]
+    );
+    return rows[0] || {};
+  } catch (erro) {
+    console.error('[tetos] falha ao resolver o mecanismo:', erro.message);
+    return {};
+  }
+}
+
+/**
+ * O teto que vale para um mecanismo de incentivo.
+ *
+ * @param {string} [codigoGrupo] - code de incentive_groups (ex.: 'ROUANET')
+ * @param {{query: Function}} [executor] - ver tetosVigentes()
+ * @returns {Promise<{codigo: string, percentual: number, base_legal: string}>}
+ */
 export async function tetoDoMecanismo(codigoGrupo, executor = pool) {
   const tetos = await tetosVigentes(executor);
-
-  if (codigoGrupo) {
-    try {
-      const { rows } = await executor.query(
-        'SELECT teto_codigo FROM incentive_groups WHERE code = $1 LIMIT 1',
-        [codigoGrupo]
-      );
-      const codigo = rows[0]?.teto_codigo;
-      if (codigo && tetos.has(codigo)) return tetos.get(codigo);
-    } catch (erro) {
-      console.error('[tetos] falha ao resolver o mecanismo:', erro.message);
-    }
-  }
+  const { teto_codigo: codigo } = await regraDoMecanismo(codigoGrupo, executor);
+  if (codigo && tetos.has(codigo)) return tetos.get(codigo);
 
   // Mecanismo desconhecido ou sem teto declarado cai no global. É o mais
   // restritivo dos que existem hoje — de novo, errar para menos.
@@ -117,13 +137,28 @@ export async function tetoDoMecanismo(codigoGrupo, executor = pool) {
  *   transação para que a soma enxergue o que já está bloqueado por ela
  */
 export async function saldoDisponivel(userId, irDevido, anoFiscal, codigoGrupo, executor = pool) {
-  const teto = await tetoDoMecanismo(codigoGrupo, executor);
-  const limite = Math.round(irDevido * (teto.percentual / 100) * 100) / 100;
+  const tetos  = await tetosVigentes(executor);
+  const regra  = await regraDoMecanismo(codigoGrupo, executor);
+  const teto   = (regra.teto_codigo && tetos.get(regra.teto_codigo))
+              || tetos.get(TETO_DE_SEGURANCA.codigo) || TETO_DE_SEGURANCA;
+  const limite = centavos(irDevido * (teto.percentual / 100));
 
   let jaDestinado = 0;
+  let jaNesteMecanismo = 0;
   try {
     const { rows } = await executor.query(
-      `SELECT COALESCE(SUM(d.donation_amount), 0) AS total
+      `SELECT
+         COALESCE(SUM(d.donation_amount), 0) AS total,
+         -- O que este mecanismo sozinho já consumiu, para o sublimite.
+         -- Destinação sem fundo identificado entra nos dois: não saber a que
+         -- mecanismo pertence não é motivo para ignorá-la, nem aqui.
+         --
+         -- CASE e não FILTER: o pg-mem ignora o FILTER de agregação sem
+         -- reclamar e devolve a soma inteira, o que faria o sublimite parecer
+         -- consumido por destinação de outro mecanismo. Foi assim que este
+         -- cálculo nasceu errado, e o teste pegou.
+         COALESCE(SUM(CASE WHEN COALESCE(g.code, $4) = $4
+                           THEN d.donation_amount ELSE 0 END), 0) AS no_mecanismo
          FROM donations d
          LEFT JOIN official_funds f  ON f.id = d.official_fund_id
          LEFT JOIN incentive_groups g ON g.id = f.incentive_group_id
@@ -133,23 +168,61 @@ export async function saldoDisponivel(userId, irDevido, anoFiscal, codigoGrupo, 
           -- Destinação sem fundo identificado conta contra o teto global. Não
           -- saber a que mecanismo pertence não é motivo para ignorá-la.
           AND COALESCE(g.teto_codigo, $3) = $3`,
-      [userId, anoFiscal, teto.codigo]
+      [userId, anoFiscal, teto.codigo, codigoGrupo || '']
     );
-    jaDestinado = parseFloat(rows[0].total);
+    jaDestinado      = parseFloat(rows[0].total);
+    jaNesteMecanismo = parseFloat(rows[0].no_mecanismo);
   } catch (erro) {
     // Sem saber o que já foi destinado, o saldo seguro é zero — não o limite
     // cheio. Melhor recusar uma destinação legítima do que aprovar uma que
     // estoure o teto.
     console.error('[tetos] falha ao somar destinações do ano:', erro.message);
-    return { teto, limite, ja_destinado: null, disponivel: 0, indisponivel: true };
+    return { teto, limite, ja_destinado: null, disponivel: 0, indisponivel: true, sublimite: null };
+  }
+
+  const noTeto = Math.max(0, centavos(limite - jaDestinado));
+
+  // ── O sublimite ────────────────────────────────────────────────────────
+  //
+  // NÃO é um teto separado: o mecanismo continua somando contra o mesmo bolo
+  // acima. O sublimite só limita a FATIA dele. Duas perguntas diferentes:
+  //
+  //   "quanto ainda cabe no bolo?"          → noTeto
+  //   "quanto ainda cabe na fatia deste?"   → noSublimite
+  //
+  // Vale o menor. Ver migration 050.
+  const pctSub = Number(regra.sublimite_pct);
+  let sublimite = null;
+  let disponivel = noTeto;
+
+  if (Number.isFinite(pctSub) && pctSub > 0) {
+    const limiteSub = centavos(irDevido * (pctSub / 100));
+    const noSublimite = Math.max(0, centavos(limiteSub - jaNesteMecanismo));
+    sublimite = {
+      percentual:   pctSub,
+      limite:       limiteSub,
+      ja_destinado: jaNesteMecanismo,
+      disponivel:   noSublimite,
+      base_legal:   regra.sublimite_base_legal || null
+    };
+    disponivel = Math.min(noTeto, noSublimite);
   }
 
   return {
     teto,
     limite,
     ja_destinado: jaDestinado,
-    disponivel: Math.max(0, Math.round((limite - jaDestinado) * 100) / 100)
+    disponivel,
+    sublimite,
+    // Qual dos dois barrou, para a mensagem não citar o teto de 6% quando
+    // quem barrou foi a fatia de 3%.
+    limitado_por: sublimite && sublimite.disponivel < noTeto ? 'sublimite' : 'teto'
   };
+}
+
+/** Arredonda para centavos. Existia repetido em três pontos deste arquivo. */
+function centavos(v) {
+  return Math.round(v * 100) / 100;
 }
 
 /**
