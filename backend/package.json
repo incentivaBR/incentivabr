@@ -13,7 +13,7 @@
     "test:conferencia-http": "node tests/conferencia-http.test.mjs",
     "test:remetente": "node tests/remetente.test.mjs",
     "test:tetos": "node tests/tetos.test.mjs",
-    "test": "npm run test:lgpd && npm run test:conferencia && npm run test:conferencia-http && npm run test:remetente && npm run test:tetos && npm run test:modo && npm run test:diagnostico && npm run test:resend && npm run test:erro-ia && npm run test:consumo-ia && npm run test:semeia && npm run test:convites && npm run test:superadmin && npm run test:prompt-tina && npm run test:conta-captacao && npm run test:migracoes && npm run test:armazenamento && npm run test:uploads-http && npm run test:teto-registro && npm run test:redefinicao && npm run test:csp && npm run test:textos-fiscais && npm run test:textos-tenant && npm run test:cadastro && npm run test:calculadora && npm run test:limpar-contas && npm run test:cadastro-sem-cpf && npm run test:cpf-destinacao && npm run test:portaria && npm run test:white-label && npm run test:papeis-lgpd && npm run test:lista-interessados && npm run test:projeto-tenant && npm run test:escape-innerhtml && npm run test:meus-dados && npm run test:moeda && npm run test:nucleo && npm run test:mecanismo && npm run test:limites && npm run test:trava-retencao && npm run test:prazo",
+    "test": "npm run test:lgpd && npm run test:conferencia && npm run test:conferencia-http && npm run test:remetente && npm run test:tetos && npm run test:modo && npm run test:diagnostico && npm run test:resend && npm run test:erro-ia && npm run test:consumo-ia && npm run test:semeia && npm run test:convites && npm run test:superadmin && npm run test:prompt-tina && npm run test:conta-captacao && npm run test:migracoes && npm run test:armazenamento && npm run test:uploads-http && npm run test:teto-registro && npm run test:redefinicao && npm run test:csp && npm run test:textos-fiscais && npm run test:textos-tenant && npm run test:cadastro && npm run test:calculadora && npm run test:limpar-contas && npm run test:cadastro-sem-cpf && npm run test:cpf-destinacao && npm run test:portaria && npm run test:white-label && npm run test:papeis-lgpd && npm run test:lista-interessados && npm run test:projeto-tenant && npm run test:escape-innerhtml && npm run test:meus-dados && npm run test:moeda && npm run test:nucleo && npm run test:mecanismo && npm run test:limites && npm run test:trava-retencao && npm run test:prazo && npm run test:certificado",
     "test:redefinicao": "node tests/redefinicao-senha.test.mjs",
     "test:csp": "node tests/csp.test.mjs",
     "test:textos-fiscais": "node tests/textos-fiscais.test.mjs",
@@ -52,7 +52,8 @@
     "test:superadmin": "node tests/superadmin.test.mjs",
     "test:limites": "node tests/limites-por-mecanismo.test.mjs",
     "test:trava-retencao": "node tests/trava-de-retencao.test.mjs",
-    "test:prazo": "node tests/prazo-do-comprovante.test.mjs"
+    "test:prazo": "node tests/prazo-do-comprovante.test.mjs",
+    "test:certificado": "node tests/certificado-de-captacao.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
