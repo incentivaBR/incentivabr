@@ -472,7 +472,7 @@ Tem solução
 Não é dinheiro novo — é o imposto que você já pagaria ao governo, só redirecionado. Seu bolso fica exatamente igual. E mesmo R$ 300 pagam 10 aulas de música para jovens em situação de vulnerabilidade.
 "Tenho medo de cair na malha fina"
 Tem solução
-Não há risco se você respeitar o limite de 6% e guardar o comprovante. Milhões de pessoas fazem isso todo ano sem problema. O IncentivaBR bloqueia qualquer valor acima do limite automaticamente.
+O risco está em errar o limite ou perder o comprovante. A dedução é a prevista em lei se você respeitar o limite de 6%, informar o valor correto na ficha " Doações Efetuadas " e guardar o comprovante por 5 anos. O IncentivaBR recusa qualquer valor acima do limite antes de registrar a destinação.
 "Deixo para o ano que vem"
 Tem solução
 O prazo é 31 de dezembro do ano-base. Quem deixa para depois perde o benefício daquele ano. 5 anos de procrastinação = mais de R$ 5.000 que poderiam ter ido para a cultura.
@@ -604,6 +604,12 @@ Você pode verificar qualquer projeto em salic.cultura.gov.br pelo número PRONA
 Qual o limite que posso destinar?
 O limite é 6% do IR devido — não do salário, mas do imposto calculado. Use nossa calculadora para saber o valor exato.
 Destinar acima do limite não gera benefício fiscal — o excedente não é dedutível.
+Posso dividir o limite entre leis diferentes?
+Pode dividir — mas os limites não se somam. Cultura, Criança e Adolescente, Pessoa Idosa e Desporto dividem o mesmo teto de 6% do IR devido. Destinar tudo à cultura esgota o limite para as outras.
+Também não há um percentual fixo igual para todos os fundos. Cada lei ou conselho pode fixar o seu próprio limite dentro desse teto — e, quando fixa, vale o menor dos dois.
+PRONON e PRONAS/PCD são a exceção: cada um tem o seu 1%, fora do teto geral (Lei 12.715/2012, art. 4º, § 6º, I, "d", e § 8º). Só que o caput do mesmo artigo, na redação da Lei 14.564/2023, faculta a dedução à pessoa física apenas até o ano-calendário de 2025. Sem norma que prorrogue, destinação de pessoa física em 2026 não gera dedução.
+Regra prática: some tudo o que destinou no ano e confira contra um único limite. Se o valor passar, o excedente sai do seu bolso e não volta.
+⚠️ Não confirmado por parecer: o Fundo dos Direitos da Criança e do Adolescente do DF tem limite próprio fixado pelo CDCA/DF, menor que o teto geral. Ele vale no Distrito Federal; outro conselho pode fixar outro. Confirme o seu caso com quem assina a sua declaração.
 ### Servidores Públicos
 Tenho imposto retido em folha. Posso destinar assim mesmo?
 Sim! O imposto retido na fonte não impede a destinação. O que importa é o IR devido calculado na sua declaração anual completa.
@@ -614,7 +620,7 @@ A única diferença — favorável — é que você tem previsibilidade de renda
 Como estimo quanto posso destinar com base no meu contracheque?
 O valor exato só é conhecido após simular a declaração completa, mas você pode estimar assim:
 IR retido no ano anterior ≈ IR devido neste ano
-Limite Rouanet (6%) = IR retido em 2024 × 0,06
+Limite (6%) = IR retido no ano anterior × 0,06
 Exemplo: reteve R$ 20.000 → pode destinar até R$ 1.200
 Use nossa Calculadora IR → para uma estimativa mais precisa.
 Existe risco de cair na malha fina?
@@ -622,6 +628,16 @@ O risco está em errar o limite ou perder o comprovante. A dedução é a previs
 A destinação pela Lei Rouanet é prevista em lei desde 1991 e a Receita Federal a confere na declaração como qualquer outra dedução.
 Posso destinar para projetos fora da minha cidade?
 Sim. Você pode escolher projetos de qualquer localidade do Brasil, independentemente do seu domicílio fiscal. A Lei Rouanet não restringe por região.
+Já tenho desconto em folha para uma entidade. Isso conta no limite?
+Depende do que é o desconto. Contribuição a sindicato, associação de servidores ou plano de saúde não é doação incentivada: não gera dedução e não ocupa limite nenhum.
+Só entra na conta o que for doação a fundo ou projeto habilitado por lei de incentivo, com recibo no seu CPF e código próprio na ficha " Doações Efetuadas ". Se for esse o caso, conta sim — e ocupa parte do seu limite do ano.
+Na dúvida, olhe o recibo. Sem recibo no CPF e sem código na ficha, não é destinação incentivada — é uma despesa comum.
+Uso o SIGEPE. A destinação é feita por lá?
+Não. O SIGEPE (ou o sistema de RH do seu órgão) fornece o comprovante de rendimentos — o documento com o que você recebeu e o que foi retido no ano.
+A destinação é uma transferência bancária feita durante o ano, e a declaração é feita no programa da Receita Federal. O contracheque serve para estimar; quem calcula o limite de verdade é a declaração.
+Existe algum projeto recomendado para servidores?
+Não — e não deveria haver. Nenhum órgão público recomenda projeto a servidor, e esta plataforma também não recomenda: a escolha é sua.
+O que a plataforma faz é mostrar os dados para você decidir com informação: quem é o proponente, o número do projeto no sistema oficial e a conta para onde o dinheiro vai.
 ### Processo
 Como faço a transferência? Posso usar PIX?
 Sim! Você pode usar PIX, TED ou transferência bancária para a Conta de Captação do projeto.
@@ -662,6 +678,14 @@ Exemplo: IR devido R$ 20.000 → limite R$ 1.200 → R$ 700 para o projeto apoia
 Sou isento de IR. Posso destinar?
 Infelizmente não. A destinação é um percentual do IR devido. Quem é isento tem IR devido = R$ 0, então não há base para a dedução.
 Use nossa Calculadora IR → para verificar se você tem IR devido.
+Preciso anexar os comprovantes na declaração?
+Não. A declaração não tem campo para anexar recibo. Você informa os dados na ficha " Doações Efetuadas " — código, CNPJ e valor — e pronto.
+O comprovante da transferência e o recibo ficam com você, guardados por 5 anos. É esse prazo em que a Receita pode pedir para ver.
+Quem manda anexar recibo na declaração está confundindo com outro processo. Guarde — não anexe.
+E se eu precisar retificar a declaração depois?
+A destinação continua existindo. O dinheiro foi transferido e o recibo é seu — isso não se desfaz com uma retificação.
+O que muda é a conta. O limite é um percentual do imposto devido; se a retificação alterar o imposto devido para menos, parte do que você destinou pode passar a exceder o limite e deixar de ser dedutível.
+⚠️ Não confirmado por parecer: o efeito exato de uma retificação sobre destinações já informadas depende do caso e do ano-exercício. Antes de retificar uma declaração com destinação, fale com quem assina a sua declaração.
 #### Ainda tem dúvidas?
 Fale conosco pelo WhatsApp ou use a calculadora para ver seu limite.
 WhatsApp
