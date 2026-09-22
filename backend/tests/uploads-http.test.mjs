@@ -28,7 +28,18 @@ db.public.none(`
     receipt_url TEXT, receipt_filename TEXT, receipt_sha256 TEXT,
     mecenato_url TEXT, mecenato_filename TEXT, mecenato_sha256 TEXT,
     mecenato_issued_at TIMESTAMP, mecenato_issued_by UUID, proponente_notified_at TIMESTAMP,
+    -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.
+    transferido_em DATE,
     created_at TIMESTAMP DEFAULT NOW());
+  -- A rota do comprovante passa por estas duas para descobrir o prazo do
+  -- fundo. Vazias aqui: o tenant destes testes é Rouanet, que não tem prazo.
+  CREATE TABLE org_projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID,
+    official_fund_id UUID, is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT NOW());
+  CREATE TABLE official_funds (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT, name TEXT,
+    prazo_comprovante_dias INT, prazo_comprovante_orgao TEXT, prazo_comprovante_base_legal TEXT);
 `);
 const pgMem = db.adapters.createPg();
 const poolFalso = new pgMem.Pool();

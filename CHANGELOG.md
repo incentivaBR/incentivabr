@@ -2,6 +2,15 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O prazo do comprovante, e a data que faltava para poder contá-lo
+- A Resolução Normativa nº 125/2026 do CDCA/DF, art. 7º, dá ao contribuinte **60 dias da data da doação** para apresentar o comprovante de depósito à Secretaria Executiva do CDCA/DF — e é isso que faz o recibo sair. Sem recibo não há dedução, **com o dinheiro já transferido**. É o único prazo do produto que mata o benefício depois de a pessoa ter pagado; a Rouanet não tem equivalente.
+- **Não dava para contar, porque a data da doação não existia no banco.** `donations` tinha `created_at` (registro na plataforma) e `confirmed_at` (conferência do gestor). Entre registrar e transferir passa uma semana; entre transferir e conferir, outra. Contar de qualquer uma delas daria data errada — e errada **para mais**, o lado que faz alguém perder o prazo achando que tem folga. Agora há `transferido_em`, informada por quem lê o comprovante bancário: o próprio contribuinte, no upload. É `DATE`, não `TIMESTAMP` — o comprovante traz o dia, e fingir precisão de hora seria inventar.
+- **O prazo é dado do fundo**, em `official_funds.prazo_comprovante_dias`, com órgão e base legal ao lado. Quem fixa os 60 dias é o Conselho do DF na resolução dele; outro conselho municipal fixa outro. Mudar é `UPDATE`, não deploy — a mesma disciplina do teto. Fonte única em `lib/prazos.js`, e um teste recusa o número escrito no código.
+- **`null` é informação, não campo esquecido.** A Rouanet não tem janela porque o proponente emite o recibo, então nenhum aviso aparece lá. Inventar contagem onde não há prazo treina a pessoa a ignorar o aviso onde há.
+- O aviso aparece **duas vezes**: antes de transferir (em `/api/config/brand`, que é quando ainda evita o problema) e no fim, com a contagem já iniciada. O assistente passou a pedir a data da transferência junto do comprovante.
+- O FDCA/DF entra no catálogo de fundos com prazo, órgão e base legal — e **sem agência, conta ou CNPJ**, embora a resolução os publique. Dado bancário vem de `org_projects`, por tenant: número gravado em migration envelhece calado na primeira resolução que o mudar. Um teste recusa os números publicados dentro da migration.
+- **O job do Postgres real pegou um erro que o pg-mem não pega:** `official_funds.local_law` era `VARCHAR(50)` e a citação legal do FDCA/DF tem 84 caracteres. As colunas de referência legal viraram `TEXT` — truncar a referência que o contador confere seria guardar dado pela metade.
+
 ### O texto legal foi lido: sai "fonte secundária", entra o dispositivo
 - A migration 045 corrigiu o catálogo a partir de uma nota de pesquisa e marcou tudo como fonte secundária, porque o ambiente de trabalho não alcança o `planalto.gov.br`. O texto dos dois dispositivos foi trazido e lido na íntegra.
 - **LC 222/2025, art. 9º, § 1º, II** — "7% (sete por cento) do imposto devido na Declaração de Ajuste Anual, **conjuntamente** com as deduções a que se referem os incisos I, II e III do caput do art. 12 da Lei nº 9.250/1995". A palavra "conjuntamente" encerra a dúvida: não é teto adicional, é a mesma cesta subindo.

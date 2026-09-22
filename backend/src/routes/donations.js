@@ -7,6 +7,7 @@ import { podeGerirOrganizacao } from '../lib/permissoes.js';
 import { saldoDisponivel, bloqueiaContribuinte } from '../lib/tetos.js';
 import { codigoDoMecanismo } from '../lib/mecanismos.js';
 import { limpaCPF, cpfValido } from '../lib/cpf.js';
+import { prazoDoComprovante, frasePrazo } from '../lib/prazos.js';
 
 const router = express.Router();
 
@@ -731,7 +732,14 @@ router.get('/', authenticateToken, async (req, res) => {
         o.contact_whatsapp AS proponente_whatsapp,
         o.mecenato_prazo_dias,
         f.code AS fund_code,
-        f.name AS fund_name
+        f.name AS fund_name,
+        -- Prazo para apresentar o comprovante ao órgão que emite o recibo.
+        -- Vem do fundo da própria destinação, não da organização: uma
+        -- destinação antiga continua com o prazo do fundo que valia à época.
+        d.transferido_em,
+        f.prazo_comprovante_dias,
+        f.prazo_comprovante_orgao,
+        f.prazo_comprovante_base_legal
       FROM donations d
       LEFT JOIN official_funds f ON d.official_fund_id = f.id
       LEFT JOIN organizations o ON o.id = d.organization_id
@@ -773,6 +781,13 @@ router.get('/', authenticateToken, async (req, res) => {
         created_at:       d.created_at,
         confirmed_at:     d.confirmed_at,
         receipt_url:      d.receipt_url,
+        transferido_em:   d.transferido_em
+          ? new Date(d.transferido_em).toISOString().slice(0, 10)
+          : null,
+        // null quando não há prazo a contar. Só o FDCA/DF tem hoje: a Rouanet
+        // não impõe janela porque o proponente emite o recibo.
+        prazo:       prazoDoComprovante(d),
+        prazo_texto: frasePrazo(prazoDoComprovante(d)),
         recusa: d.rejected_at
           ? { em: d.rejected_at, motivo: d.rejection_reason }
           : null,

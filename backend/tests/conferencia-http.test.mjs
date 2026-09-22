@@ -68,7 +68,9 @@ db.public.none(`
   );
   CREATE TABLE official_funds (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    incentive_group_id UUID, code TEXT, name TEXT
+    incentive_group_id UUID, code TEXT, name TEXT,
+    -- migration 048: o prazo para apresentar o comprovante, por fundo.
+    prazo_comprovante_dias INT, prazo_comprovante_orgao TEXT, prazo_comprovante_base_legal TEXT
   );
   CREATE TABLE donations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -85,7 +87,9 @@ db.public.none(`
     ADD COLUMN confirmation_note TEXT,
     ADD COLUMN rejected_at TIMESTAMP,
     ADD COLUMN rejected_by UUID,
-    ADD COLUMN rejection_reason TEXT;
+    ADD COLUMN rejection_reason TEXT,
+    -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.
+    ADD COLUMN transferido_em DATE;
 `);
 
 const pgMem = db.adapters.createPg();

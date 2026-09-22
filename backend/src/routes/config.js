@@ -4,6 +4,7 @@ import { tetoDoMecanismo } from '../lib/tetos.js';
 import { codigoDoMecanismo, mecanismoDaOrg } from '../lib/mecanismos.js';
 import { textosFiscais } from '../lib/textosFiscais.js';
 import { papeisDaPrivacidade } from '../lib/papeisLgpd.js';
+import { prazoDaOrganizacao } from '../lib/prazos.js';
 
 const router = express.Router();
 
@@ -170,7 +171,13 @@ router.get('/brand', async (req, res) => {
     // cliente, e a IncentivaBR entra como operadora. `tenant.js` escreve isto
     // nos [data-privacidade] da Política e dos Termos — nenhuma página nomeia
     // controlador à mão.
-    privacidade: papeisDaPrivacidade(org)
+    privacidade: papeisDaPrivacidade(org),
+
+    // Prazo do fundo para apresentar o comprovante ao órgão que emite o
+    // recibo. Vem aqui, e não só no fim da jornada, para a tela poder avisar
+    // ANTES de a pessoa transferir — que é quando o aviso ainda evita o
+    // problema. null quando o fundo não tem janela, como a Rouanet.
+    prazo_comprovante: await prazoDaOrganizacao(org?.id)
   };
 
   res.json(brand);
