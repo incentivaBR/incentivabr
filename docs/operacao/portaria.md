@@ -71,6 +71,30 @@ não sobra um bloqueio esquecido no dia da abertura.
 Isso não desfaz indexação anterior. Se o endereço já tiver sido indexado,
 peça a remoção no Google Search Console depois de ligar a portaria.
 
+## O workflow "TINA responde" precisa da senha
+
+O `.github/workflows/tina.yml` faz uma pergunta de verdade à TINA em produção,
+em `/api/chat/tina` — que fica **dentro** da portaria. Com o site fechado e sem
+a senha, ele recebe 401 e parece que a assistente quebrou, quando o problema é
+a porta.
+
+Crie o segredo do repositório, com o **mesmo valor** da variável na Railway:
+
+```
+Settings → Secrets and variables → Actions → New repository secret
+SITE_SENHA = <o mesmo valor do painel>
+```
+
+Trocou a senha na Railway, troque aqui também — senão o workflow volta a bater
+na porta. Se o segredo não existir, ele roda como antes (sem cabeçalho), que
+é o que vale depois da virada, quando o site abrir e a portaria sair.
+
+O 401 tem mensagem própria no log, dizendo que é a portaria e não a TINA: é o
+que evita caçar o defeito errado.
+
+O monitor de uptime (`uptime.yml`) **não** precisa de nada: ele lê `/health` e
+`/diagnostico`, que ficam fora da portaria.
+
 ## O que a portaria NÃO faz
 
 Ela controla **quem chega ao site**, não o que cada pessoa pode fazer lá
