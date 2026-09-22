@@ -52,6 +52,36 @@ Não é SaaS de massa. É boutique. Poucos clientes saudáveis, atendimento dens
 
 Meta realista: 15 a 25 clientes ativos = R$ 600k a R$ 3M/ano recorrente. Executa-se com equipe pequena.
 
+### A primeira OSC entra como cliente âncora, não como sócia (set/2026)
+
+A alternativa era sociedade: a IncentivaBR se associa a uma OSC que gera vários
+projetos, e os dois vão juntos às associações de servidores. Ganha-se
+alinhamento e velocidade; perde-se o resto do mercado. A segunda OSC procurada
+pergunta — com razão — por que entregaria a base de doadores dela a uma
+plataforma sócia de uma concorrente. São duas empresas diferentes: uma vende
+para muitos e cresce devagar; a outra cresce rápido com uma só e trava.
+
+**Decisão: cliente âncora.** Contrato comum, condição de primeira, e a
+exclusividade, se houver, com prazo e no papel — não societária. O alinhamento
+prático é o mesmo e a porta das outras OSCs continua aberta. A decisão
+societária permanece disponível mais adiante; o contrário, não.
+
+**Consequência de produto:** um cliente âncora com vários projetos exige que o
+servidor ESCOLHA para qual destina. Hoje a jornada resolve um projeto só
+(`ORDER BY is_featured DESC ... LIMIT 1`, em `lib/jornada.js` e
+`routes/donations.js`). Com um projeto, a conversa na associação é "doem para
+este teatro" e metade da sala não se interessa; com vários, é "escolha onde vai
+o seu imposto". A escolha de projeto é pré-requisito da estratégia de canal,
+não melhoria.
+
+**Sobre o success fee acima:** não há, na RN 125/2026 do CDCA/DF, dispositivo
+sobre remuneração de captador — nem autorizando, nem vedando. Enquanto não
+houver resposta escrita do Conselho e do tributarista, a proposta comercial vai
+só com mensalidade. Percentual sobre recurso de fundo público sem base
+normativa aparece em fiscalização depois, não antes — e, num conselho de
+direitos da criança, a suspeita de que a plataforma tem interesse no volume
+captado custa mais do que a receita.
+
 ---
 
 ## 4. Arquitetura do produto — três camadas
