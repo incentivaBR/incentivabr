@@ -2,6 +2,19 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### O texto legal foi lido: sai "fonte secundária", entra o dispositivo
+- A migration 045 corrigiu o catálogo a partir de uma nota de pesquisa e marcou tudo como fonte secundária, porque o ambiente de trabalho não alcança o `planalto.gov.br`. O texto dos dois dispositivos foi trazido e lido na íntegra.
+- **LC 222/2025, art. 9º, § 1º, II** — "7% (sete por cento) do imposto devido na Declaração de Ajuste Anual, **conjuntamente** com as deduções a que se referem os incisos I, II e III do caput do art. 12 da Lei nº 9.250/1995". A palavra "conjuntamente" encerra a dúvida: não é teto adicional, é a mesma cesta subindo.
+- **Lei 12.715/2012, art. 4º, § 6º, I, "d"** — 1% para o programa do art. 1º (PRONON) **e** 1% para o do art. 3º (PRONAS/PCD). Confirma a correção da 045. O § 8º confirma que ficam fora do teto geral; a alínea "c" confirma a exigência de deduções legais.
+- As páginas deixam de dizer "não confirmado em fonte primária" nesses dois pontos e passam a citar o dispositivo. A ressalva continua onde ainda vale: os códigos da DIRPF.
+- **`confirmado_por_parecer` seguiu FALSE em tudo.** Ler a lei não é ter parecer: o que se ganhou foi saber o que o texto diz; falta alguém assinar que a nossa aplicação dele está correta. Um teste recusa a ressalva ao lado do 7% e do 1%, e continua exigindo que nenhuma página calcule com 0.07.
+
+### PRONON e PRONAS/PCD entram em standby
+- O texto revelou algo mais grave que a dúvida anterior. O caput do art. 4º da Lei 12.715/2012, com a redação da Lei 14.564/2023, faculta a dedução **"às pessoas físicas... até o ano-calendário de 2025, e às pessoas jurídicas... até o ano-calendário de 2026"**.
+- Pessoa física é o público desta plataforma. Deixou de ser "vigência não confirmada" e virou prazo que o texto fixa: sem norma posterior prorrogando — e não encontramos nenhuma —, destinação de pessoa física feita em 2026 **não gera dedução**.
+- Os dois ficam no catálogo e na biblioteca jurídica como referência, marcados. A biblioteca, o Espaço do Contador, o validador e a agenda fiscal avisam o efeito prático: em 2026, não ofereça. O teto em si está resolvido, então uma eventual prorrogação só exigiria a jornada.
+- A pergunta 2 da consulta encolheu para uma linha: houve prorrogação?
+
 ### Trava de retenção: o prazo não corre enquanto houver processo em aberto
 - `/api/admin/retencao` lista quem já passou do prazo de guarda. Hoje é só uma lista — nada apaga por prazo. Mas é o **rascunho da fila de eliminação**: no dia em que a rotina for ligada, ela vai agir sobre exatamente essas linhas. Apagar o comprovante de alguém no meio de uma fiscalização destrói a prova de quem a plataforma deveria estar protegendo, e é irreversível.
 - A trava (migration 046) resolve isso **agora, enquanto a fila ainda é só uma lista**. O superadmin trava a conta com o motivo escrito — número do processo, ofício, o que for — e ela some da fila de vencidas, aparecendo numa lista própria com o motivo à vista. Ligar a eliminação depois, sobre uma base que já sabe o que não pode ser tocado, é mais seguro do que ligar primeiro e lembrar da exceção depois.

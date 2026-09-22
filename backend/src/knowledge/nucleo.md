@@ -53,7 +53,7 @@ Lei Complementar nº 222, de 26 de novembro de 2025 — tornou permanente o ince
 Norma RFB
 Instrução Normativa RFB nº 1.339/2013 e atualizações. Consulte a IN vigente no exercício da declaração.
 Limite
-Concorre com o teto geral, elevando-o a 7% — para pessoa física, a LC 222/2025 fixa o limite em 7% do imposto devido em conjunto com as deduções dos incisos I a III do art. 12 da Lei 9.250/1995. Não é percentual adicional: a cesta inteira sobe dos 6% de hoje para 7% quando há esporte, em vez de abrir um teto à parte. Percentual não confirmado em fonte primária — confira antes de orientar o cliente.
+Concorre com o teto geral, elevando-o a 7% — para pessoa física, a LC 222/2025 fixa o limite em 7% do imposto devido em conjunto com as deduções dos incisos I a III do art. 12 da Lei 9.250/1995. Não é percentual adicional: a cesta inteira sobe dos 6% de hoje para 7% quando há esporte, em vez de abrir um teto à parte. O art. 9º, § 1º, II, da LC 222/2025 diz "7% (sete por cento) do imposto devido na Declaração de Ajuste Anual, conjuntamente com as deduções a que se referem os incisos I, II e III do caput do art. 12 da Lei nº 9.250, de 26 de dezembro de 1995".
 Quem pode usar
 Pessoa Física com IR Devido positivo, declaração obrigatória no modelo completo.
 Ficha DIRPF
@@ -109,14 +109,14 @@ Lei nº 12.715, de 17 de setembro de 2012, Art. 1º — Programa Nacional de Apo
 Norma RFB
 Instrução Normativa RFB vigente para o exercício. A entidade deve estar habilitada pelo Ministério da Saúde e constar no CNES (Cadastro Nacional de Estabelecimentos de Saúde).
 Limite
-Até 1% do IR Devido — limite próprio do PRONON, que não se soma ao do PRONAS/PCD nem entra no teto geral do art. 22 da Lei 9.532/1997. Quem usa os dois programas tem 1% em cada.
+Até 1% do IR Devido — limite próprio do PRONON. O art. 4º, § 6º, I, "d", da Lei 12.715/2012 fixa "1% (um por cento) do imposto sobre a renda devido com relação ao programa de que trata o art. 1º" (PRONON) e outro 1% para o do art. 3º (PRONAS/PCD): são limites separados, e quem usa os dois tem 1% em cada. Também não entram no teto geral do art. 22 da Lei 9.532/1997 — o § 8º diz que não excluem outros benefícios em vigor. Exige declaração pelas deduções legais (§ 6º, I, "c").
 Quem pode usar
 Pessoa Física com IR Devido positivo, declaração obrigatória no modelo completo.
 Ficha DIRPF
 Deduções → Incentivos Fiscais → PRONON
 Comprovante
 Recibo emitido pela entidade habilitada contendo: CNPJ da entidade, número CNES, valor destinado e data da transferência. Guardar também o comprovante bancário.
-⚠️ Vigência não confirmada: a Lei 12.715/2012 autorizava a dedução da pessoa física até o ano-calendário de 2025. Não confirmamos em fonte primária se houve prorrogação para os anos seguintes. Confira a vigência do ano antes de orientar o cliente.
+⚠️ Para pessoa física, a faculdade foi até o ano-calendário de 2025. O caput do art. 4º da Lei 12.715/2012, com a redação da Lei 14.564/2023, faculta a dedução às pessoas físicas "a partir do ano-calendário de 2012 até o ano-calendário de 2025" — e às pessoas jurídicas até 2026. Não encontramos norma posterior que tenha prorrogado o benefício da pessoa física. Enquanto não houver, uma destinação feita em 2026 não gera dedução: não ofereça ao cliente.
 #### PRONAS — Atenção à Pessoa com Deficiência
 Destinação a entidade habilitada de atenção à pessoa com deficiência
 Lei nº 12.715/2012, Art. 3º
@@ -127,14 +127,14 @@ Lei nº 12.715, de 17 de setembro de 2012, Art. 3º — Programa Nacional de Apo
 Norma RFB
 Instrução Normativa RFB vigente para o exercício. A entidade deve estar habilitada pelo Ministério da Saúde e constar no CNES.
 Limite
-Até 1% do IR Devido — limite próprio do PRONAS/PCD, que não se soma ao do PRONON nem entra no teto geral do art. 22 da Lei 9.532/1997. Quem usa os dois programas tem 1% em cada.
+Até 1% do IR Devido — limite próprio do PRONAS/PCD. O art. 4º, § 6º, I, "d", da Lei 12.715/2012 fixa 1% para o programa do art. 1º (PRONON) e "1% (um por cento) do imposto sobre a renda devido com relação ao programa de que trata o art. 3º" (PRONAS/PCD): são limites separados, e quem usa os dois tem 1% em cada. Também não entram no teto geral do art. 22 da Lei 9.532/1997 — o § 8º diz que não excluem outros benefícios em vigor. Exige declaração pelas deduções legais (§ 6º, I, "c").
 Quem pode usar
 Pessoa Física com IR Devido positivo, declaração obrigatória no modelo completo.
 Ficha DIRPF
 Deduções → Incentivos Fiscais → PRONAS
 Comprovante
 Recibo emitido pela entidade habilitada contendo: CNPJ da entidade, número CNES, valor destinado e data da transferência. Guardar também o comprovante bancário.
-⚠️ Vigência não confirmada: a Lei 12.715/2012 autorizava a dedução da pessoa física até o ano-calendário de 2025. Não confirmamos em fonte primária se houve prorrogação para os anos seguintes. Confira a vigência do ano antes de orientar o cliente.
+⚠️ Para pessoa física, a faculdade foi até o ano-calendário de 2025. O caput do art. 4º da Lei 12.715/2012, com a redação da Lei 14.564/2023, faculta a dedução às pessoas físicas "a partir do ano-calendário de 2012 até o ano-calendário de 2025" — e às pessoas jurídicas até 2026. Não encontramos norma posterior que tenha prorrogado o benefício da pessoa física. Enquanto não houver, uma destinação feita em 2026 não gera dedução: não ofereça ao cliente.
 #### Recicla+ — Lei de Incentivo à Reciclagem
 Destinação a cooperativas de catadores habilitadas pelo MAPA
 Lei nº 14.260/2021
@@ -185,8 +185,8 @@ Incentivos Fiscais → PRONON
 Lei 12.715/2012, Art. 3º
 1%*
 Incentivos Fiscais → PRONAS
-* PRONON e PRONAS/PCD têm 1% cada, um não consome o do outro, e nenhum dos dois entra no teto geral. A autorização da pessoa física ia até o ano-calendário de 2025; vigência posterior não confirmada em fonte primária.
-** Rouanet, FDCA, Fundo do Idoso, audiovisual e reciclagem dividem um teto único de 6% (Lei 9.532/1997, art. 22). O incentivo ao esporte divide esse mesmo teto, mas a LC 222/2025 eleva o conjunto a 7% quando ele entra — a cesta sobe, não se abre uma segunda. Percentual não confirmado em fonte primária.
+* PRONON e PRONAS/PCD têm 1% cada (art. 4º, § 6º, I, "d", da Lei 12.715/2012: 1% para o programa do art. 1º e 1% para o do art. 3º), e nenhum dos dois entra no teto geral — o § 8º diz que esses benefícios "não excluem outros benefícios, abatimentos e deduções em vigor". Mas para pessoa física a faculdade foi até o ano-calendário de 2025, e não encontramos prorrogação: em 2026, não ofereça.
+** Rouanet, FDCA, Fundo do Idoso, audiovisual e reciclagem dividem um teto único de 6% (Lei 9.532/1997, art. 22). O incentivo ao esporte divide esse mesmo teto, mas a LC 222/2025, art. 9º, § 1º, II, eleva o conjunto a 7% quando ele entra — a cesta sobe, não se abre uma segunda.
 Nunca some os percentuais para apresentar um total ao cliente: o disponível é um teto só, a ser distribuído. Clique em qualquer linha para ver a ficha completa.
 DÚVIDAS DE COMPLIANCE
 ### Perguntas que o contador precisa responder
@@ -697,7 +697,7 @@ Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve �
 Posicionamento correto agora (pós-maio/2026): "A destinação de 2027 começa agora. Você tem o ano inteiro para planejar."
 Posso destinar para mais de uma modalidade no mesmo ano?
 Sim — com atenção aos limites individuais de cada modalidade.
-Exemplo: um cliente com R$ 10.000 de IR devido tem R$ 600 no total — pode dividir entre Rouanet, FDCA e Fundo do Idoso como quiser, mas a soma não passa disso. A Lei de Incentivo ao Esporte também concorre com esse teto para pessoa física: a LC 222/2025 eleva o conjunto a 7% quando ela entra, em vez de abrir um teto à parte. Percentual não confirmado em fonte primária — confira a vigência no ano-calendário antes de orientar.
+Exemplo: um cliente com R$ 10.000 de IR devido tem R$ 600 no total — pode dividir entre Rouanet, FDCA e Fundo do Idoso como quiser, mas a soma não passa disso. A Lei de Incentivo ao Esporte também concorre com esse teto para pessoa física: a LC 222/2025, art. 9º, § 1º, II, eleva o conjunto a 7% quando ela entra, em vez de abrir um teto à parte.
 FDCA (ECA art. 260, II) e FDI (Lei 12.213/2010) dividem o mesmo teto de 6%, junto com a Lei Rouanet e o audiovisual. Não são limites independentes: destinar aos dois no mesmo ano reparte os 6%, não os soma.
 O limite absoluto final: a soma de todas as destinações não pode exceder o IR Devido total do cliente.
 Como verificar se um projeto Rouanet tem PRONAC ativo?

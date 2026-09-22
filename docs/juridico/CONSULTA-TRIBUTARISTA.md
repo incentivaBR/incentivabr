@@ -42,21 +42,27 @@ adicionais, estamos impedindo destinação legítima.
 
 ---
 
-## 2. Vigência do PRONON e do PRONAS/PCD para pessoa física
+## 2. PRONON e PRONAS/PCD: houve prorrogação para a pessoa física?
 
-A Lei 12.715/2012 autorizava a dedução da pessoa física **até o ano-calendário
-de 2025**. Há notícia de projeto estendendo até 2029; não confirmamos se virou
-lei.
+Esta encolheu depois de lermos o texto. O caput do art. 4º da Lei 12.715/2012,
+com a redação da Lei 14.564/2023, faculta a dedução **"às pessoas físicas, a
+partir do ano-calendário de 2012 até o ano-calendário de 2025, e às pessoas
+jurídicas, a partir do ano-calendário de 2013 até o ano-calendário de 2026"**.
 
-- A dedução da pessoa física está vigente no ano-calendário corrente? Com qual
-  fundamento?
-- Confirma que o limite é de **1% para cada programa** — e não 1% dividido
-  entre os dois —, e que nenhum dos dois integra o teto do art. 22 da Lei
-  9.532/1997?
+O limite também está resolvido no texto: o § 6º, I, "d", fixa 1% para o
+programa do art. 1º (PRONON) **e** outro 1% para o do art. 3º (PRONAS/PCD), e o
+§ 8º confirma que não excluem outros benefícios em vigor.
 
-**O que muda no sistema:** o site e o validador afirmavam que os dois
-compartilhavam 1%. Corrigimos para 1% em cada, com base em fonte secundária, e
-marcamos a vigência como não confirmada. Queremos as duas coisas por escrito.
+Sobra uma pergunta só:
+
+- **Houve norma posterior prorrogando o benefício da pessoa física** para 2026
+  e adiante? Não encontramos. Há notícia de projeto estendendo até 2029; não
+  confirmamos se virou lei.
+
+**O que muda no sistema:** os dois mecanismos estão **em standby**. Sem
+vigência para pessoa física — que é o público desta plataforma — não há o que
+construir. Se houver prorrogação, o teto já está pronto no catálogo e só falta
+a jornada.
 
 ---
 
@@ -144,12 +150,19 @@ reduzir, sem sugerir qual modalidade.
 **Declaração completa.** Só aproveita a dedução quem declara pelo modelo de
 deduções legais; o desconto simplificado substitui todas elas.
 
-**Incentivo ao esporte.** A LC 222/2025 substituiu a Lei 11.438/2006 e fixa,
-para pessoa física, 7% do imposto devido **em conjunto** com os incisos I a III
-do art. 12 da Lei 9.250/1995 — a cesta inteira sobe de 6% para 7%, em vez de
-abrir teto separado. Registramos no catálogo e no texto das páginas, **sem
-mexer no cálculo**: o sistema segue em 6%, que erra para menos. Confirme o
-percentual para ligarmos.
+**Incentivo ao esporte.** Lemos o art. 9º, § 1º, II, da LC 222/2025: "7% (sete
+por cento) do imposto devido na Declaração de Ajuste Anual, **conjuntamente**
+com as deduções a que se referem os incisos I, II e III do caput do art. 12 da
+Lei nº 9.250, de 26 de dezembro de 1995". A cesta inteira sobe de 6% para 7%,
+em vez de abrir teto separado. Registramos no catálogo e no texto das páginas,
+**sem mexer no cálculo**: o sistema segue em 6%, que erra para menos. O que
+pedimos aqui não é o percentual — é a confirmação de que aplicá-lo como teto
+único condicional está correto.
+
+**PRONON e PRONAS/PCD.** 1% para cada programa, separados entre si e fora do
+teto geral (art. 4º, § 6º, I, "d", e § 8º da Lei 12.715/2012), com exigência de
+declaração pelas deduções legais (alínea "c"). Texto lido; sobra só a vigência,
+que é a pergunta 2.
 
 **Recicla+.** 100% do valor destinado é dedutível, mas dentro do teto geral do
 art. 22 — não é limite autônomo de 6%.
