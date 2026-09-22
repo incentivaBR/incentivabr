@@ -5,9 +5,10 @@ import { gerarComprovante } from '../services/pdfGenerator.js';
 import { notifyDestinationRegistered, notifyDestinationConfirmed, notifyAdminNewDonation, notifyProponenteMecenatoPendente } from '../services/notificationService.js';
 import { podeGerirOrganizacao } from '../lib/permissoes.js';
 import { saldoDisponivel, bloqueiaContribuinte } from '../lib/tetos.js';
-import { codigoDoMecanismo } from '../lib/mecanismos.js';
+import { codigoDoMecanismo, mecanismoDaOrg } from '../lib/mecanismos.js';
 import { limpaCPF, cpfValido } from '../lib/cpf.js';
 import { prazoDoComprovante, frasePrazo } from '../lib/prazos.js';
+import { identificaDestinacao, fundoDaDestinacao, tituloPadrao, vocabulario } from '../lib/jornada.js';
 
 const router = express.Router();
 
@@ -134,13 +135,19 @@ async function avisarDestinador(donationId) {
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/donations/rouanet
-// Registra destinação para qualquer projeto SALIC (por PRONAC).
+// Registra destinação, qualquer que seja o mecanismo do cliente.
+//
+// Nasceu `/rouanet` e exigia PRONAC de seis ou sete dígitos, carimbando toda
+// destinação com o fundo 'FNC'. O que identifica a destinação agora vem do
+// mecanismo (migration 051): a Rouanet usa PRONAC, um fundo usa o projeto
+// cadastrado do tenant. O caminho antigo continua respondendo, porque uma
+// página em cache durante o deploy não pode quebrar.
 // ─────────────────────────────────────────────────────────────
-router.post('/rouanet', authenticateToken, async (req, res) => {
+async function registraDestinacao(req, res) {
   const client = await pool.connect();
 
   try {
-    const { pronac, projeto_titulo, donation_amount, fiscal_year } = req.body;
+    const { projeto_titulo, donation_amount, fiscal_year } = req.body;
     const userId = req.user.userId;
     const org    = req.organization;
 
@@ -151,10 +158,28 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
     // cache durante o deploy não quebre.
     const ir_devido = req.body.ir_devido ?? req.body.ir_total;
 
-    // Validações
-    if (!pronac || !/^\d{6,7}$/.test(pronac)) {
-      return res.status(400).json({ status: 'error', message: 'PRONAC inválido. Deve ter 6 ou 7 dígitos.' });
+    // O que identifica esta destinação depende do mecanismo do cliente: a
+    // Rouanet tem PRONAC conferível no SALIC, um fundo municipal não tem
+    // número nenhum — a destinação aponta para o projeto cadastrado.
+    const mecanismo = await mecanismoDaOrg(org, client);
+
+    // Sem saber o mecanismo não dá para saber o que identifica a destinação.
+    // Adivinhar erraria dos dois lados: supor Rouanet recusaria a destinação
+    // legítima de um fundo; supor fundo gravaria uma destinação Rouanet sem
+    // o PRONAC que o Recibo de Mecenato precisa. Nada é registrado.
+    if (!mecanismo) {
+      return res.status(503).json({
+        status: 'error',
+        codigo: 'mecanismo_indisponivel',
+        message: 'Não foi possível confirmar as regras desta destinação. Nada foi registrado; tente novamente em instantes.'
+      });
     }
+
+    const identidade = identificaDestinacao(mecanismo, req.body);
+    if (!identidade.ok) {
+      return res.status(400).json({ status: 'error', message: identidade.erro });
+    }
+    const pronac = identidade.pronac;
 
     if (!ir_devido || ir_devido <= 0) {
       return res.status(400).json({
@@ -210,9 +235,11 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
     // O teto e o saldo são conferidos mais abaixo, DENTRO da transação e
     // depois de bloquear o contribuinte — ver src/lib/tetos.js.
 
-    // Buscar fundo FNC (Lei Rouanet)
-    const fncResult = await client.query(`SELECT id FROM official_funds WHERE code = 'FNC' LIMIT 1`);
-    const fncId = fncResult.rows[0]?.id || null;
+    // O fundo vem do projeto ativo do tenant, e só cai no catálogo do
+    // mecanismo quando o projeto não declara qual é. Era `WHERE code = 'FNC'`,
+    // e por isso toda destinação de todo cliente saía carimbada como Rouanet.
+    const codigoGrupo = codigoDoMecanismo(org);
+    const fundoId = await fundoDaDestinacao(org?.id, codigoGrupo, client);
 
     // Dados bancários: só do projeto ativo da organização, nunca de outro lugar.
     //
@@ -259,7 +286,6 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
     //     inclusive por outros mecanismos;
     //   - a regra vale também em simulação. Um teste que não exercita o teto
     //     não testa o que importa.
-    const codigoGrupo = codigoDoMecanismo(org);
     const valor = Number(donation_amount);
 
     await client.query('BEGIN');
@@ -320,11 +346,18 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
       });
     }
 
+    // O título era `Projeto PRONAC ${pronac}` — literal da Rouanet, e sem
+    // sentido num fundo que não tem PRONAC. Sai do projeto do tenant, e só
+    // cai no genérico quando não há projeto cadastrado nem título informado.
+    const titulo = projeto_titulo
+                || await tituloPadrao(org?.id, client)
+                || (pronac ? `Projeto ${mecanismo?.termo_identificador || 'PRONAC'} ${pronac}` : 'Destinação');
+
     const result = await client.query(`
       INSERT INTO donations (user_id, pronac, projeto_titulo, official_fund_id, organization_id, ir_devido, donation_amount, fiscal_year, status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
       RETURNING id, created_at
-    `, [userId, pronac, projeto_titulo || `Projeto PRONAC ${pronac}`, fncId, org?.id || null, irBase, valor, fiscal_year]);
+    `, [userId, pronac, titulo, fundoId, org?.id || null, irBase, valor, fiscal_year]);
 
     const donation = result.rows[0];
 
@@ -340,20 +373,23 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
         notifyDestinationRegistered(
           { name: user.nome, email: user.email, phone: user.phone },
           { amount: donation_amount },
-          { title: projeto_titulo || `Projeto PRONAC ${pronac}` },
+          { title: titulo },
           org
         ).catch(() => {});
       }).catch(() => {});
 
     res.status(201).json({
       status: 'success',
-      message: 'Destinação Rouanet registrada com sucesso!',
+      message: 'Destinação registrada com sucesso!',
       donation: {
         id:               donation.id,
         pronac,
-        projeto_titulo:   projeto_titulo || `Projeto PRONAC ${pronac}`,
+        projeto_titulo:   titulo,
         ir_devido:        irBase,
         donation_amount:  valor,
+        limite:           saldo.limite,
+        // Nome antigo, com mecanismo embutido. Mantido por um ciclo para não
+        // quebrar página em cache; `limite` acima é o que vale.
         limite_rouanet:   saldo.limite,
         percentage_of_ir: Math.round((valor / irBase) * 10000) / 100,
         // O que sobra do teto depois desta destinação, e de onde o teto vem.
@@ -382,19 +418,33 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
           pix_key:          op?.pix_key         || null,
           pix_key_type:     op?.pix_key_type    || null,
           conta_preenchida: contaPreenchida,
-          instrucoes:       'Identificar no comprovante: nome completo, CPF e PRONAC do projeto.'
-        }
+          // A instrução cita o identificador do mecanismo, quando existe. Num
+          // fundo não há PRONAC a escrever no comprovante — mandar escrever
+          // um faria a pessoa inventar um número.
+          instrucoes: mecanismo?.termo_identificador
+            ? `Identificar no comprovante: nome completo, CPF e ${mecanismo.termo_identificador} do projeto.`
+            : 'Identificar no comprovante: nome completo e CPF.'
+        },
+        // Como este mecanismo chama as coisas, para a tela não escrever
+        // "PRONAC" e "Recibo de Mecenato" onde não cabem.
+        vocabulario: vocabulario(mecanismo)
       }
     });
 
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Erro ao registrar destinação Rouanet:', error.message);
+    console.error('Erro ao registrar destinação:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno ao registrar destinação.' });
   } finally {
     client.release();
   }
-});
+}
+
+// O caminho novo, sem nome de mecanismo. `/rouanet` continua respondendo
+// porque uma página em cache durante o deploy chamaria o endereço antigo — e
+// um 404 ali é uma destinação perdida no meio do caminho.
+router.post('/registrar', authenticateToken, registraDestinacao);
+router.post('/rouanet',   authenticateToken, registraDestinacao);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONFERÊNCIA DA DESTINAÇÃO

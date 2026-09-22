@@ -71,10 +71,21 @@ db.public.none(`
     organization_id UUID, user_id UUID, action TEXT, entity_type TEXT, entity_id UUID,
     details TEXT, ip_address TEXT, user_agent TEXT, created_at TIMESTAMP DEFAULT NOW()
   );
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
   CREATE TABLE incentive_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE, name TEXT, max_percentage NUMERIC(5,2),
-    period_type TEXT, teto_codigo TEXT
+    period_type TEXT, teto_codigo TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    law_slug TEXT,
+    disponivel_para_cliente BOOLEAN DEFAULT false,
+    motivo_indisponivel TEXT,
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT
   );
   CREATE TABLE tetos_deducao (
     codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC(5,2),
@@ -83,8 +94,15 @@ db.public.none(`
   );
   INSERT INTO tetos_deducao (codigo, descricao, percentual, base_legal, vigencia_inicio)
     VALUES ('irpf_global_6','Teto global',6.00,'Lei 9.532/1997, art. 22','1998-01-01');
-  INSERT INTO incentive_groups (code, name, max_percentage, period_type, teto_codigo)
-    VALUES ('ROUANET','Lei Rouanet',6.00,'annual','irpf_global_6');
+  -- migration 051: o vocabulario do mecanismo, que a tela le de /config/brand.
+  INSERT INTO laws (slug, name, base_legal, orgao, sistema_oficial,
+                    termo_identificador, termo_beneficiario, termo_recibo, termo_recibo_emissor)
+    VALUES ('rouanet','Lei Rouanet','Lei 8.313/1991','Ministério da Cultura (MinC)','SALIC',
+            'PRONAC','proponente','Recibo de Mecenato','o proponente do projeto');
+  INSERT INTO incentive_groups (code, name, max_percentage, period_type, teto_codigo, law_slug)
+    VALUES ('rouanet','Lei Rouanet',6.00,'annual','irpf_global_6','rouanet');
+  -- migration 051: a Rouanet e a unica com registro externo.
+  UPDATE incentive_groups SET identificador = 'pronac' WHERE code = 'rouanet';
   CREATE TABLE official_funds (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT, name TEXT,
     -- migration 048: o prazo para apresentar o comprovante, por fundo.

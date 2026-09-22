@@ -231,6 +231,50 @@ await teste('assistente de destinação: o projeto do cliente já vem preenchido
   if (!desc.includes('teatro inclusivo')) throw new Error('a descrição não veio do cadastro: ' + desc);
 });
 
+await teste('assistente: o vocabulário da tela é o do mecanismo do cliente', async pg => {
+  // A Casa Azul é Rouanet: tem registro externo, e o identificador se chama
+  // PRONAC. Quem escreve essa palavra na tela é aplicaMecanismo(), a partir de
+  // /api/config/brand — a página só guarda o texto de reserva. Se a ponte
+  // quebrar, o chip e o aceite continuam parecendo certos AQUI (a reserva é a
+  // da Rouanet) e ficam errados no primeiro cliente que não for Rouanet. Por
+  // isso o teste confere a ponte, não a palavra: o que a API respondeu tem de
+  // ser o que está na tela.
+  await entrar(pg, 'maria@exemplo.gov.br');
+  await ir(pg, 'destinar-rouanet.html');
+
+  const daApi = await pg.evaluate(async () =>
+    (await (await fetch('/api/config/brand')).json()).mecanismo);
+  if (!daApi?.vocabulario?.recibo) throw new Error('/api/config/brand não trouxe o vocabulário');
+
+  await ate(pg, () => document.querySelector('#s0Pronac')?.textContent.includes('2511274'),
+            'o identificador do projeto não apareceu: ' + await texto(pg, '#s0Pronac'));
+
+  const naTela = await texto(pg, '#s0Pronac');
+  if (!naTela.startsWith(daApi.vocabulario.identificador)) {
+    throw new Error(`a tela chama o identificador de "${naTela}", a API de "${daApi.vocabulario.identificador}"`);
+  }
+
+  // O recibo aparece no aceite, e é a palavra que vai no documento fiscal.
+  const recibos = await pg.evaluate(() =>
+    [...document.querySelectorAll('[data-termo="recibo"]')].map(e => e.textContent.trim()));
+  if (!recibos.length) throw new Error('nenhum [data-termo="recibo"] na página');
+  const divergentes = recibos.filter(t => t.toLowerCase() !== daApi.vocabulario.recibo.toLowerCase());
+  if (divergentes.length) {
+    throw new Error(`a tela diz "${divergentes[0]}" onde a API diz "${daApi.vocabulario.recibo}"`);
+  }
+
+  // E o que só existe quando há registro externo continua ligado. (O chip do
+  // banner vive numa etapa adiante, então o que se mede é se aplicaMecanismo o
+  // desligou — não se ele está na tela agora.)
+  const desligados = await pg.evaluate(() => ({
+    marcados: [...document.querySelectorAll('[data-so-pronac]')].filter(e => e.hidden).length,
+    chip: document.getElementById('pronacChip')?.style.display === 'none'
+  }));
+  if (desligados.marcados || desligados.chip) {
+    throw new Error('a tela desligou o identificador num mecanismo que tem um');
+  }
+});
+
 await teste('minha conta: a destinadora vê o que existe sobre ela e baixa tudo em JSON', async pg => {
   await entrar(pg, 'maria@exemplo.gov.br');
   await ate(pg, () => getComputedStyle(document.querySelector('#linkMinhaConta')).display !== 'none',

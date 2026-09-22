@@ -78,7 +78,12 @@ teste('so aplicaModo decide os trechos marcados com data-modo', () => {
 });
 
 teste('o aceite de producao diz o que de fato acontece', () => {
-  const bloco = html.split('id="termsCheck"')[1]?.split('</label>')[0] || '';
+  // O aceite tem spans [data-termo] por dentro (migration 051: o vocabulário
+  // do mecanismo). Achatar os internos antes de recortar o bloco — senão o
+  // corte no primeiro </span> para no meio da frase e o teste acusa falta do
+  // que está escrito logo adiante.
+  const achatado = html.replace(/<span data-termo="[^"]*">([^<]*)<\/span>/g, '$1');
+  const bloco = achatado.split('id="termsCheck"')[1]?.split('</label>')[0] || '';
   const prod = bloco.split('data-modo="producao"')[1]?.split('</span>')[0] || '';
   for (const termo of ['modelo completo', 'CPF', 'proponente', 'Recibo de Mecenato']) {
     if (!prod.includes(termo)) throw new Error(`o aceite real nao menciona "${termo}"`);

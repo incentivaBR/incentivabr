@@ -18,12 +18,26 @@ db.public.none(`
     codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC(5,2), base_legal TEXT,
     vigencia_inicio DATE, vigencia_fim DATE, confirmado_por_parecer BOOLEAN DEFAULT FALSE, observacao TEXT
   );
-  CREATE TABLE incentive_groups (code TEXT UNIQUE, name TEXT, max_percentage NUMERIC(5,2), teto_codigo TEXT);
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
+  CREATE TABLE incentive_groups (code TEXT UNIQUE, name TEXT, max_percentage NUMERIC(5,2), teto_codigo TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    law_slug TEXT,
+    disponivel_para_cliente BOOLEAN DEFAULT false,
+    motivo_indisponivel TEXT,
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT
+  );
   INSERT INTO tetos_deducao (codigo, descricao, percentual, base_legal, vigencia_inicio)
     VALUES ('irpf_global_6', 'Teto global', 6.00, 'Lei 9.532/1997, art. 22', '1998-01-01');
   INSERT INTO tetos_deducao (codigo, descricao, percentual, base_legal, vigencia_inicio)
     VALUES ('pronon_pronas_1', 'PRONON e PRONAS', 1.00, 'Lei 12.715/2012', '2012-01-01');
-  INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo) VALUES ('ROUANET', 'Lei Rouanet', 6, 'irpf_global_6');
+  INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo) VALUES ('rouanet', 'Lei Rouanet', 6, 'irpf_global_6');
+  -- migration 051: a Rouanet e a unica com registro externo.
+  UPDATE incentive_groups SET identificador = 'pronac' WHERE code = 'rouanet';
   INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo) VALUES ('FIA', 'Fundo da Crianca', 6, 'irpf_global_6');
   INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo) VALUES ('PRONON', 'PRONON', 1, 'pronon_pronas_1');
 `);
@@ -55,7 +69,7 @@ await teste('o objeto sai do banco: teto, mecanismos, ficha, recibo', async () =
   igual(fiscal.dirpf.codigos.cultura, 41, 'codigo cultura');
   igual(fiscal.dirpf.codigos.idoso !== fiscal.dirpf.codigos.cultura, true, 'idoso e cultura nao podem ter o mesmo codigo');
   igual(fiscal.dirpf.confirmado, false, 'ficha marcada como nao confirmada');
-  const rouanet = fiscal.mecanismos.find(m => m.code === 'ROUANET');
+  const rouanet = fiscal.mecanismos.find(m => m.code === 'rouanet');
   const pronon = fiscal.mecanismos.find(m => m.code === 'PRONON');
   igual(rouanet.compoe_teto_global, true, 'rouanet no teto global');
   igual(pronon.compoe_teto_global, false, 'pronon fora do teto global');

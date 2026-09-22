@@ -68,8 +68,17 @@ db.public.none(`
   );
   CREATE TABLE subscribers (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     anonymized_at TIMESTAMP, last_interaction_at TIMESTAMP);
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
   CREATE TABLE incentive_groups (code TEXT, name TEXT, teto_codigo TEXT,
-    disponivel_para_cliente BOOLEAN DEFAULT false, motivo_indisponivel TEXT, law_slug TEXT);
+    disponivel_para_cliente BOOLEAN DEFAULT false, motivo_indisponivel TEXT, law_slug TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT
+  );
   CREATE TABLE audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID, user_id UUID, action TEXT, entity_type TEXT, entity_id TEXT,

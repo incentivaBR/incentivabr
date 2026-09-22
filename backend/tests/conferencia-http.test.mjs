@@ -48,10 +48,20 @@ db.public.none(`
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW()
   );
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
   CREATE TABLE incentive_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE, name TEXT, max_percentage NUMERIC(5,2),
-    period_type TEXT, teto_codigo TEXT
+    period_type TEXT, teto_codigo TEXT,
+    law_slug TEXT,
+    disponivel_para_cliente BOOLEAN DEFAULT false,
+    motivo_indisponivel TEXT,
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT,
+    identificador TEXT DEFAULT 'projeto_do_tenant'
   );
   CREATE TABLE tetos_deducao (
     codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC(5,2),
@@ -61,7 +71,9 @@ db.public.none(`
   INSERT INTO tetos_deducao (codigo, descricao, percentual, base_legal, vigencia_inicio)
     VALUES ('irpf_global_6','Teto global',6.00,'Lei 9.532/1997, art. 22','1998-01-01');
   INSERT INTO incentive_groups (code, name, max_percentage, period_type, teto_codigo)
-    VALUES ('ROUANET','Lei Rouanet',6.00,'annual','irpf_global_6');
+    VALUES ('rouanet','Lei Rouanet',6.00,'annual','irpf_global_6');
+  -- migration 051: a Rouanet e a unica com registro externo.
+  UPDATE incentive_groups SET identificador = 'pronac' WHERE code = 'rouanet';
   CREATE TABLE organization_users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID, user_id UUID, role TEXT, is_active BOOLEAN DEFAULT true

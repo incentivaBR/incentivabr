@@ -238,6 +238,47 @@ await teste('o catalogo de mecanismos esta inteiro e sem duplicata', async () =>
   if (orfas.length) throw new Error('organizacao com mecanismo inexistente: ' + orfas.map(o => o.slug).join(','));
 });
 
+await teste('o vocabulario do mecanismo existe no banco e esta completo (migration 051)', async () => {
+  // Mesma armadilha de `org.incentive_group_code`: o codigo le `l.termo_*` e
+  // `g.identificador` por JOIN. Se a coluna nao existir, o Postgres derruba a
+  // consulta inteira; se existir vazia, a tela cai no texto de reserva sem
+  // reclamar. As duas falhas sao silenciosas no pg-mem, que escreve o schema a
+  // mao. Aqui o schema e o de verdade.
+  const colunas = await q(
+    `SELECT table_name, column_name FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND (table_name, column_name) IN
+            (('incentive_groups','identificador'),
+             ('laws','termo_identificador'), ('laws','termo_beneficiario'),
+             ('laws','termo_recibo'), ('laws','termo_recibo_emissor'))`);
+  if (colunas.length !== 5) {
+    throw new Error(`faltam colunas do vocabulario: so ${colunas.length} das 5 existem`);
+  }
+
+  // Todo mecanismo que um cliente pode contratar precisa saber como chamar o
+  // beneficiario e o recibo — sao as palavras que aparecem no aceite e no
+  // e-mail, e reserva neutra em producao e texto vago sobre dinheiro real.
+  const mudos = await q(
+    `SELECT g.code FROM incentive_groups g
+       LEFT JOIN laws l ON l.slug = g.law_slug
+      WHERE g.disponivel_para_cliente = true
+        AND (l.termo_beneficiario IS NULL OR l.termo_recibo IS NULL
+             OR l.termo_recibo_emissor IS NULL)`);
+  if (mudos.length) {
+    throw new Error('mecanismo liberado sem vocabulario: ' + mudos.map(m => m.code).join(','));
+  }
+
+  // E quem diz usar registro externo tem de dizer como ele se chama: sem isso
+  // identificaDestinacao() exige um numero que a tela nao sabe nomear.
+  const sem = await q(
+    `SELECT g.code FROM incentive_groups g
+       LEFT JOIN laws l ON l.slug = g.law_slug
+      WHERE g.identificador = 'pronac' AND l.termo_identificador IS NULL`);
+  if (sem.length) {
+    throw new Error('mecanismo com identificador externo e sem nome: ' + sem.map(m => m.code).join(','));
+  }
+});
+
 servidor.close();
 await pool.end();
 
