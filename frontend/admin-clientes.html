@@ -46,6 +46,17 @@
     .aviso.ok   { background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; }
     .linha-acoes { display:flex; gap:10px; align-items:center; margin-top:16px; flex-wrap:wrap; }
     .vazio { color:var(--fraco); font-size:13px; padding:16px 0; }
+
+    /* Situação do Certificado de Autorização para Captação.
+       Classe, e não cor interpolada no HTML: nenhum valor entra em innerHTML
+       sem escape, e a guarda de escape-innerhtml recusa a interpolação. */
+    .cert { margin-top:8px; padding:10px 12px; border-radius:8px; font-size:13px; line-height:1.5; }
+    .cert.vigente        { background:#ECFDF5; border:1px solid #10B981; color:#065F46; }
+    .cert.vence_em_breve { background:#FEF3C7; border:1px solid #F59E0B; color:#78350F; }
+    .cert.vencido        { background:#FEE2E2; border:1px solid #EF4444; color:#7F1D1D; }
+    .projeto-cartao { border:1px solid var(--borda,#D6DBE4); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+    .form-prorroga { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+    .form-prorroga label { font-size:12px; }
   </style>
 </head>
 <body>
@@ -212,11 +223,53 @@
               <p class="dica">Aparece na página do projeto e em "Como funciona". Em branco, a página mostra um texto neutro; fora da simulação, o resumo do SALIC entra no lugar.</p>
             </div>
           </div>
+          <!-- Certificado de Autorização para Captação (RN 125/2026, arts. 12 a 15).
+               Só os fundos que exigem autorização do Conselho usam; na Rouanet
+               fica tudo em branco e nada acende. -->
+          <fieldset style="grid-column:1 / -1;border:1px solid var(--borda,#D6DBE4);border-radius:10px;padding:14px 16px;margin-top:6px">
+            <legend style="font-size:13px;font-weight:700;padding:0 6px">Certificado de Autorização para Captação</legend>
+            <p class="dica" style="margin-top:0">
+              Só para fundos que exigem autorização do Conselho, como o FDCA/DF. Na Lei Rouanet,
+              deixe em branco. A autorização vale dois anos e é prorrogável: deixar o prazo
+              extinguir sem pedir prorrogação manda os recursos já captados para a universalidade
+              da política (RN 125/2026, art. 15, § 2º, IV).
+            </p>
+            <div class="grade">
+              <div>
+                <label for="pCertNumero">Número da resolução</label>
+                <input id="pCertNumero" placeholder="Resolução 88/2026">
+                <p class="dica">Como publicada no Diário Oficial.</p>
+              </div>
+              <div>
+                <label for="pCertPublicado">Publicada em</label>
+                <input id="pCertPublicado" type="date">
+              </div>
+              <div>
+                <label for="pCertValidade">Autorização vale até</label>
+                <input id="pCertValidade" type="date">
+              </div>
+              <div>
+                <label for="pRegistroValidade">Registro da OSC vale até</label>
+                <input id="pRegistroValidade" type="date">
+                <p class="dica">Validade separada: o registro pode vencer antes da autorização.</p>
+              </div>
+              <div>
+                <label for="pMeta">Meta de captação (R$)</label>
+                <input id="pMeta" type="number" min="0" step="0.01" placeholder="250000.00">
+                <p class="dica">Da planilha orçamentária do projeto, não do certificado.</p>
+              </div>
+            </div>
+          </fieldset>
+
           <div class="linha-acoes">
             <button class="btn" type="submit">Vincular projeto</button>
           </div>
           <div id="avisoProjeto" class="aviso erro" hidden></div>
         </form>
+
+        <!-- Projetos já vinculados, com a situação do certificado. Prorrogar é
+             o ato do art. 15, e sem tela ele só existiria pela API. -->
+        <div id="listaProjetos" style="margin-top:20px"></div>
       </div>
 
       <!-- ── Convites ─────────────────────────────────────────────── -->
@@ -436,12 +489,95 @@
             proponente_nome: el('pProponente').value.trim() || null,
             uf: el('pUf').value.trim().toUpperCase() || null,
             descricao: el('pDescricao').value.trim() || null,
-            is_featured: true
+            is_featured: true,
+            ...camposDoCertificado()
           })
         });
         avisar('avisoProjeto', 'Projeto vinculado.', true);
+        carregaProjetos();
       } catch (erro) { avisar('avisoProjeto', erro.message); }
     });
+
+    // ── Certificado de Autorização para Captação ───────────────────────────
+    //
+    // Os campos ficam em branco na Rouanet, que não usa certificado. Enviar
+    // string vazia em vez de null faria o backend recusar a data.
+    function camposDoCertificado() {
+      const ou = id => el(id).value.trim() || null;
+      return {
+        certificado_numero:       ou('pCertNumero'),
+        certificado_publicado_em: ou('pCertPublicado'),
+        certificado_valido_ate:   ou('pCertValidade'),
+        registro_osc_valido_ate:  ou('pRegistroValidade'),
+        meta_captacao:            ou('pMeta')
+      };
+    }
+
+    /** As três situações que `lib/certificado.js` devolve. A classe da tela
+        sai daqui, e não do que vem da rota: assim nenhum valor de fora vira
+        nome de classe. */
+    const CLASSE_CERT = { vigente: 'vigente', vence_em_breve: 'vence_em_breve', vencido: 'vencido' };
+
+    async function carregaProjetos() {
+      const alvo = el('listaProjetos');
+      const org = el('selOrg').value;
+      if (!alvo) return;
+      if (!org) { alvo.innerHTML = ''; return; }
+
+      try {
+        const dados = await chamar(`/api/admin/orgs/${org}/projects`);
+        const projetos = dados.projects || [];
+        if (!projetos.length) { alvo.innerHTML = ''; return; }
+
+        alvo.innerHTML = '<h3 style="font-size:14px;margin:0 0 10px">Projetos vinculados</h3>' +
+          projetos.map(p => {
+            const c = p.certificado;
+            const classe = (c && CLASSE_CERT[c.situacao]) || '';
+            const bloco = classe
+              ? `<div class="cert ${classe}">${esc(p.certificado_texto || '')}</div>
+                 <form class="form-prorroga" data-projeto="${encodeURIComponent(p.id)}">
+                   <div><label>Nova validade</label>
+                     <input type="date" name="validade" required></div>
+                   <div><label>Nova resolução</label>
+                     <input name="numero" placeholder="Resolução 88/2028" style="min-width:180px"></div>
+                   <button class="btn leve" type="submit">Prorrogar</button>
+                 </form>`
+              : '<p class="dica" style="margin:6px 0 0">Sem certificado — é o caso da Lei Rouanet.</p>';
+
+            return `<div class="projeto-cartao">
+                      <strong>${esc(p.titulo || p.pronac || p.fund_code || 'Projeto')}</strong>
+                      ${bloco}
+                    </div>`;
+          }).join('');
+
+        // Prorrogar preserva o que já estava: mandar só a data nova apagaria
+        // a publicação, o registro da OSC e a meta, que a rota substitui.
+        alvo.querySelectorAll('.form-prorroga').forEach(f => {
+          f.addEventListener('submit', async e => {
+            e.preventDefault();
+            const id = decodeURIComponent(f.dataset.projeto);
+            const antes = projetos.find(p => p.id === id) || {};
+            const soData = v => (v ? String(v).slice(0, 10) : null);
+            try {
+              await chamar(`/api/admin/orgs/${org}/projects/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                  certificado_numero:       f.numero.value.trim() || antes.certificado_numero || null,
+                  certificado_publicado_em: soData(antes.certificado_publicado_em),
+                  certificado_valido_ate:   f.validade.value,
+                  registro_osc_valido_ate:  soData(antes.registro_osc_valido_ate),
+                  meta_captacao:            antes.meta_captacao ?? null
+                })
+              });
+              avisar('avisoProjeto', 'Certificado atualizado.', true);
+              carregaProjetos();
+            } catch (erro) { avisar('avisoProjeto', erro.message); }
+          });
+        });
+      } catch (erro) {
+        alvo.innerHTML = `<p class="dica">Não foi possível carregar os projetos: ${esc(erro.message)}</p>`;
+      }
+    }
 
     // ── Convites ────────────────────────────────────────────────────
     const rotulo = { org_admin:'Gestor', org_viewer:'Visualizador', member:'Destinador' };
@@ -491,7 +627,7 @@
       } catch (erro) { avisar('avisoConvite', erro.message); }
     });
 
-    el('selOrg').addEventListener('change', () => { preencheTextos(); carregaConvites(); });
+    el('selOrg').addEventListener('change', () => { preencheTextos(); carregaConvites(); carregaProjetos(); });
 
     // ── Contas cadastradas ──────────────────────────────────────────
     async function carregaContas() {
@@ -535,6 +671,7 @@
         await carregaClientes();
         el('conteudo').hidden = false;
         carregaMecanismos();  // idem: o seletor tem reserva se a rota falhar
+        carregaProjetos();    // a situação do certificado do cliente selecionado
         carregaContas();   // depois de liberar a tela: falha aqui não tranca o resto
       } catch {
         // 403 aqui significa conta sem superadmin — dizer isso é melhor que

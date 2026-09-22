@@ -9,6 +9,7 @@ import pool from '../../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { mascaraCPF } from '../lib/cpf.js';
 import { mecanismosDisponiveis, podeSerDoCliente, MECANISMO_PADRAO } from '../lib/mecanismos.js';
+import { situacaoDoCertificado, fraseDoCertificado, validaCertificado } from '../lib/certificado.js';
 
 const router = express.Router();
 
@@ -281,7 +282,15 @@ router.get('/orgs/:id/projects', async (req, res) => {
       'SELECT * FROM org_projects WHERE organization_id = $1 ORDER BY is_featured DESC, created_at DESC',
       [id]
     );
-    res.json({ status: 'success', projects: result.rows });
+
+    // A situação do certificado é calculada, não guardada: guardar um
+    // "vencido" no banco exigiria alguém rodando todo dia para virá-lo.
+    const projects = result.rows.map(p => {
+      const certificado = situacaoDoCertificado(p);
+      return { ...p, certificado, certificado_texto: fraseDoCertificado(certificado) };
+    });
+
+    res.json({ status: 'success', projects });
   } catch (error) {
     console.error('[Admin] Erro ao listar projetos:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno.' });
@@ -306,26 +315,103 @@ router.post('/orgs/:id/projects', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Informe pronac ou fund_code.' });
     }
 
+    // Certificado de Autorização para Captação (RN 125/2026, arts. 12 a 15).
+    // Só o FDCA/DF usa; na Rouanet os campos ficam nulos e nada acende.
+    const cert = validaCertificado(req.body);
+    if (!cert.ok) {
+      return res.status(400).json({ status: 'error', message: cert.erro });
+    }
+    const c = cert.valores;
+
     const result = await pool.query(`
       INSERT INTO org_projects (
         organization_id, pronac, fund_code, titulo, area, segmento, descricao, uf,
         proponente_nome, proponente_cnpj,
         bank_name, bank_code, bank_agency, bank_account,
-        pix_key, pix_key_type, is_featured
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        pix_key, pix_key_type, is_featured,
+        certificado_numero, certificado_publicado_em, certificado_valido_ate,
+        registro_osc_valido_ate, meta_captacao
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
+                $18,$19::date,$20::date,$21::date,$22)
       RETURNING *
     `, [id, pronac || null, fund_code || null, titulo || null,
         area || null, segmento || null, descricao || null, uf || null,
         proponente_nome || null, proponente_cnpj || null,
         bank_name || null, bank_code || null, bank_agency || null, bank_account || null,
-        pix_key || null, pix_key_type || null, is_featured]);
+        pix_key || null, pix_key_type || null, is_featured,
+        c.certificado_numero, c.certificado_publicado_em, c.certificado_valido_ate,
+        c.registro_osc_valido_ate, c.meta_captacao]);
 
-    res.status(201).json({ status: 'success', project: result.rows[0] });
+    const projeto = result.rows[0];
+    const certificado = situacaoDoCertificado(projeto);
+
+    res.status(201).json({
+      status: 'success',
+      project: { ...projeto, certificado, certificado_texto: fraseDoCertificado(certificado) }
+    });
   } catch (error) {
     if (error.code === '23505') {
       return res.status(400).json({ status: 'error', message: 'Este PRONAC já está vinculado a este cliente.' });
     }
     console.error('[Admin] Erro ao vincular projeto:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/admin/orgs/:id/projects/:projectId — atualizar o certificado
+//
+// Existe por causa do art. 15: a autorização é PRORROGÁVEL por igual
+// período, e a OSC pede a prorrogação antes do fim. Sem esta rota, prorrogar
+// exigiria cadastrar o projeto de novo — duplicando o histórico de captação
+// do projeto que continua sendo o mesmo.
+//
+// Mexe só no bloco do certificado. Título, conta e proponente continuam onde
+// estavam: um endpoint que atualiza tudo de uma vez é um endpoint que apaga
+// dado bancário por engano.
+// ─────────────────────────────────────────────────────────────
+router.put('/orgs/:id/projects/:projectId', async (req, res) => {
+  try {
+    const { id, projectId } = req.params;
+
+    const cert = validaCertificado(req.body);
+    if (!cert.ok) {
+      return res.status(400).json({ status: 'error', message: cert.erro });
+    }
+    const c = cert.valores;
+
+    // O projeto tem de ser deste cliente: o id do projeto sozinho permitiria
+    // mexer no certificado de outro tenant.
+    const { rows } = await pool.query(`
+      UPDATE org_projects
+         SET certificado_numero       = $3,
+             certificado_publicado_em = $4::date,
+             certificado_valido_ate   = $5::date,
+             registro_osc_valido_ate  = $6::date,
+             meta_captacao            = $7,
+             updated_at               = NOW()
+       WHERE id = $2 AND organization_id = $1
+       RETURNING *`,
+      [id, projectId, c.certificado_numero, c.certificado_publicado_em,
+       c.certificado_valido_ate, c.registro_osc_valido_ate, c.meta_captacao]);
+
+    if (!rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Projeto não encontrado neste cliente.' });
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (organization_id, user_id, action, entity_type, entity_id, details)
+       VALUES ($1, $2, 'projeto.certificado', 'org_project', $3, $4)`,
+      [id, req.user.userId, projectId,
+       JSON.stringify({ numero: c.certificado_numero, valido_ate: c.certificado_valido_ate })]);
+
+    const certificado = situacaoDoCertificado(rows[0]);
+    res.json({
+      status: 'success',
+      project: { ...rows[0], certificado, certificado_texto: fraseDoCertificado(certificado) }
+    });
+  } catch (error) {
+    console.error('[Admin] Erro ao atualizar certificado:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno.' });
   }
 });
