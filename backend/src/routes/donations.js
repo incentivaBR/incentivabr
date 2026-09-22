@@ -287,20 +287,35 @@ router.post('/rouanet', authenticateToken, async (req, res) => {
 
     if (valor > saldo.disponivel) {
       await client.query('ROLLBACK');
-      return res.status(400).json({
-        status: 'error',
-        codigo: 'acima_do_teto',
-        message: saldo.ja_destinado > 0
+
+      // Quando quem barra é o sublimite do mecanismo, a mensagem tem de citar
+      // ELE — dizer "teto de 6%" enquanto o que barrou foi a fatia de 3% faz
+      // a pessoa conferir a conta errada e concluir que o sistema errou.
+      const sub = saldo.limitado_por === 'sublimite' ? saldo.sublimite : null;
+      const mensagem = sub
+        ? `Valor acima do que ainda cabe neste mecanismo: o limite é ${sub.percentual}% do IR devido ` +
+          `(R$ ${sub.limite.toFixed(2)}), dentro do teto de ${pct}% que ele divide com os demais. ` +
+          (sub.ja_destinado > 0 ? `Já destinado aqui em ${fiscal_year}: R$ ${sub.ja_destinado.toFixed(2)}. ` : '') +
+          `Disponível: R$ ${saldo.disponivel.toFixed(2)}.`
+        : saldo.ja_destinado > 0
           ? `Valor acima do que ainda cabe no teto de ${pct}% do IR devido (R$ ${saldo.limite.toFixed(2)}). ` +
             `Já destinado em ${fiscal_year}: R$ ${saldo.ja_destinado.toFixed(2)}. Disponível: R$ ${saldo.disponivel.toFixed(2)}.`
-          : `Valor excede o limite de ${pct}% do IR devido (R$ ${saldo.limite.toFixed(2)}).`,
+          : `Valor excede o limite de ${pct}% do IR devido (R$ ${saldo.limite.toFixed(2)}).`;
+
+      return res.status(400).json({
+        status: 'error',
+        codigo: sub ? 'acima_do_sublimite' : 'acima_do_teto',
+        message: mensagem,
         saldo: {
           teto_percentual: pct,
           base_legal:      saldo.teto.base_legal,
           ir_devido_base:  irBase,
           limite:          saldo.limite,
           ja_destinado:    saldo.ja_destinado,
-          disponivel:      saldo.disponivel
+          disponivel:      saldo.disponivel,
+          // null quando o mecanismo usa o teto inteiro, como a Rouanet.
+          sublimite:       saldo.sublimite,
+          limitado_por:    saldo.limitado_por
         }
       });
     }

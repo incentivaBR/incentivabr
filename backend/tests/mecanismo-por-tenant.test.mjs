@@ -77,6 +77,11 @@ db.public.none(`
          ('idoso','Fundo dos Direitos da Pessoa Idosa','Fundo do Idoso','Lei 12.213/2010','Conselhos','—',6.00),
          ('pronon','PRONON','PRONON','Lei 12.715/2012','Ministério da Saúde','Transferegov',1.00);
 
+  -- migration 050: o sublimite do mecanismo, dentro do teto compartilhado.
+  ALTER TABLE incentive_groups
+    ADD COLUMN sublimite_pct NUMERIC,
+    ADD COLUMN sublimite_base_legal TEXT;
+
   INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo, law_slug, disponivel_para_cliente, motivo_indisponivel)
   VALUES ('rouanet','Lei Rouanet — Incentivo à Cultura',6.00,'irpf_global_6','rouanet',true,NULL),
          ('idoso','Fundo do Idoso',6.00,NULL,'idoso',false,'Item 11 da consulta ao tributarista.'),
