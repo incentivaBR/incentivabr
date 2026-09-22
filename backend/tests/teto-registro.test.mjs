@@ -38,8 +38,20 @@ db.public.none(`
     created_at TIMESTAMP DEFAULT NOW());
   CREATE TABLE tetos_deducao (codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC(5,2), base_legal TEXT,
     vigencia_inicio DATE, vigencia_fim DATE, confirmado_por_parecer BOOLEAN DEFAULT FALSE, observacao TEXT);
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
   CREATE TABLE incentive_groups (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT UNIQUE, name TEXT,
-    max_percentage NUMERIC(5,2), period_type TEXT, teto_codigo TEXT);
+    max_percentage NUMERIC(5,2), period_type TEXT, teto_codigo TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    law_slug TEXT,
+    disponivel_para_cliente BOOLEAN DEFAULT false,
+    motivo_indisponivel TEXT,
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT
+  );
   CREATE TABLE official_funds (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), incentive_group_id UUID, code TEXT, name TEXT);
   CREATE TABLE donations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, organization_id UUID, official_fund_id UUID,
@@ -59,8 +71,8 @@ const { default: donationsRoutes } = await import('../src/routes/donations.js');
 const { limpaCache } = await import('../src/lib/tetos.js');
 
 const q = async (sql) => (await poolFalso.query(sql)).rows;
-const [{ id: grupoId }] = await q(`INSERT INTO incentive_groups (code, name, max_percentage, period_type, teto_codigo)
-  VALUES ('ROUANET','Lei Rouanet',6.00,'annual','irpf_global_6') RETURNING id`);
+const [{ id: grupoId }] = await q(`INSERT INTO incentive_groups (code, name, max_percentage, period_type, teto_codigo, identificador)
+  VALUES ('rouanet','Lei Rouanet',6.00,'annual','irpf_global_6','pronac') RETURNING id`);
 await q(`INSERT INTO official_funds (incentive_group_id, code, name) VALUES ('${grupoId}','FNC','Fundo Nacional de Cultura')`);
 const [{ id: orgId }] = await q(`INSERT INTO organizations (name, slug) VALUES ('Casa Azul','casa-azul') RETURNING id`);
 await q(`INSERT INTO org_projects (organization_id, pronac, titulo, proponente_nome, bank_name, bank_code, bank_agency, bank_account, is_active, is_featured)

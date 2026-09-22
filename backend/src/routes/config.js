@@ -5,6 +5,7 @@ import { codigoDoMecanismo, mecanismoDaOrg } from '../lib/mecanismos.js';
 import { textosFiscais } from '../lib/textosFiscais.js';
 import { papeisDaPrivacidade } from '../lib/papeisLgpd.js';
 import { prazoDaOrganizacao } from '../lib/prazos.js';
+import { vocabulario } from '../lib/jornada.js';
 
 const router = express.Router();
 
@@ -163,7 +164,15 @@ router.get('/brand', async (req, res) => {
       nome:            mecanismo.name,
       base_legal:      mecanismo.base_legal || null,
       orgao:           mecanismo.orgao || null,
-      sistema_oficial: mecanismo.sistema_oficial || null
+      sistema_oficial: mecanismo.sistema_oficial || null,
+      // O que identifica a destinação: 'pronac' (registro externo, conferível
+      // no sistema oficial) ou 'projeto_do_tenant' (sem número a digitar).
+      // É isto que faz o assistente pedir ou não pedir PRONAC.
+      identificador:   mecanismo.identificador || 'projeto_do_tenant',
+      // Como este mecanismo chama as coisas. Nenhuma página escreve "PRONAC"
+      // ou "Recibo de Mecenato" à mão, pela mesma razão que nenhuma escreve
+      // percentual: quatro cópias viram quatro palavras diferentes.
+      vocabulario:     vocabulario(mecanismo)
     } : null,
 
     // Quem responde pelos dados neste site, e quem é o Encarregado a divulgar

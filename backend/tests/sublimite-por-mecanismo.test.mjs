@@ -39,9 +39,19 @@ db.public.none(`
   CREATE TABLE tetos_deducao (
     codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC, base_legal TEXT,
     vigencia_inicio DATE, vigencia_fim DATE, confirmado_por_parecer BOOLEAN DEFAULT false);
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
   CREATE TABLE incentive_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT, name TEXT, teto_codigo TEXT,
-    sublimite_pct NUMERIC, sublimite_base_legal TEXT);
+    sublimite_pct NUMERIC, sublimite_base_legal TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    law_slug TEXT,
+    disponivel_para_cliente BOOLEAN DEFAULT false,
+    motivo_indisponivel TEXT
+  );
   CREATE TABLE official_funds (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT, incentive_group_id UUID);
   CREATE TABLE donations (

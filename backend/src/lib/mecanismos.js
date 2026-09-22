@@ -38,7 +38,9 @@ export async function mecanismoDaOrg(org, executor = pool) {
   try {
     const { rows } = await executor.query(
       `SELECT g.code, g.name, g.teto_codigo, g.disponivel_para_cliente, g.motivo_indisponivel,
-              l.base_legal, l.orgao, l.sistema_oficial, l.sistema_url
+              g.identificador,
+              l.base_legal, l.orgao, l.sistema_oficial, l.sistema_url,
+              l.termo_identificador, l.termo_beneficiario, l.termo_recibo, l.termo_recibo_emissor
          FROM incentive_groups g
          LEFT JOIN laws l ON l.slug = g.law_slug
         WHERE g.code = $1

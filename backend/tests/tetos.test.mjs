@@ -25,10 +25,21 @@ db.public.registerFunction({
 });
 
 db.public.none(`
+  -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
+  CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
+    sistema_oficial TEXT, sistema_url TEXT,
+    termo_identificador TEXT, termo_beneficiario TEXT, termo_recibo TEXT, termo_recibo_emissor TEXT);
   CREATE TABLE incentive_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL, name TEXT,
-    max_percentage NUMERIC(5,2), period_type TEXT
+    max_percentage NUMERIC(5,2), period_type TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    law_slug TEXT,
+    disponivel_para_cliente BOOLEAN DEFAULT false,
+    motivo_indisponivel TEXT,
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT
   );
   CREATE TABLE official_funds (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,7 +51,9 @@ db.public.none(`
     donation_amount NUMERIC, fiscal_year INT, status TEXT DEFAULT 'pending'
   );
   INSERT INTO incentive_groups (code, name, max_percentage, period_type)
-    VALUES ('ROUANET','Lei Rouanet',6.00,'annual');
+    VALUES ('rouanet','Lei Rouanet',6.00,'annual');
+  -- migration 051: a Rouanet e a unica com registro externo.
+  UPDATE incentive_groups SET identificador = 'pronac' WHERE code = 'rouanet';
 `);
 
 const sql = fs.readFileSync(path.join(AQUI, '../src/migrations/030_tetos_deducao.sql'), 'utf8')

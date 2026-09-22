@@ -35,14 +35,21 @@ db.public.registerFunction({ name: 'gen_random_uuid', returns: 'uuid', impure: t
 db.public.none(`
   CREATE TABLE laws (
     slug TEXT PRIMARY KEY, name TEXT, nickname TEXT, base_legal TEXT,
-    orgao TEXT, sistema_oficial TEXT, sistema_url TEXT, max_pf_percent NUMERIC
+    orgao TEXT, sistema_oficial TEXT, sistema_url TEXT, max_pf_percent NUMERIC,
+    -- migration 051: como o mecanismo chama as coisas na tela.
+    termo_identificador TEXT, termo_beneficiario TEXT,
+    termo_recibo TEXT, termo_recibo_emissor TEXT
   );
   CREATE TABLE incentive_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL, name TEXT, max_percentage NUMERIC,
     period_type TEXT, description TEXT, teto_codigo TEXT, law_slug TEXT,
     disponivel_para_cliente BOOLEAN NOT NULL DEFAULT FALSE,
-    motivo_indisponivel TEXT
+    motivo_indisponivel TEXT,
+    -- migration 051: o que identifica a destinacao neste mecanismo.
+    identificador TEXT DEFAULT 'projeto_do_tenant',
+    sublimite_pct NUMERIC,
+    sublimite_base_legal TEXT
   );
   CREATE TABLE tetos_deducao (
     codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC, base_legal TEXT,
@@ -77,11 +84,6 @@ db.public.none(`
          ('idoso','Fundo dos Direitos da Pessoa Idosa','Fundo do Idoso','Lei 12.213/2010','Conselhos','—',6.00),
          ('pronon','PRONON','PRONON','Lei 12.715/2012','Ministério da Saúde','Transferegov',1.00);
 
-  -- migration 050: o sublimite do mecanismo, dentro do teto compartilhado.
-  ALTER TABLE incentive_groups
-    ADD COLUMN sublimite_pct NUMERIC,
-    ADD COLUMN sublimite_base_legal TEXT;
-
   INSERT INTO incentive_groups (code, name, max_percentage, teto_codigo, law_slug, disponivel_para_cliente, motivo_indisponivel)
   VALUES ('rouanet','Lei Rouanet — Incentivo à Cultura',6.00,'irpf_global_6','rouanet',true,NULL),
          ('idoso','Fundo do Idoso',6.00,NULL,'idoso',false,'Item 11 da consulta ao tributarista.'),
@@ -89,6 +91,8 @@ db.public.none(`
          -- Um mecanismo liberado e com teto PRÓPRIO, para provar que o teto
          -- segue o cliente e não é sempre o global.
          ('meia-cultura','Mecanismo de teste, teto de 3%',3.00,'teste_3','rouanet',true,NULL);
+  -- migration 051: a Rouanet e a unica com registro externo.
+  UPDATE incentive_groups SET identificador = 'pronac' WHERE code = 'rouanet';
 
   INSERT INTO organizations (name, slug, incentive_group_code)
   VALUES ('IncentivaBR','www','rouanet'),

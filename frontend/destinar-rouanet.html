@@ -527,7 +527,7 @@
       <p data-modo="producao" hidden style="text-align:center;font-size:11px;color:#C4C9D4;line-height:1.6;margin:0;padding:0 8px">
         Válido para quem entrega a declaração pelo <strong style="color:#6B7280">modelo completo</strong> —
         no simplificado não há como deduzir.<br>
-        O Recibo de Mecenato é emitido pelo proponente do projeto, não por esta plataforma.
+        O <span data-termo="recibo">Recibo de Mecenato</span> é emitido por <span data-termo="recibo_emissor">o proponente do projeto</span>, não por esta plataforma.
       </p>
 
 
@@ -806,7 +806,7 @@
                 Declaro que sou contribuinte de Imposto de Renda (Pessoa Física) e que as informações prestadas são verdadeiras para fins desta demonstração. Autorizo o registro desta simulação para que a plataforma calcule meu limite e gere o comprovante, conforme a <a href="politica-privacidade.html" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.
               </span>
               <span data-modo="producao" hidden>
-                Declaro que sou contribuinte de Imposto de Renda Pessoa Física, que entrego a declaração pelo <strong>modelo completo</strong> e que as informações prestadas são verdadeiras. Autorizo o IncentivaBR a enviar meu nome, CPF, e-mail e o valor desta destinação ao proponente do projeto, para que ele emita em meu nome o <strong>Recibo de Mecenato</strong> — documento que só ele pode emitir, e que é o que vale na declaração. Tudo conforme a <a href="politica-privacidade.html" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.
+                Declaro que sou contribuinte de Imposto de Renda Pessoa Física, que entrego a declaração pelo <strong>modelo completo</strong> e que as informações prestadas são verdadeiras. Autorizo o IncentivaBR a enviar meu nome, CPF, e-mail e o valor desta destinação a <span data-termo="recibo_emissor">o proponente do projeto</span>, para que seja emitido em meu nome o <strong><span data-termo="recibo">Recibo de Mecenato</span></strong> — documento que só quem emite pode emitir, e que é o que vale na declaração. Tudo conforme a <a href="politica-privacidade.html" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.
               </span>
               <span id="modoIndefinido" style="color:#B45309">
                 Carregando as condições desta destinação…
@@ -830,7 +830,7 @@
                    placeholder="000.000.000-00"
                    style="width:100%;padding:11px 13px;border:1.5px solid #DCE3F0;border-radius:9px;font-size:15px;font-family:inherit">
             <p style="font-size:12px;color:#7C4A14;margin:8px 0 0;line-height:1.6">
-              Ele vai no Recibo de Mecenato que o proponente emite, e é por ele que a
+              Ele vai no <span data-termo="recibo">Recibo de Mecenato</span> que <span data-termo="recibo_emissor">o proponente</span> emite, e é por ele que a
               dedução é lançada na sua declaração. Pedimos uma vez só.
             </p>
           </div>
@@ -945,7 +945,7 @@
             No futuro, podemos ajudar você a transformar esta simulação em uma destinação real, com segurança jurídica e suporte em todas as etapas.
           </p>
           <p data-modo="producao" hidden style="text-align:center;font-size:11px;color:#9CA3AF;margin:16px 0 0;line-height:1.6;padding:0 8px">
-            Confira a agência e a conta antes de transferir. O depósito precisa cair na Conta de Captação deste PRONAC — em outra conta não há recibo, e sem recibo não há dedução.
+            Confira a agência e a conta antes de transferir. O depósito precisa cair na conta indicada acima — em outra conta não há <span data-termo="recibo">recibo</span>, e sem recibo não há dedução.
           </p>
 
           <!-- Aviso do prazo ANTES da transferência, que é quando ele ainda
@@ -1023,7 +1023,7 @@
             <h2 style="font-size:22px;margin-bottom:8px">Seu IR pode ter propósito!</h2>
             <p id="successMsg" style="font-size:14px;font-weight:600;color:#374151;margin:0 0 4px;line-height:1.5"></p>
             <p style="font-size:12px;color:#64748B;margin:0 0 16px">
-              <span data-projeto="titulo">Projeto</span> · PRONAC <span data-projeto="pronac">—</span> · Art. 18 (100% dedutível)
+              <span data-projeto="titulo">Projeto</span><span data-so-pronac> · <span data-termo="identificador">PRONAC</span> <span data-projeto="pronac">—</span> · Art. 18 (100% dedutível)</span>
             </p>
 
             <!-- Resumo da destinação. Os números de impacto ("80 jovens",
@@ -1062,8 +1062,8 @@
                 <span style="font-size:20px;line-height:1.3">📄</span>
                 <div>
                   <p style="margin:0 0 3px;font-size:13px;font-weight:700;color:#166534">Registro da destinação (PDF)</p>
-                  <p data-modo="simulacao" hidden style="margin:0;font-size:12px;color:#15803D;line-height:1.5">Nesta simulação, o PDF mostra como fica o registro. Em uma destinação real, o documento com valor fiscal é o Recibo de Mecenato, emitido pelo proponente.</p>
-                  <p data-modo="producao" hidden style="margin:0;font-size:12px;color:#15803D;line-height:1.5">Este PDF é o registro da operação na plataforma. Não é o Recibo de Mecenato: esse é emitido pelo proponente depois da conferência e aparece no seu painel.</p>
+                  <p data-modo="simulacao" hidden style="margin:0;font-size:12px;color:#15803D;line-height:1.5">Nesta simulação, o PDF mostra como fica o registro. Em uma destinação real, o documento com valor fiscal é o <span data-termo="recibo">Recibo de Mecenato</span>, emitido por <span data-termo="recibo_emissor">o proponente</span>.</p>
+                  <p data-modo="producao" hidden style="margin:0;font-size:12px;color:#15803D;line-height:1.5">Este PDF é o registro da operação na plataforma. Não é o <span data-termo="recibo">Recibo de Mecenato</span>: esse é emitido por <span data-termo="recibo_emissor">o proponente</span> depois da conferência e aparece no seu painel.</p>
                 </div>
               </div>
               <button id="btnDownloadComprovante" onclick="baixarComprovanteWizard()"
@@ -1385,10 +1385,21 @@
       if (!document.getElementById('termsCheck').checked) {
         toast('Aceite os termos para continuar', 'error'); return;
       }
-      const pronacFinal = urlParams.get('pronac') || state.projeto?.pronac || state.org?.pronac;
+      // O identificador depende do mecanismo do cliente (migration 051). A
+      // Rouanet tem PRONAC, conferível no SALIC; um fundo municipal não tem
+      // número nenhum — a destinação aponta para o projeto cadastrado, e
+      // exigir um PRONAC aqui travaria a jornada inteira.
+      const usaPronac   = state.mecanismo?.identificador !== 'projeto_do_tenant';
+      const pronacFinal = usaPronac
+        ? (urlParams.get('pronac') || state.projeto?.pronac || state.org?.pronac)
+        : null;
       const tituloFinal = state.projeto?.nome || state.org?.pronac_titulo || urlParams.get('titulo');
 
-      if (!pronacFinal) { toast('PRONAC não encontrado. Volte e selecione o projeto.', 'error'); return; }
+      if (usaPronac && !pronacFinal) {
+        const nome = termo('identificador');
+        toast(`${nome} não encontrado. Volte e selecione o projeto.`, 'error');
+        return;
+      }
 
       // Só viaja quando a conta ainda não tem CPF; o servidor recusa em
       // branco e devolve `codigo: cpf_necessario`, que reabre este bloco.
@@ -1397,11 +1408,13 @@
       showLoading('Registrando destinação...');
       try {
         const qs = orgParam ? `?org=${orgParam}` : '';
-        const res = await fetch(`${BASE}/api/donations/rouanet${qs}`, {
+        const res = await fetch(`${BASE}/api/donations/registrar${qs}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeader() },
           body: JSON.stringify({
-            pronac:          pronacFinal,
+            // Só vai quando o mecanismo usa: a rota RECUSA um pronac mandado
+            // à toa, para não gravar número que a jornada não usa.
+            ...(pronacFinal ? { pronac: pronacFinal } : {}),
             projeto_titulo:  tituloFinal,
             ir_devido:       state.ir_devido,
             donation_amount: state.valor,
@@ -1476,7 +1489,7 @@
         const valorFmt = BRL(state.valor);
         document.getElementById('successMsg').textContent = state.simulationMode
           ? `Nesta simulação, você redirecionou ${valorFmt} para ${nomeDoProjeto()}.`
-          : `Você destinou ${valorFmt}. Assim que a transferência for conferida, o proponente emite o seu Recibo de Mecenato.`;
+          : `Você destinou ${valorFmt}. Assim que a transferência for conferida, ${termo('recibo_emissor')} emite o seu ${termo('recibo')}.`;
         document.getElementById('resumoValorFinal').textContent = valorFmt;
 
         // Comprovante PDF
@@ -1520,10 +1533,17 @@
         document.getElementById('pixCard').style.display = '';
       }
 
-      const pronac = urlParams.get('pronac') || state.projeto?.pronac || state.org?.pronac || '—';
-      const cpf    = user?.cpf ? formatCPF(user.cpf) : (user?.nome || '');
-      document.getElementById('pgReferencia').textContent =
-        `PRONAC ${pronac} - ${cpf} - Lei Rouanet`;
+      // A referência que a pessoa escreve na transferência. Num fundo não há
+      // PRONAC nem "Lei Rouanet" a citar — vai o nome do mecanismo, que é o
+      // que o Conselho usa para achar a doação.
+      const cpf  = user?.cpf ? formatCPF(user.cpf) : (user?.nome || '');
+      const nome = state.mecanismo?.nome || 'Lei Rouanet';
+      const id   = state.mecanismo?.identificador === 'projeto_do_tenant'
+        ? null
+        : (urlParams.get('pronac') || state.projeto?.pronac || state.org?.pronac || '—');
+      document.getElementById('pgReferencia').textContent = id
+        ? `${termo('identificador')} ${id} - ${cpf} - ${nome}`
+        : `${cpf} - ${nome}`;
 
       // Modo simulação: mostra botão de simulação, esconde o de upload real
       if (state.simulationMode) {
@@ -1596,7 +1616,7 @@
       document.getElementById('successDonationId').textContent = state.donationId || '—';
       document.getElementById('successMsg').textContent = state.simulationMode
         ? `Nesta simulação, você redirecionou ${BRL(state.valor)} para ${nomeDoProjeto()}.`
-        : `Sua destinação de ${BRL(state.valor)} está registrada. Falta anexar o comprovante da transferência para que o proponente emita o Recibo de Mecenato.`;
+        : `Sua destinação de ${BRL(state.valor)} está registrada. Falta anexar o comprovante da transferência para que ${termo('recibo_emissor')} emita o ${termo('recibo')}.`;
       document.getElementById('resumoValorFinal').textContent = BRL(state.valor);
       goTo(6);
     }
@@ -1675,7 +1695,7 @@
           const pronacUrl = urlParams.get('pronac');
           const tituloUrl = urlParams.get('titulo');
           if (pronacUrl) {
-            document.getElementById('pronacChip').textContent   = `PRONAC ${pronacUrl}`;
+            document.getElementById('pronacChip').textContent   = `${termo('identificador')} ${pronacUrl}`;
             document.getElementById('projectTitle').textContent = decodeURIComponent(tituloUrl || pronacUrl);
             state.org.pronac = pronacUrl;
           } else {
@@ -1711,14 +1731,14 @@
           max_percentage:   org.max_percentage
         });
 
-        document.getElementById('pronacChip').textContent    = `PRONAC ${p.pronac}`;
+        document.getElementById('pronacChip').textContent    = `${termo('identificador')} ${p.pronac}`;
         document.getElementById('projectTitle').textContent  = p.nome || 'Projeto sem título';
         document.getElementById('projectProponente').textContent = p.proponente?.nome || '';
 
         // ── Popular step0 com dados reais do projeto ──────────
         document.getElementById('s0Title').textContent      = p.nome || 'Projeto sem título';
         document.getElementById('s0Proponente').textContent = p.proponente?.nome || '';
-        document.getElementById('s0Pronac').textContent     = `PRONAC ${p.pronac}`;
+        document.getElementById('s0Pronac').textContent     = `${termo('identificador')} ${p.pronac}`;
         if (p.area)     document.getElementById('s0Area').textContent  = p.area;
         if (p.uf)       document.getElementById('s0Local').textContent = `${p.uf}${p.municipio ? ' · '+p.municipio : ''}`;
 
@@ -1862,6 +1882,51 @@
       }
     }
 
+    // ── A jornada do mecanismo ─────────────────────────────────
+    //
+    // "PRONAC", "proponente" e "Recibo de Mecenato" são palavras da Rouanet.
+    // Num fundo quem recebe é o fundo, quem executa é a OSC e quem emite o
+    // recibo é o Conselho — que nem tem conta aqui. Nenhuma dessas palavras
+    // é escrita à mão na página: vêm de /api/config/brand, pela mesma razão
+    // que nenhum percentual é escrito à mão.
+    /**
+     * Uma palavra do vocabulário do mecanismo, para as mensagens que o
+     * JavaScript monta. A reserva é a da Rouanet porque é o único mecanismo
+     * em operação — mas é reserva, não padrão: quando a marca responde, o que
+     * vale é o que veio dela.
+     */
+    const TERMO_RESERVA = {
+      identificador: 'PRONAC', beneficiario: 'proponente',
+      recibo: 'Recibo de Mecenato', recibo_emissor: 'o proponente'
+    };
+    function termo(qual) {
+      return state.mecanismo?.vocabulario?.[qual] || TERMO_RESERVA[qual] || '';
+    }
+
+    function aplicaMecanismo(mec) {
+      state.mecanismo = mec || null;
+      const v = mec?.vocabulario || {};
+
+      // Sem registro externo não há o que mostrar no lugar do PRONAC. O chip
+      // some em vez de exibir "PRONAC —", que sugeriria um número faltando.
+      if (mec && mec.identificador === 'projeto_do_tenant') {
+        document.querySelectorAll('[data-so-pronac]').forEach(el => { el.hidden = true; });
+        const chip = document.getElementById('pronacChip');
+        if (chip) chip.style.display = 'none';
+      } else if (v.identificador) {
+        document.querySelectorAll('[data-termo="identificador"]').forEach(el => {
+          el.textContent = v.identificador;
+        });
+      }
+
+      for (const [termo, valor] of Object.entries(v)) {
+        if (!valor) continue;
+        document.querySelectorAll(`[data-termo="${termo}"]`).forEach(el => {
+          el.textContent = valor;
+        });
+      }
+    }
+
     // ── Brand dinâmica + Modo Teste ────────────────────────────
     fetch('/api/config/brand').then(r => r.json()).then(cfg => {
       if (!cfg || cfg.status === 'error') throw new Error('config indisponivel');
@@ -1880,6 +1945,7 @@
       }
 
       avisaPrazoDoFundo(cfg.prazo_comprovante);
+      aplicaMecanismo(cfg.mecanismo);
     }).catch(() => {
       // Sem resposta do servidor não dá para dizer com honestidade o que vai
       // acontecer com o dinheiro. O caminho fica fechado, de propósito: um
