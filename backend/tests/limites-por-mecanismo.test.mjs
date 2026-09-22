@@ -106,15 +106,44 @@ teste('a biblioteca jurídica diz 1% para cada programa', () => {
   }
 });
 
-teste('a vigência do PRONON/PRONAS está marcada como não confirmada', () => {
-  const onde = ['biblioteca-juridica.html', 'espaco-contador.html'];
+// O texto do caput do art. 4º da Lei 12.715/2012 (redação da Lei 14.564/2023)
+// faculta a dedução à PESSOA FÍSICA até o ano-calendário de 2025. Isto deixou
+// de ser "vigência não confirmada" e virou prazo que o texto fixa: a plataforma
+// opera pessoa física, então o mecanismo não pode ser oferecido hoje.
+teste('as paginas avisam que a faculdade da pessoa fisica foi ate 2025', () => {
+  const onde = ['biblioteca-juridica.html', 'espaco-contador.html', 'validador.html'];
   for (const nome of onde) {
     const html = fs.readFileSync(path.join(FRONTEND, nome), 'utf8');
-    if (!/ano-calendário de 2025/.test(html) || !/não confirmada/i.test(html)) {
-      throw new Error(
-        `${nome} não avisa que a autorização da pessoa física ia até 2025 e que a ` +
-        'vigência posterior não foi confirmada'
-      );
+    if (!/ano-calendário de 2025/.test(html)) {
+      throw new Error(`${nome} não diz que a faculdade da pessoa física foi até 2025`);
+    }
+  }
+  // A biblioteca e o Espaço do Contador também precisam dizer o efeito prático.
+  for (const nome of ['biblioteca-juridica.html', 'espaco-contador.html']) {
+    const html = fs.readFileSync(path.join(FRONTEND, nome), 'utf8');
+    if (!/não gera dedução|não ofereça/i.test(html)) {
+      throw new Error(`${nome} não diz o efeito: destinação de 2026 não gera dedução`);
+    }
+  }
+});
+
+// A procedência dos dois pontos que a 045 tinha marcado como fonte secundária.
+teste('as paginas citam o dispositivo, e nao ha mais "nao confirmado" nesses dois pontos', () => {
+  const biblioteca = fs.readFileSync(path.join(FRONTEND, 'biblioteca-juridica.html'), 'utf8');
+  if (!/art\.\s*9º,\s*§\s*1º,\s*II/.test(biblioteca)) {
+    throw new Error('falta a citação do art. 9º, § 1º, II, da LC 222/2025');
+  }
+  if (!/§\s*6º,\s*I,\s*"d"/.test(biblioteca)) {
+    throw new Error('falta a citação do art. 4º, § 6º, I, "d", da Lei 12.715/2012');
+  }
+
+  // "não confirmado em fonte primária" continua valendo para os códigos da
+  // DIRPF; o que não pode mais é aparecer ao lado do 7% ou do 1%.
+  for (const [nome, html] of paginas) {
+    for (const m of html.matchAll(/[^<>]{0,160}não confirmad[oa][^<>]{0,80}/gi)) {
+      if (/7%|1%|LC 222|12\.715/.test(m[0])) {
+        throw new Error(`${nome}: o dispositivo foi lido, tire a ressalva — "${m[0].trim()}"`);
+      }
     }
   }
 });
