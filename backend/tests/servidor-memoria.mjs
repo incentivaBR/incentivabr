@@ -86,7 +86,9 @@ db.public.none(`
   INSERT INTO incentive_groups (code, name, max_percentage, period_type, teto_codigo)
     VALUES ('ROUANET','Lei Rouanet',6.00,'annual','irpf_global_6');
   CREATE TABLE official_funds (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT, name TEXT
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), code TEXT, name TEXT,
+    -- migration 048: o prazo para apresentar o comprovante, por fundo.
+    prazo_comprovante_dias INT, prazo_comprovante_orgao TEXT, prazo_comprovante_base_legal TEXT
   );
   CREATE TABLE org_projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -108,6 +110,8 @@ db.public.none(`
     mecenato_url TEXT, mecenato_filename TEXT, mecenato_issued_at TIMESTAMP,
     confirmed_by UUID, confirmation_note TEXT,
     rejected_at TIMESTAMP, rejected_by UUID, rejection_reason TEXT,
+    -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.
+    transferido_em DATE,
     created_at TIMESTAMP DEFAULT NOW()
   );
   -- A lista de avisos (migration 027), para a tela de interessados.
