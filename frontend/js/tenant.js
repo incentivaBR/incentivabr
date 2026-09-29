@@ -425,6 +425,17 @@ const tenant = {
       });
     }
 
+    // Avisa quem depende do teto para calcular.
+    //
+    // A marca chega depois do primeiro quadro, e até então `TETO_FRACAO` não
+    // existe. A calculadora do topo da home precisa saber a hora em que ele
+    // chegou: sem este aviso, quem digitasse antes ficaria olhando um campo
+    // preenchido e nenhum resultado — e a alternativa, um 0.06 escrito lá,
+    // seria a nona cópia do percentual que este bloco existe para eliminar.
+    window.dispatchEvent(new CustomEvent('brandCarregada', {
+      detail: { teto_percentual: window.TETO_PERCENTUAL }
+    }));
+
     // Quem responde pelos dados neste site (backend/src/lib/papeisLgpd.js).
     //
     // Na IncentivaBR, ela mesma é a controladora. No site de um cliente, o

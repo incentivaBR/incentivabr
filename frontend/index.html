@@ -51,6 +51,7 @@
     ::-webkit-scrollbar-track { background: #0F1E3D; }
     ::-webkit-scrollbar-thumb { background: rgba(238,152,92,0.35); border-radius: 4px; }
   </style>
+  <script src="js/moeda.js"></script>
   <script src="js/tenant.js"></script>
 </head>
 <body class="font-sans text-white min-h-screen">
@@ -100,6 +101,46 @@
         <p class="text-white/45 text-xs mt-1">PRONAC <span data-projeto="pronac">—</span> · aprovado pelo Ministério da Cultura</p>
         <a data-destinar class="inline-block mt-4 font-bold px-6 py-3 rounded-xl text-sm text-white transition-all hover:scale-[1.02]"
            style="background:linear-gradient(135deg,#EE985C,#e07a35)">Destinar para este projeto →</a>
+      </div>
+
+      <!-- ── A CONTA, AQUI ─────────────────────────────────────────
+           O botão levava a outra página, e o momento de maior interesse é
+           este. Cada clique entre a pergunta ("quanto é meu?") e a resposta
+           perde gente que não volta.
+
+           A multiplicação acontece no navegador, mas o PERCENTUAL não: ele
+           vem de `window.TETO_FRACAO`, que o tenant.js lê de
+           /api/config/brand, que lê de `tetos_deducao`. É a mesma conta que
+           a calculadora cheia já faz em showPreview() — não uma segunda
+           regra fiscal escrita aqui.
+
+           É estimativa, e a tela diz isso. O valor que vale é o que o
+           servidor confere no registro da destinação. -->
+      <div class="mx-auto max-w-md mb-8 fade-up">
+        <label for="heroIr" class="block text-white/55 text-sm mb-2">
+          Quanto de Imposto de Renda foi retido do seu salário no ano passado?
+        </label>
+        <div class="flex gap-2">
+          <input id="heroIr" type="text" inputmode="numeric" autocomplete="off"
+                 placeholder="R$ 0,00" aria-describedby="heroResultado"
+                 class="flex-1 rounded-2xl px-5 py-4 text-lg font-bold text-white text-center"
+                 style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);outline:none">
+        </div>
+        <p class="text-white/30 text-xs mt-2">Está no seu informe de rendimentos ou no contracheque de dezembro.</p>
+
+        <div id="heroResultado" hidden aria-live="polite"
+             class="mt-4 rounded-2xl p-5 text-left"
+             style="background:rgba(238,152,92,0.10);border:1px solid rgba(238,152,92,0.32)">
+          <p class="text-white/55 text-xs uppercase tracking-widest font-bold mb-1">Você pode destinar até</p>
+          <p id="heroLimite" class="text-white font-black text-4xl leading-none mb-2">—</p>
+          <p class="text-white/55 text-sm leading-relaxed">
+            É <span data-fiscal="teto_pct">6%</span> do seu imposto — dinheiro que já sai de você.
+            Destinando, você escolhe o destino dele.
+          </p>
+          <p class="text-white/30 text-xs mt-3">
+            Estimativa. O valor exato sai da sua declaração, e a plataforma confere antes de registrar.
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center fade-up">
@@ -460,6 +501,55 @@
 
 
   <script>
+    // ── A conta no topo ───────────────────────────────────────────────────
+    //
+    // Máscara de centavos: cada dígito entra pela direita, como num caixa
+    // eletrônico. É o que uma pessoa faz sem pensar, e é o mesmo
+    // comportamento da calculadora cheia — duas telas que respondem
+    // diferente ao mesmo gesto fazem a pessoa desconfiar das duas.
+    (function () {
+      const campo = document.getElementById('heroIr');
+      if (!campo) return;
+      const caixa   = document.getElementById('heroResultado');
+      const limite  = document.getElementById('heroLimite');
+
+      const centavos = txt => {
+        const digitos = String(txt || '').replace(/\D/g, '').slice(0, 11);
+        return digitos ? parseInt(digitos, 10) / 100 : 0;
+      };
+
+      function calcula() {
+        const ir = centavos(campo.value);
+        // Reescreve o campo já formatado, para o que se digita e o que se lê
+        // serem a mesma coisa.
+        campo.value = ir ? BRL(ir) : '';
+
+        // O percentual vem do servidor (tenant.js → /api/config/brand →
+        // tetos_deducao). Enquanto a marca não chegou, não há o que mostrar:
+        // inventar 0.06 aqui seria a cópia que não acompanha o banco.
+        const fracao = window.TETO_FRACAO;
+        if (!ir || !fracao) { caixa.hidden = true; return; }
+
+        const podeDestinar = Math.round(ir * fracao * 100) / 100;
+        limite.textContent = BRL(podeDestinar);
+        caixa.hidden = false;
+
+        // Leva o valor para o assistente. O PRONAC e o título já estão na
+        // href, postos pelo tenant.js a partir do projeto da organização —
+        // por isso aqui só se acrescenta `valor`, e se pede a ele que refaça
+        // o link. Reescrever a href inteira desfaria o preenchimento.
+        document.querySelectorAll('a[data-destinar]').forEach(a => {
+          a.setAttribute('data-destinar', 'valor=' + podeDestinar);
+        });
+        if (window.tenant?.preencheProjeto) tenant.preencheProjeto();
+      }
+
+      campo.addEventListener('input', calcula);
+      // A marca chega depois do primeiro quadro. Se a pessoa digitou antes,
+      // o número aparece quando o percentual chega, em vez de ficar mudo.
+      window.addEventListener('brandCarregada', calcula);
+    })();
+
     // Fade-up ao scroll
     const observer = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
