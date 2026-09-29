@@ -13,6 +13,7 @@
 import express from 'express';
 import pool from '../../config/database.js';
 import { fotoParaATela, fotoPublicavel } from '../lib/fotoDoProjeto.js';
+import { situacaoDaCaptacao, fraseDaCaptacao } from '../lib/captacao.js';
 import { entregaImagem } from '../lib/entregaArquivo.js';
 
 const router = express.Router();
@@ -334,6 +335,11 @@ const PROJETOS_DEMO = [
  *
  * Fica ANTES de '/org-project' porque o Express casa na ordem de registro.
  */
+/** A situação da captação já com a frase pronta, ou null. */
+function comFrase(c) {
+  return c ? { ...c, frase: fraseDaCaptacao(c) } : null;
+}
+
 router.get('/org-project/foto', async (req, res) => {
   try {
     const org = req.organization;
@@ -436,6 +442,7 @@ router.get('/org-project', async (req, res) => {
           descricao:  orgProject?.descricao || null,
           proponente: { nome: orgProject?.proponente_nome || null },
           foto:       fotoParaATela(orgProject),
+          captacao:   comFrase(situacaoDaCaptacao(orgProject)),
           situacao:   'Em execução',
           link_salic: `https://salic.cultura.gov.br/cidadao/projeto/detalharProjeto/${pronac}/versao/1`
         }
@@ -448,7 +455,28 @@ router.get('/org-project', async (req, res) => {
     // cacheado, uma troca de foto só apareceria quando o cache expirasse — e
     // quem acabou de trocar veria a antiga e concluiria que o upload falhou.
     // Por isso ela é enxertada na hora de responder, nos dois caminhos.
-    const comFoto = (r) => ({ ...r, projeto: { ...r.projeto, foto: fotoParaATela(orgProject) } });
+    // Aqui o SALIC respondeu, então os valores dele são de agora e vencem o
+    // retrato do cadastro — que existe para o caso contrário. As DATAS da
+    // janela continuam vindo do cadastro: a consulta de detalhe não as traz.
+    const comFoto = (r) => {
+      const v = r.projeto?.valores || {};
+      const aoVivo = (v.aprovado != null || v.captado != null)
+        ? {
+            valor_autorizado: v.aprovado ?? orgProject?.valor_autorizado ?? null,
+            valor_captado:    v.captado  ?? null,
+            captacao_inicio:  orgProject?.captacao_inicio ?? null,
+            captacao_fim:     orgProject?.captacao_fim ?? null,
+            // Veio do Ministério nesta requisição: o retrato é de hoje.
+            valores_em:       new Date().toISOString().slice(0, 10)
+          }
+        : orgProject;
+
+      return { ...r, projeto: {
+        ...r.projeto,
+        foto: fotoParaATela(orgProject),
+        captacao: comFrase(situacaoDaCaptacao(aoVivo))
+      } };
+    };
 
     const cached = cacheGet(cacheKey);
     if (cached) return res.json(comFoto(cached));

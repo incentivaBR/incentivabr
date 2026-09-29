@@ -118,6 +118,9 @@ db.public.none(`
     -- migration 052: a foto do projeto, e a autorizacao que ela exige.
     foto_chave TEXT, foto_credito TEXT, foto_sha256 TEXT, foto_bytes INT,
     foto_atualizada_em TIMESTAMP, foto_autorizacao_em TIMESTAMP, foto_autorizacao_por UUID,
+    -- migration 053: quanto pode captar, quanto captou, e ate quando.
+    valor_autorizado NUMERIC, valor_captado NUMERIC,
+    captacao_inicio DATE, captacao_fim DATE, valores_em DATE,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW()
   );
@@ -225,6 +228,17 @@ await q(`INSERT INTO org_projects
 //
 // O credito vai envenenado como todo texto de fora: ele vai para a tela, e
 // tela que recebe texto de fora e onde a guarda do [data-veneno] tem de valer.
+// A captacao, com o retrato datado de HOJE: o fixture nao pode envelhecer e
+// comecar a marcar como defasado sozinho, meses depois, num teste que ninguem
+// mexeu.
+const HOJE_ISO = new Date().toISOString().slice(0, 10);
+const FIM_DA_JANELA = `${new Date().getUTCFullYear()}-12-31`;
+await q(`UPDATE org_projects
+            SET valor_autorizado = 635728.50, valor_captado = 0,
+                captacao_inicio = $2::date, captacao_fim = $3::date, valores_em = $4::date
+          WHERE organization_id = $1`,
+  [orgId, `${new Date().getUTCFullYear()}-01-01`, FIM_DA_JANELA, HOJE_ISO]);
+
 const FOTO_CHAVE = 'projetos/2026/09/projeto-fixture.png';
 await q(`UPDATE org_projects
             SET foto_chave = $2, foto_sha256 = 'abc123def456', foto_credito = $3,

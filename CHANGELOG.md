@@ -2,6 +2,15 @@
 
 ## [Não lançado] — 2026-09 — Onda 2 do Raio-X
 
+### A captação do projeto na tela, e as duas regras que a governam
+- O site mostrava o projeto e não mostrava o que dá urgência a ele: o prazo. Um projeto com R$ 635 mil autorizados e três meses de janela é uma situação; o mesmo projeto sem data é um cartaz. E, para o proponente, ver a captação dele na tela é o que transforma "uma plataforma" em "a nossa operação".
+- **Não saber não é zero.** `valor_captado` nulo significa "ninguém conferiu", e a tela diz isso em vez de escrever "R$ 0 captado". São afirmações diferentes — uma é ausência de consulta, a outra é ausência de doador —, e escrever a segunda quando houve a primeira é o tipo de erro que o proponente percebe no primeiro extrato.
+- **Retrato velho não é notícia.** Em simulação a plataforma não consulta o SALIC: os valores são um retrato digitado, e `valores_em` diz de quando. Passados 45 dias, o número continua aparecendo — **marcado**, com a data ao lado. Calar seria pior (pareceria que o sistema não sabe); mostrar sem marcar seria mentir. `validaCaptacao()` recusa valor captado sem a data de conferência: é a porta por onde o retrato velho entraria.
+- Fora da simulação, os valores do SALIC vencem o retrato do cadastro — vieram naquela requisição, então são de hoje. As **datas** da janela continuam vindo do cadastro: a consulta de detalhe não as traz.
+- **A janela da Rouanet não reusa `certificado_valido_ate`**, que é do FDCA (RN 125/2026, art. 15). Outra lei, outro efeito ao vencer; numa coluna só, as duas regras se misturam no dia em que um cliente tiver as duas.
+- Rota própria (`PUT .../captacao`) em vez de mais campos no PUT do certificado — validações diferentes juntas num endpoint são o caminho para salvar uma e apagar a outra. Sem ela, os valores só existiriam para quem tem seed, e a segunda white label voltaria a ser trabalho à mão.
+- **Dois defeitos que só a execução mostrou.** Coluna `DATE` volta do driver como objeto `Date`: `String(d).slice(0,10)` produzia `"Tue Sep 29"` no JSON da rota — as contas de dias certas, o texto da tela errado, e com string no teste passava. E `BRL.inteiro()` arredondava R$ 635.728,50 para **R$ 635.729**, inventando cinquenta centavos num número que o proponente confere contra o SALIC centavo a centavo; o bloco usa `BRL()`.
+
 ### A foto do projeto, e a autorização que ela exige
 - Não havia campo de imagem no cadastro do projeto. A foto tinha sido **tirada** das páginas porque era a do projeto do piloto aparecendo no site de qualquer cliente — tirar foi certo, e ficar sem é o que trava o white-label: uma home sem imagem nenhuma não sustenta uma apresentação a servidores.
 - A imagem vai para o **mesmo armazenamento dos comprovantes**, e o banco guarda a chave, o SHA-256 e o tamanho, como na migration 037. Não uma URL do site do cliente: a imagem sairia do ar ou mudaria sem ninguém aqui saber, e o navegador do servidor público passaria a buscar arquivo num terceiro domínio.

@@ -543,8 +543,72 @@ function aplicaFoto(foto) {
   });
 }
 
+/**
+ * A situação da captação: o que falta e quanto tempo falta.
+ *
+ * O bloco inteiro some quando não há nada que se possa afirmar. Barra sem
+ * número, ou número sem data, numa página que pede transferência, é pior do
+ * que não mostrar.
+ *
+ * Duas coisas esta função nunca faz, e as duas vêm de lib/captacao.js:
+ *
+ *   - escrever "R$ 0 captado" quando ninguém conferiu. `captado_conhecido`
+ *     separa "não entrou" de "não sabemos";
+ *   - apresentar retrato velho como atual. `defasado` acende a data.
+ */
+function aplicaCaptacao(c) {
+  const blocos = document.querySelectorAll('[data-captacao-bloco]');
+  if (!blocos.length) return;
+  if (!c) { blocos.forEach(b => { b.hidden = true; }); return; }
+
+  const escreve = (chave, texto) => {
+    document.querySelectorAll(`[data-captacao="${chave}"]`).forEach(el => {
+      el.textContent = texto;
+    });
+  };
+
+  // BRL(), não BRL.inteiro(): o inteiro ARREDONDA, e R$ 635.728,50 virava
+  // R$ 635.729 — cinquenta centavos inventados num número que o proponente
+  // vai conferir contra a consulta oficial, centavo a centavo.
+  escreve('autorizado', c.autorizado != null ? BRL(c.autorizado) : '—');
+  escreve('frase', c.frase || '');
+
+  // A barra só existe quando há os dois números. Com um só, ela desenharia
+  // uma proporção inventada.
+  document.querySelectorAll('[data-captacao-barra]').forEach(el => {
+    if (c.percentual == null) { el.hidden = true; return; }
+    el.hidden = false;
+    const preenchida = el.querySelector('[data-captacao-preenchida]');
+    if (preenchida) preenchida.style.width = Math.max(0.5, c.percentual) + '%';
+  });
+
+  document.querySelectorAll('[data-captacao-captado]').forEach(el => {
+    el.hidden = !c.captado_conhecido;
+  });
+  if (c.captado_conhecido) {
+    escreve('captado', BRL(c.captado));
+    escreve('falta', c.falta != null ? BRL(c.falta) : '—');
+  }
+
+  // A data do retrato aparece sempre que há número conferido; quando o
+  // retrato envelheceu, ela vem acompanhada do aviso.
+  document.querySelectorAll('[data-captacao-conferido]').forEach(el => {
+    el.hidden = !c.conferido_em;
+  });
+  if (c.conferido_em) {
+    const [a, m, d] = c.conferido_em.split('-');
+    escreve('conferido_em', `${d}/${m}/${a}`);
+  }
+  document.querySelectorAll('[data-captacao-defasado]').forEach(el => {
+    el.hidden = !c.defasado;
+  });
+
+  blocos.forEach(b => { b.hidden = false; });
+}
+
 async function preencheProjeto() {
-  const marcados = document.querySelectorAll('[data-destinar], [data-projeto], [data-projeto-foto]');
+  const marcados = document.querySelectorAll(
+    '[data-destinar], [data-projeto], [data-projeto-foto], [data-captacao-bloco]');
   if (!marcados.length) return;   // página não usa projeto
 
   let projeto = null;
@@ -598,6 +662,7 @@ async function preencheProjeto() {
   });
 
   aplicaFoto(projeto.foto);
+  aplicaCaptacao(projeto.captacao);
 
   window.__projeto = projeto;
   window.dispatchEvent(new CustomEvent('projetoCarregado', { detail: projeto }));

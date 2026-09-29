@@ -10,6 +10,7 @@ import { authenticateToken } from '../middleware/auth.js';
 import { mascaraCPF } from '../lib/cpf.js';
 import { mecanismosDisponiveis, podeSerDoCliente, MECANISMO_PADRAO } from '../lib/mecanismos.js';
 import { situacaoDoCertificado, fraseDoCertificado, validaCertificado } from '../lib/certificado.js';
+import { situacaoDaCaptacao, fraseDaCaptacao, validaCaptacao } from '../lib/captacao.js';
 import { recebeArquivo } from '../lib/recebeArquivo.js';
 import { armazenamento, novaChave } from '../services/armazenamento.js';
 import {
@@ -293,8 +294,10 @@ router.get('/orgs/:id/projects', async (req, res) => {
     // "vencido" no banco exigiria alguém rodando todo dia para virá-lo.
     const projects = result.rows.map(p => {
       const certificado = situacaoDoCertificado(p);
+      const captacao = situacaoDaCaptacao(p);
       return {
         ...p, certificado, certificado_texto: fraseDoCertificado(certificado),
+        captacao: captacao ? { ...captacao, frase: fraseDaCaptacao(captacao) } : null,
         // A tela precisa saber se a foto está PUBLICADA, não só se existe
         // arquivo: é a diferença entre "já subi" e "já aparece no site".
         foto: fotoParaATela(p)
@@ -423,6 +426,57 @@ router.put('/orgs/:id/projects/:projectId', async (req, res) => {
     });
   } catch (error) {
     console.error('[Admin] Erro ao atualizar certificado:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/admin/orgs/:id/projects/:projectId/captacao
+//
+// Rota própria, e não mais campos no PUT do certificado: são duas coisas de
+// leis diferentes (a janela da Rouanet e o Certificado do FDCA), com
+// validações diferentes. Juntas num endpoint só, um dia alguém salva uma e
+// apaga a outra.
+//
+// Sem esta rota, os valores só existiriam para quem tem seed — e a segunda
+// white label voltaria a ser trabalho à mão.
+// ─────────────────────────────────────────────────────────────
+router.put('/orgs/:id/projects/:projectId/captacao', async (req, res) => {
+  try {
+    const { id, projectId } = req.params;
+
+    const v = validaCaptacao(req.body);
+    if (!v.ok) return res.status(400).json({ status: 'error', message: v.erro });
+    const c = v.valores;
+
+    const { rows } = await pool.query(`
+      UPDATE org_projects
+         SET valor_autorizado = $3, valor_captado = $4,
+             captacao_inicio  = $5::date, captacao_fim = $6::date,
+             valores_em       = $7::date, updated_at = NOW()
+       WHERE id = $2 AND organization_id = $1
+       RETURNING *`,
+      [id, projectId, c.valor_autorizado, c.valor_captado,
+       c.captacao_inicio, c.captacao_fim, c.valores_em]);
+
+    if (!rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Projeto não encontrado neste cliente.' });
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (organization_id, user_id, action, entity_type, entity_id, details)
+       VALUES ($1, $2, 'projeto.captacao', 'org_project', $3, $4)`,
+      [id, req.user.userId, projectId,
+       JSON.stringify({ autorizado: c.valor_autorizado, captado: c.valor_captado, conferido_em: c.valores_em })]);
+
+    const captacao = situacaoDaCaptacao(rows[0]);
+    res.json({
+      status: 'success',
+      project: rows[0],
+      captacao: captacao ? { ...captacao, frase: fraseDaCaptacao(captacao) } : null
+    });
+  } catch (error) {
+    console.error('[Admin] Erro ao atualizar a captação:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno.' });
   }
 });
