@@ -132,6 +132,65 @@ await teste('início: a página fala do projeto da Casa Azul, não da IncentivaB
   if (plataforma) throw new Error('um bloco só-da-plataforma apareceu no site do cliente');
 });
 
+await teste('a conta está no topo da home, e o valor viaja até o assistente', async pg => {
+  // O botão mandava para outra página, e o momento de maior interesse é este.
+  // O que se mede: a pessoa digita, vê o número sem sair do lugar, e o valor
+  // chega ao assistente junto do projeto — sem redigitar.
+  await ir(pg, 'index.html');
+
+  await pg.click('#heroIr');
+  await pg.type('#heroIr', '2000000');        // R$ 20.000,00, dígito a dígito
+
+  const digitado = await pg.inputValue('#heroIr');
+  if (digitado !== 'R$ 20.000,00') throw new Error('a máscara não formou R$ 20.000,00: ' + digitado);
+
+  await ate(pg, () => {
+    const c = document.getElementById('heroResultado');
+    return c && !c.hidden && /1\.200/.test(document.getElementById('heroLimite').textContent || '');
+  }, 'o limite de R$ 1.200 não apareceu no topo: ' + await texto(pg, '#heroLimite'));
+
+  // O percentual da frase vem do servidor, não da página.
+  const frase = await texto(pg, '#heroResultado');
+  if (!/6%/.test(frase)) throw new Error('o resultado não diz de onde sai o número: ' + frase);
+
+  // E o link de destinar leva projeto E valor. Sem o valor, a pessoa que
+  // acabou de ver "R$ 1.200" digita tudo de novo na etapa seguinte.
+  await ate(pg, () => {
+    const h = document.querySelector('a[data-destinar]')?.getAttribute('href') || '';
+    return h.includes('pronac=2511274') && /valor=1200/.test(h);
+  }, 'o link não carrega projeto e valor: ' + await pg.evaluate(
+        () => document.querySelector('a[data-destinar]')?.getAttribute('href') || '(sem href)'));
+});
+
+await teste('quem digita antes de a marca chegar não fica sem resposta', async pg => {
+  // A corrida que o fluxo acima não reproduz: ele espera networkidle, então a
+  // marca já chegou quando a digitação começa. Aqui /api/config/brand é
+  // atrasada de propósito e a pessoa digita ANTES — que é o caso de quem abre
+  // a home numa rede ruim e vai direto ao campo.
+  //
+  // Sem o aviso `brandCarregada`, o campo fica preenchido e o resultado nunca
+  // aparece: a página tem o número e não sabe que já pode contar. A outra
+  // saída seria escrever 0.06 na página, que é a cópia do percentual que o
+  // projeto inteiro existe para não ter.
+  await pg.route('**/api/config/brand*', async rota => {
+    await new Promise(r => setTimeout(r, 1500));
+    await rota.continue();
+  });
+
+  await pg.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await pg.click('#heroIr');
+  await pg.type('#heroIr', '2000000');
+
+  // Enquanto o teto não chegou, não há o que mostrar — e está certo assim.
+  const cedo = await pg.evaluate(() => document.getElementById('heroResultado')?.hidden);
+  if (cedo === false) throw new Error('mostrou um número antes de saber o percentual do servidor');
+
+  await ate(pg, () => {
+    const c = document.getElementById('heroResultado');
+    return c && !c.hidden && /1\.200/.test(document.getElementById('heroLimite').textContent || '');
+  }, 'o resultado nunca apareceu depois de a marca chegar', 12000);
+});
+
 await teste('calculadora: IR devido de R$ 20.000 → limite de R$ 1.200, e o botão leva ao projeto', async pg => {
   await ir(pg, 'calculadora.html');
   if (await pg.evaluate(() => !!document.querySelector('#tabRapida'))) await pg.click('#tabRapida');
