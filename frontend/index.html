@@ -58,6 +58,15 @@
 
   <!-- ── HERO ── -->
   <section class="pt-12 pb-24 px-4 text-center relative overflow-hidden hero-grid">
+    <!-- A foto do projeto do cliente, quando há uma cadastrada e autorizada
+         (migration 052). Discreta de propósito: o texto do topo é o que tem de
+         ser lido, e uma foto a 100% aqui come o contraste. Sem foto, este
+         elemento não muda nada — o topo continua a paleta e a grade. -->
+    <div class="absolute inset-0 pointer-events-none"
+         style="opacity:0;transition:opacity .7s" data-projeto-foto></div>
+    <div class="absolute inset-0 pointer-events-none"
+         style="display:none;background:linear-gradient(to bottom, rgba(15,30,61,.86), rgba(15,30,61,.94))"
+         data-projeto-foto-cortina></div>
     <div class="absolute inset-0 pointer-events-none"
          style="background:radial-gradient(ellipse 90% 60% at 50% -5%, rgba(238,152,92,0.12), transparent 70%)">
     </div>

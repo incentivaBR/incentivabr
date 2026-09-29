@@ -231,6 +231,48 @@ await teste('assistente de destinação: o projeto do cliente já vem preenchido
   if (!desc.includes('teatro inclusivo')) throw new Error('a descrição não veio do cadastro: ' + desc);
 });
 
+await teste('a foto do projeto do cliente chega à tela', async pg => {
+  // Nenhum teste de unidade prova isto: eles provam que a rota entrega a
+  // imagem e que o JSON a carrega. Que ela CHEGA ao elemento é trabalho de
+  // aplicaFoto(), e um erro de digitação ali passaria por toda a suíte — a
+  // home ficaria sem imagem só no dia da apresentação.
+  await ir(pg, 'projetos-rouanet.html');
+
+  await ate(pg, () => {
+    const el = document.querySelector('[data-projeto-foto]');
+    return el && /url\(/.test(el.style.backgroundImage || '');
+  }, 'a foto não foi aplicada no elemento marcado');
+
+  const estado = await pg.evaluate(() => {
+    const foto = document.querySelector('[data-projeto-foto]');
+    const cortina = document.querySelector('[data-projeto-foto-cortina]');
+    return {
+      fundo: foto.style.backgroundImage,
+      opacidade: foto.style.opacity,
+      cortina: cortina ? getComputedStyle(cortina).display : 'sem cortina'
+    };
+  });
+
+  if (!estado.fundo.includes('/api/salic/org-project/foto')) {
+    throw new Error('a foto não veio da rota do tenant: ' + estado.fundo);
+  }
+  // O endereço tem de trazer o ?v= do SHA: sem ele, trocar a foto não trocaria
+  // o que o navegador já guardou.
+  if (!/v=/.test(estado.fundo)) throw new Error('o endereço da foto não muda quando a foto muda');
+  if (estado.opacidade !== '1') throw new Error('a foto ficou invisível: opacity ' + estado.opacidade);
+  if (estado.cortina === 'none') throw new Error('a cortina não apareceu — o texto branco fica ilegível sobre a foto');
+
+  // E a imagem tem de carregar de verdade, não só estar apontada.
+  const resp = await pg.evaluate(async () => {
+    const url = document.querySelector('[data-projeto-foto]').style.backgroundImage
+      .replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    const r = await fetch(url);
+    return { status: r.status, tipo: r.headers.get('content-type') };
+  });
+  if (resp.status !== 200) throw new Error('a foto respondeu ' + resp.status);
+  if (!/^image\//.test(resp.tipo || '')) throw new Error('a foto não veio como imagem: ' + resp.tipo);
+});
+
 await teste('assistente: o vocabulário da tela é o do mecanismo do cliente', async pg => {
   // A Casa Azul é Rouanet: tem registro externo, e o identificador se chama
   // PRONAC. Quem escreve essa palavra na tela é aplicaMecanismo(), a partir de

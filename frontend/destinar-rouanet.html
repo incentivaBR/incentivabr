@@ -455,10 +455,12 @@
     <div id="step0">
 
       <!-- HERO: foto + overlay + gancho emocional -->
-      <!-- Aqui havia a foto do projeto do piloto. Não há campo de imagem no
-           cadastro do projeto; até haver, o fundo é a paleta — a foto de um
-           projeto no assistente de outro é o mesmo erro em imagem. -->
+      <!-- A foto é a do projeto DESTE tenant, por [data-projeto-foto]
+           (migration 052), e só entra com autorização de uso de imagem
+           declarada. Sem foto, o fundo é a paleta — a foto de um projeto no
+           assistente de outro é o mesmo erro, em imagem. -->
       <div style="border-radius:20px;overflow:hidden;margin-bottom:16px;position:relative;min-height:280px;background:linear-gradient(135deg,#0F1E3D 0%,#132247 55%,#0F1E3D 100%)">
+        <div style="position:absolute;inset:0;opacity:0;transition:opacity .7s" data-projeto-foto></div>
         <!-- overlay gradiente -->
         <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,21,48,0.35) 0%,rgba(10,21,48,0.85) 100%)"></div>
         <!-- conteúdo sobre a foto -->

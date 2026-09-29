@@ -54,6 +54,16 @@
     .cert.vigente        { background:#ECFDF5; border:1px solid #10B981; color:#065F46; }
     .cert.vence_em_breve { background:#FEF3C7; border:1px solid #F59E0B; color:#78350F; }
     .cert.vencido        { background:#FEE2E2; border:1px solid #EF4444; color:#7F1D1D; }
+    .foto-bloco   { margin-top:10px; border-top:1px dashed var(--borda,#D6DBE4); padding-top:10px; }
+    .foto-estado      { font-size:13px; padding:8px 10px; border-radius:8px; margin-bottom:8px; }
+    .foto-estado.tem  { background:#ECFDF5; border:1px solid #10B981; color:#065F46; }
+    .foto-estado.sem  { background:#F8FAFC; border:1px solid #D6DBE4; color:#475569; }
+    .form-foto    { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+    .form-foto > div { display:flex; flex-direction:column; gap:4px; }
+    .foto-aceite  { flex:1 1 100%; display:flex; gap:8px; align-items:flex-start;
+                    font-size:12px; line-height:1.5; color:#475569; }
+    .foto-aceite input { margin-top:3px; }
+    .foto-botoes  { flex:1 1 100%; display:flex; gap:8px; }
     .projeto-cartao { border:1px solid var(--borda,#D6DBE4); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
     .form-prorroga { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
     .form-prorroga label { font-size:12px; }
@@ -544,9 +554,44 @@
                  </form>`
               : '<p class="dica" style="margin:6px 0 0">Sem certificado — é o caso da Lei Rouanet.</p>';
 
+            // ── Foto do projeto ──────────────────────────────────
+            //
+            // A declaração de autorização é obrigatória e o servidor recusa
+            // sem ela (migration 052). O checkbox está aqui para a pessoa LER
+            // o que está declarando: as fotos boas de uma OSC que atende
+            // crianças são de crianças, e quem responde pela autorização é
+            // quem conhece as famílias.
+            const temFoto = Boolean(p.foto?.url);
+            const foto = `
+              <div class="foto-bloco">
+                <div class="foto-estado ${temFoto ? 'tem' : 'sem'}">
+                  ${temFoto
+                    ? 'Foto publicada' + (p.foto.credito ? ' — crédito: ' + esc(p.foto.credito) : ' — sem crédito informado')
+                    : (p.foto_chave ? 'Imagem guardada, NÃO publicada: falta a declaração de autorização.' : 'Sem foto. A tela mostra a paleta da marca.')}
+                </div>
+                <form class="form-foto" data-projeto="${encodeURIComponent(p.id)}">
+                  <div><label>Imagem (JPG ou PNG, até 5 MB)</label>
+                    <input type="file" name="foto" accept=".jpg,.jpeg,.png" required></div>
+                  <div><label>Crédito da foto</label>
+                    <input name="credito" placeholder="Acervo da instituição" maxlength="200"></div>
+                  <label class="foto-aceite">
+                    <input type="checkbox" name="autorizacao" required>
+                    <span>Declaro que a organização tem a autorização de uso de imagem
+                    das pessoas retratadas, inclusive das crianças e adolescentes, e que
+                    guarda os termos assinados. Sem esta declaração a imagem não é
+                    publicada.</span>
+                  </label>
+                  <div class="foto-botoes">
+                    <button class="btn leve" type="submit">Enviar foto</button>
+                    ${temFoto ? '<button class="btn leve" type="button" data-remover-foto>Remover foto</button>' : ''}
+                  </div>
+                </form>
+              </div>`;
+
             return `<div class="projeto-cartao">
                       <strong>${esc(p.titulo || p.pronac || p.fund_code || 'Projeto')}</strong>
                       ${bloco}
+                      ${foto}
                     </div>`;
           }).join('');
 
@@ -570,6 +615,46 @@
                 })
               });
               avisar('avisoProjeto', 'Certificado atualizado.', true);
+              carregaProjetos();
+            } catch (erro) { avisar('avisoProjeto', erro.message); }
+          });
+        });
+
+        // Foto: multipart, então o Content-Type é do navegador (ele tem de pôr
+        // o boundary). Mandar 'application/json' aqui faz o multer não achar
+        // arquivo nenhum e o erro sair como "Nenhuma imagem enviada".
+        alvo.querySelectorAll('.form-foto').forEach(f => {
+          f.addEventListener('submit', async e => {
+            e.preventDefault();
+            const id = decodeURIComponent(f.dataset.projeto);
+            if (!f.autorizacao.checked) {
+              return avisar('avisoProjeto', 'Marque a declaração de autorização de uso de imagem.');
+            }
+            const corpo = new FormData();
+            corpo.append('foto', f.foto.files[0]);
+            corpo.append('credito', f.credito.value.trim());
+            corpo.append('autorizacao', 'true');
+            try {
+              const r = await fetch(`/api/admin/orgs/${org}/projects/${id}/foto`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + (auth.getToken() || '') },
+                body: corpo
+              });
+              const d = await r.json().catch(() => ({}));
+              if (!r.ok || d.status === 'error') throw new Error(d.message || `Falha (${r.status})`);
+              avisar('avisoProjeto', 'Foto publicada.', true);
+              carregaProjetos();
+            } catch (erro) { avisar('avisoProjeto', erro.message); }
+          });
+
+          const btn = f.querySelector('[data-remover-foto]');
+          if (!btn) return;
+          btn.addEventListener('click', async () => {
+            if (!confirm('Remover a foto do site e apagar o arquivo?')) return;
+            const id = decodeURIComponent(f.dataset.projeto);
+            try {
+              await chamar(`/api/admin/orgs/${org}/projects/${id}/foto`, { method: 'DELETE' });
+              avisar('avisoProjeto', 'Foto removida.', true);
               carregaProjetos();
             } catch (erro) { avisar('avisoProjeto', erro.message); }
           });

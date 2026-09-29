@@ -11,6 +11,9 @@
  */
 
 import express from 'express';
+import pool from '../../config/database.js';
+import { fotoParaATela, fotoPublicavel } from '../lib/fotoDoProjeto.js';
+import { entregaImagem } from '../lib/entregaArquivo.js';
 
 const router = express.Router();
 
@@ -313,6 +316,51 @@ const PROJETOS_DEMO = [
 // Retorna o projeto SALIC vinculado à organização/tenant atual.
 // Usado pelo fluxo white-label: o associado vê o projeto da própria org.
 // ─────────────────────────────────────────────────────────────
+/**
+ * GET /api/salic/org-project/foto — a foto do projeto ativo DESTE tenant.
+ *
+ * Pública, porque a home é pública: quem chega ao site do cliente vê a foto
+ * antes de ter conta.
+ *
+ * Sem id na URL, e é o ponto todo. Com `/api/projetos/:id/foto`, o site de um
+ * cliente poderia servir a foto do projeto de outro — e a separação
+ * white-label é justamente o que não se pode furar. Aqui o tenant da
+ * requisição escolhe o projeto, então não há endereço que atravesse a
+ * fronteira.
+ *
+ * Responde 404 quando não há foto, quando a autorização não foi declarada e
+ * quando a chave não aponta para imagem. Os três casos são "não há foto para
+ * mostrar" — a página cai no fundo de sempre e nada quebra.
+ *
+ * Fica ANTES de '/org-project' porque o Express casa na ordem de registro.
+ */
+router.get('/org-project/foto', async (req, res) => {
+  try {
+    const org = req.organization;
+    if (!org) return res.status(404).end();
+
+    const { rows } = await pool.query(
+      `SELECT foto_chave, foto_autorizacao_em
+         FROM org_projects
+        WHERE organization_id = $1 AND is_active = true
+        ORDER BY is_featured DESC, created_at DESC LIMIT 1`,
+      [org.id]
+    );
+    const projeto = rows[0];
+
+    // A condição mora em fotoPublicavel(). Repetir "tem chave e tem
+    // autorização" aqui seria a segunda cópia — a que um dia esquece a
+    // segunda metade e publica foto de criança sem autorização.
+    if (!fotoPublicavel(projeto)) return res.status(404).end();
+
+    const entregou = await entregaImagem(res, projeto.foto_chave);
+    if (!entregou) return res.status(404).end();
+  } catch (erro) {
+    console.error('[SALIC] falha ao entregar a foto do projeto:', erro.message);
+    if (!res.headersSent) res.status(404).end();
+  }
+});
+
 router.get('/org-project', async (req, res) => {
   // Fora do try: o fallback de erro, lá embaixo, também precisa dele — é a
   // única fonte de dados bancários desta rota.
@@ -387,6 +435,7 @@ router.get('/org-project', async (req, res) => {
           uf:         orgProject?.uf        || null,
           descricao:  orgProject?.descricao || null,
           proponente: { nome: orgProject?.proponente_nome || null },
+          foto:       fotoParaATela(orgProject),
           situacao:   'Em execução',
           link_salic: `https://salic.cultura.gov.br/cidadao/projeto/detalharProjeto/${pronac}/versao/1`
         }
@@ -394,8 +443,15 @@ router.get('/org-project', async (req, res) => {
     }
 
     const cacheKey = `salic:org-project:${pronac}`;
+
+    // A foto é dado NOSSO, e o cache desta rota é por PRONAC. Dentro do objeto
+    // cacheado, uma troca de foto só apareceria quando o cache expirasse — e
+    // quem acabou de trocar veria a antiga e concluiria que o upload falhou.
+    // Por isso ela é enxertada na hora de responder, nos dois caminhos.
+    const comFoto = (r) => ({ ...r, projeto: { ...r.projeto, foto: fotoParaATela(orgProject) } });
+
     const cached = cacheGet(cacheKey);
-    if (cached) return res.json(cached);
+    if (cached) return res.json(comFoto(cached));
 
     const data = await salicFetch(`/projetos/${pronac}`);
 
@@ -424,7 +480,7 @@ router.get('/org-project', async (req, res) => {
     };
 
     cacheSet(cacheKey, result, TTL_DETAIL);
-    res.json(result);
+    res.json(comFoto(result));
 
   } catch (error) {
     console.error('[SALIC] Erro ao buscar projeto da organização:', error.message);

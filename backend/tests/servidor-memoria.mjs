@@ -115,6 +115,9 @@ db.public.none(`
     proponente_nome TEXT, proponente_cnpj TEXT,
     bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT,
+    -- migration 052: a foto do projeto, e a autorizacao que ela exige.
+    foto_chave TEXT, foto_credito TEXT, foto_sha256 TEXT, foto_bytes INT,
+    foto_atualizada_em TIMESTAMP, foto_autorizacao_em TIMESTAMP, foto_autorizacao_por UUID,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW()
   );
@@ -213,6 +216,40 @@ await q(`INSERT INTO org_projects
   [orgId, 'Mostra Casa Azul de Teatro Inclusivo ' + VENENO,
    'Temporada de teatro inclusivo em Brasilia. ' + VENENO,
    'Casa Azul Felipe Augusto ' + VENENO]);
+
+// ── A foto do projeto (migration 052) ──────────────────────────────────────
+//
+// Existe aqui para que o E2E prove o que nenhum teste de unidade prova: que a
+// foto CHEGA a tela. Um erro de digitacao em aplicaFoto() passaria por toda a
+// suite e a home ficaria sem imagem no dia da apresentacao.
+//
+// O credito vai envenenado como todo texto de fora: ele vai para a tela, e
+// tela que recebe texto de fora e onde a guarda do [data-veneno] tem de valer.
+const FOTO_CHAVE = 'projetos/2026/09/projeto-fixture.png';
+await q(`UPDATE org_projects
+            SET foto_chave = $2, foto_sha256 = 'abc123def456', foto_credito = $3,
+                foto_atualizada_em = NOW(), foto_autorizacao_em = NOW()
+          WHERE organization_id = $1`,
+  [orgId, FOTO_CHAVE, 'Acervo da instituicao ' + VENENO]);
+
+// Armazenamento de mentira, com um PNG minusculo de verdade: 1x1 transparente.
+// O navegador precisa de bytes que ele aceite desenhar, senao a imagem falha
+// e o teste nao distingue "nao aplicou" de "aplicou imagem quebrada".
+const PNG_1x1 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8AAAwAB/gFvK4bfAAAAAElFTkSuQmCC',
+  'base64');
+const { usaArmazenamento } = await import('../src/services/armazenamento.js');
+usaArmazenamento({
+  nome: 'memoria',
+  async guarda(chave, buffer, contentType) { return { chave, sha256: 'f'.repeat(64), bytes: buffer.length }; },
+  async abre(chave) {
+    if (chave !== FOTO_CHAVE) return null;
+    const { Readable } = await import('stream');
+    return { stream: Readable.from([PNG_1x1]), contentType: 'image/png', bytes: PNG_1x1.length };
+  },
+  async existe(chave) { return chave === FOTO_CHAVE; },
+  async apaga() {}
+});
 
 // Um inscrito na lista de avisos, para a tela de interessados ter o que mostrar.
 await q(`INSERT INTO subscribers (email, nome, orgao, organization_id, consent_prazos,

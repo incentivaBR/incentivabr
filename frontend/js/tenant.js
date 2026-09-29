@@ -477,6 +477,12 @@ const tenant = {
  *                                       o SALIC devolve
  *   <span data-projeto="proponente">  → recebe a razão social do proponente
  *   <span data-projeto="area|segmento|uf"> → o campo com esse nome
+ *   <div  data-projeto-foto>          → recebe a foto como background-image, e
+ *                                       só quando há foto PUBLICÁVEL. Sem foto
+ *                                       o elemento fica como está — por isso a
+ *                                       reserva é a paleta, e a página não
+ *                                       muda de altura quando a foto falta
+ *   <span data-projeto-credito>       → o crédito da foto; some quando não há
  *
  * O texto que a página traz dentro da marcação é a reserva: fica quando o
  * campo vem vazio. Por isso a reserva tem de ser neutra ("o projeto apoiado"),
@@ -488,8 +494,46 @@ const tenant = {
  * apontarem para lugar nenhum — melhor um botão explicando que falta cadastro
  * do que um que leva a uma tela quebrada.
  */
+/**
+ * Põe a foto do projeto nos elementos marcados, se houver foto.
+ *
+ * Por `style.backgroundImage` e não por `innerHTML`: a URL vem do servidor,
+ * mas a regra do projeto é que dado de fora nunca entre em innerHTML — e aqui
+ * não precisa. `encodeURI` fecha a porta de um `url(...)` com aspas ou
+ * parêntese escapando da propriedade.
+ *
+ * Sem foto, nada acontece: o elemento fica com o que a página já desenhou.
+ * É por isso que a reserva tem de ser a paleta, e não um espaço vazio — a tela
+ * não pode mudar de tamanho por causa de um campo em branco no cadastro.
+ */
+function aplicaFoto(foto) {
+  const url = foto?.url;
+  if (!url) return;
+  const limpa = encodeURI(String(url));
+
+  document.querySelectorAll('[data-projeto-foto]').forEach(el => {
+    el.style.backgroundImage = `url("${limpa}")`;
+    el.style.backgroundSize = el.style.backgroundSize || 'cover';
+    el.style.backgroundPosition = el.style.backgroundPosition || 'center';
+    el.style.opacity = '1';
+    el.setAttribute('data-com-foto', 'sim');
+  });
+
+  // A cortina que escurece a foto só entra junto com ela: sobre a paleta, ela
+  // apagaria o gradiente e deixaria o topo chapado.
+  document.querySelectorAll('[data-projeto-foto-cortina]').forEach(el => {
+    el.style.display = 'block';
+  });
+
+  document.querySelectorAll('[data-projeto-credito]').forEach(el => {
+    if (!foto.credito) return;
+    el.textContent = foto.credito;   // textContent: crédito é texto de fora
+    el.hidden = false;
+  });
+}
+
 async function preencheProjeto() {
-  const marcados = document.querySelectorAll('[data-destinar], [data-projeto]');
+  const marcados = document.querySelectorAll('[data-destinar], [data-projeto], [data-projeto-foto]');
   if (!marcados.length) return;   // página não usa projeto
 
   let projeto = null;
@@ -541,6 +585,8 @@ async function preencheProjeto() {
     const valor = valores[el.getAttribute('data-projeto')];
     if (typeof valor === 'string' && valor.trim()) el.textContent = valor.trim();
   });
+
+  aplicaFoto(projeto.foto);
 
   window.__projeto = projeto;
   window.dispatchEvent(new CustomEvent('projetoCarregado', { detail: projeto }));

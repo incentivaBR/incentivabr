@@ -81,11 +81,18 @@
 
   <!-- ── HERO ─────────────────────────────────────────────────── -->
   <section class="relative min-h-[70vh] flex flex-col items-center justify-center overflow-hidden bg-[#0F1E3D]">
-    <!-- Aqui havia a foto do projeto do piloto. Não há campo de imagem no
-         cadastro do projeto; até haver, o fundo é a paleta, não a foto de um
-         projeto que pode não ser o deste site. -->
+    <!-- A foto é a do projeto DESTE site, e entra por [data-projeto-foto]
+         (migration 052). Até haver foto cadastrada — e autorizada — o fundo é
+         a paleta. Nunca a foto de um projeto que pode não ser o deste site:
+         foi assim que a do piloto ficou aparecendo em todo cliente. -->
     <div class="absolute inset-0">
       <div class="absolute inset-0 bg-gradient-to-br from-[#0F1E3D] via-[#132247] to-[#0F1E3D]"></div>
+      <div class="absolute inset-0" style="opacity:0;transition:opacity .7s" data-projeto-foto></div>
+      <!-- A cortina escurece a foto para o texto branco continuar legível. Só
+           aparece quando há foto: sobre a paleta ela só apagaria o gradiente.
+           Sem classe de Tailwind aqui de propósito — se o CDN não responder, o
+           fundo tem de continuar certo. -->
+      <div class="absolute inset-0" style="display:none;background:rgba(15,30,61,.70)" data-projeto-foto-cortina></div>
       <div class="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-[var(--secondary-10)] blur-[120px]"></div>
     </div>
 
