@@ -10,6 +10,12 @@ import { authenticateToken } from '../middleware/auth.js';
 import { mascaraCPF } from '../lib/cpf.js';
 import { mecanismosDisponiveis, podeSerDoCliente, MECANISMO_PADRAO } from '../lib/mecanismos.js';
 import { situacaoDoCertificado, fraseDoCertificado, validaCertificado } from '../lib/certificado.js';
+import { recebeArquivo } from '../lib/recebeArquivo.js';
+import { armazenamento, novaChave } from '../services/armazenamento.js';
+import {
+  PREFIXO, TIPOS_DE_IMAGEM, MENSAGEM_TIPO, MENSAGEM_SEM_AUTORIZACAO,
+  declarouAutorizacao, fotoParaATela
+} from '../lib/fotoDoProjeto.js';
 
 const router = express.Router();
 
@@ -287,7 +293,12 @@ router.get('/orgs/:id/projects', async (req, res) => {
     // "vencido" no banco exigiria alguém rodando todo dia para virá-lo.
     const projects = result.rows.map(p => {
       const certificado = situacaoDoCertificado(p);
-      return { ...p, certificado, certificado_texto: fraseDoCertificado(certificado) };
+      return {
+        ...p, certificado, certificado_texto: fraseDoCertificado(certificado),
+        // A tela precisa saber se a foto está PUBLICADA, não só se existe
+        // arquivo: é a diferença entre "já subi" e "já aparece no site".
+        foto: fotoParaATela(p)
+      };
     });
 
     res.json({ status: 'success', projects });
@@ -412,6 +423,127 @@ router.put('/orgs/:id/projects/:projectId', async (req, res) => {
     });
   } catch (error) {
     console.error('[Admin] Erro ao atualizar certificado:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/admin/orgs/:id/projects/:projectId/foto — a foto do projeto
+//
+// A imagem vai para o mesmo armazenamento dos comprovantes. O que a torna
+// diferente de um upload qualquer é a DECLARAÇÃO: sem alguém afirmar, com nome
+// e data, que existe autorização de uso de imagem das pessoas retratadas, a
+// foto é guardada e não publicada (migration 052; ECA arts. 17 e 18; LGPD
+// art. 14).
+//
+// O arquivo é gravado de todo jeito quando a declaração falta? Não. Recusa-se
+// antes de gravar: guardar imagem de criança que não pode ser usada é acumular
+// risco sem ganho nenhum.
+// ─────────────────────────────────────────────────────────────
+router.post('/orgs/:id/projects/:projectId/foto', recebeArquivo('foto'), async (req, res) => {
+  try {
+    const { id, projectId } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ status: 'error', message: 'Nenhuma imagem enviada.' });
+    }
+    if (!TIPOS_DE_IMAGEM.includes(req.file.tipo?.tipo)) {
+      return res.status(400).json({ status: 'error', message: MENSAGEM_TIPO });
+    }
+    if (!declarouAutorizacao(req.body?.autorizacao)) {
+      return res.status(400).json({ status: 'error', message: MENSAGEM_SEM_AUTORIZACAO });
+    }
+
+    // O projeto tem de ser deste cliente, antes de gravar qualquer byte.
+    const dono = await pool.query(
+      'SELECT id, foto_chave FROM org_projects WHERE id = $1 AND organization_id = $2',
+      [projectId, id]);
+    if (!dono.rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Projeto não encontrado neste cliente.' });
+    }
+
+    const arm = await armazenamento();
+    const chave = novaChave(PREFIXO, req.file.tipo.extensao);
+    const guardado = await arm.guarda(chave, req.file.buffer, req.file.tipo.mime);
+
+    const credito = String(req.body?.credito || '').trim().slice(0, 200) || null;
+
+    const { rows } = await pool.query(`
+      UPDATE org_projects
+         SET foto_chave           = $3,
+             foto_credito         = $4,
+             foto_sha256          = $5,
+             foto_bytes           = $6,
+             foto_atualizada_em   = NOW(),
+             foto_autorizacao_em  = NOW(),
+             foto_autorizacao_por = $7,
+             updated_at           = NOW()
+       WHERE id = $2 AND organization_id = $1
+       RETURNING *`,
+      [id, projectId, guardado.chave, credito, guardado.sha256, guardado.bytes, req.user.userId]);
+
+    // A anterior sai depois de a nova estar no banco: falha no meio deixa a
+    // antiga órfã no armazenamento, que é barato, em vez de deixar o projeto
+    // apontando para arquivo que não existe mais.
+    const anterior = dono.rows[0].foto_chave;
+    if (anterior && anterior !== guardado.chave) {
+      try { await arm.apaga(anterior); } catch (e) { console.error('[Admin] foto antiga ficou no armazenamento:', e.message); }
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (organization_id, user_id, action, entity_type, entity_id, details)
+       VALUES ($1, $2, 'projeto.foto', 'org_project', $3, $4)`,
+      [id, req.user.userId, projectId,
+       JSON.stringify({ sha256: guardado.sha256, bytes: guardado.bytes, autorizacao_declarada: true })]);
+
+    res.json({ status: 'success', project: rows[0], foto: fotoParaATela(rows[0]) });
+  } catch (error) {
+    console.error('[Admin] Erro ao gravar a foto do projeto:', error.message);
+    res.status(500).json({ status: 'error', message: 'Erro interno.' });
+  }
+});
+
+// DELETE — tira a foto do ar e apaga o arquivo.
+//
+// Tirar do ar e apagar são a mesma ação de propósito: "some do site mas fica
+// guardada" é exatamente o que alguém pede para desfazer quando uma família
+// retira a autorização, e nesse caso guardar é o problema.
+router.delete('/orgs/:id/projects/:projectId/foto', async (req, res) => {
+  try {
+    const { id, projectId } = req.params;
+
+    // Lê a chave ANTES de limpar: depois do UPDATE ela não existe mais, e
+    // subconsulta no RETURNING depende de detalhe de snapshot que não vale a
+    // pena conferir de cabeça.
+    const antes = await pool.query(
+      'SELECT foto_chave FROM org_projects WHERE id = $1 AND organization_id = $2',
+      [projectId, id]);
+    if (!antes.rows.length) {
+      return res.status(404).json({ status: 'error', message: 'Projeto não encontrado neste cliente.' });
+    }
+
+    await pool.query(`
+      UPDATE org_projects
+         SET foto_chave = NULL, foto_credito = NULL, foto_sha256 = NULL, foto_bytes = NULL,
+             foto_atualizada_em = NOW(), foto_autorizacao_em = NULL, foto_autorizacao_por = NULL,
+             updated_at = NOW()
+       WHERE id = $2 AND organization_id = $1`,
+      [id, projectId]);
+
+    const chave = antes.rows[0].foto_chave;
+    if (chave) {
+      try { await (await armazenamento()).apaga(chave); }
+      catch (e) { console.error('[Admin] arquivo da foto não pôde ser apagado:', e.message); }
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (organization_id, user_id, action, entity_type, entity_id, details)
+       VALUES ($1, $2, 'projeto.foto.remover', 'org_project', $3, $4)`,
+      [id, req.user.userId, projectId, JSON.stringify({ arquivo_apagado: Boolean(chave) })]);
+
+    res.json({ status: 'success' });
+  } catch (error) {
+    console.error('[Admin] Erro ao remover a foto do projeto:', error.message);
     res.status(500).json({ status: 'error', message: 'Erro interno.' });
   }
 });
