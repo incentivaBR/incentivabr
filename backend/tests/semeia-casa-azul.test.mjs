@@ -24,7 +24,9 @@ db.public.none(`
     name TEXT, slug TEXT UNIQUE, cnpj TEXT, plan_type TEXT,
     fund_type TEXT, fund_name TEXT, max_percentage NUMERIC,
     contact_email TEXT, primary_color TEXT, secondary_color TEXT,
-    logo_url TEXT, contracted_at TIMESTAMP, is_active BOOLEAN DEFAULT true
+    logo_url TEXT, contracted_at TIMESTAMP, is_active BOOLEAN DEFAULT true,
+    -- migration 039: os textos da home do cliente.
+    hero_titulo TEXT, hero_subtitulo TEXT, sobre TEXT
   );
   CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, 
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -43,8 +45,13 @@ db.public.none(`
   CREATE TABLE org_projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID, pronac TEXT, titulo TEXT, area TEXT, segmento TEXT,
-    descricao TEXT, uf TEXT, proponente_nome TEXT,
-    is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false
+    descricao TEXT, uf TEXT, proponente_nome TEXT, proponente_cnpj TEXT,
+    -- Os bancarios existem na tabela de verdade; sem eles aqui, a guarda de
+    -- "ninguem inventou conta" leria undefined e passaria sem provar nada.
+    bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
+    pix_key TEXT, pix_key_type TEXT,
+    is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
+    updated_at TIMESTAMP DEFAULT NOW()
   );
   CREATE TABLE donations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -89,6 +96,87 @@ await teste('o projeto vinculado e o PRONAC real do SALIC', async () => {
     throw new Error('o proponente tem que ser a razao social, veio: ' + p.proponente_nome);
   }
   if (!p.is_featured) throw new Error('nao esta em destaque — nao aparece na home');
+});
+
+await teste('a ficha do projeto e a do SALIC, nao a de memoria', async () => {
+  // Consulta de set/2026 ao SALIC, PRONAC 2511274. O segmento estava escrito
+  // como "Musica" e o oficial e danca: a sintese fala em oficinas de expressao
+  // corporal e espetaculo de danca COM musica ao vivo. E o que o destinador le
+  // para decidir se aquele projeto e a causa dele.
+  const [p] = await q(`SELECT * FROM org_projects WHERE pronac = '2511274'`);
+  if (p.segmento !== 'Apresentação ou Performance de Dança') {
+    throw new Error('segmento fora do SALIC: ' + p.segmento);
+  }
+  if (p.area !== 'Artes Cênicas') throw new Error('area: ' + p.area);
+  if (p.uf !== 'DF') throw new Error('uf: ' + p.uf);
+  // O CNPJ da MATRIZ. Ha filiais /0002-00 e /0003-91, e recibo com o CNPJ
+  // errado nao serve para a Receita.
+  if (p.proponente_cnpj !== '33.486.911/0001-20') {
+    throw new Error('cnpj: ' + p.proponente_cnpj);
+  }
+  // A descricao e a sintese aprovada pelo Ministerio, nao um resumo nosso.
+  if (!/oficinas de expressão corporal/.test(p.descricao || '')) {
+    throw new Error('a descricao nao e a sintese do SALIC: ' + (p.descricao || '').slice(0, 60));
+  }
+});
+
+await teste('o seed CORRIGE um projeto que ficou errado num deploy anterior', async () => {
+  // O mesmo defeito que organizacao() ja tinha: devolver cedo quando a linha
+  // existe deixa o erro cristalizado no banco. Foi assim que "Musica" ficou em
+  // producao depois de o cadastro ser corrigido no codigo.
+  await q(`UPDATE org_projects
+              SET segmento = 'Música', titulo = 'Titulo Velho', proponente_cnpj = NULL
+            WHERE pronac = '2511274'`);
+  await semeiaCasaAzul(poolReal);
+
+  const [p] = await q(`SELECT * FROM org_projects WHERE pronac = '2511274'`);
+  if (p.segmento === 'Música') throw new Error('nao corrigiu o segmento');
+  if (p.titulo !== 'Casa Azul Celebra: Ritmos que Transformam') throw new Error('nao corrigiu o titulo');
+  if (!p.proponente_cnpj) throw new Error('nao preencheu o CNPJ');
+});
+
+await teste('convergir NAO apaga o que so a Casa Azul informa', async () => {
+  // Conta de captacao, agencia e PIX vem pela tela, e sao o que faz o recibo
+  // existir. Um seed que os tocasse apagaria esse dado a cada deploy — e
+  // deposito na conta errada nao gera recibo.
+  await q(`UPDATE org_projects
+              SET bank_name = 'Banco do Brasil', bank_agency = '2895-9',
+                  bank_account = 'conta-informada-pela-tela', pix_key = 'chave-do-cliente'
+            WHERE pronac = '2511274'`);
+  await semeiaCasaAzul(poolReal);
+
+  const [p] = await q(`SELECT * FROM org_projects WHERE pronac = '2511274'`);
+  if (p.bank_account !== 'conta-informada-pela-tela') throw new Error('o seed apagou a conta de captacao');
+  if (p.bank_agency !== '2895-9') throw new Error('o seed apagou a agencia');
+  if (p.pix_key !== 'chave-do-cliente') throw new Error('o seed apagou a chave PIX');
+
+  // Devolve ao estado limpo para as guardas seguintes.
+  await q(`UPDATE org_projects
+              SET bank_name = NULL, bank_agency = NULL, bank_account = NULL, pix_key = NULL
+            WHERE pronac = '2511274'`);
+});
+
+await teste('a home do cliente tem texto proprio, e sem numero que nao conferimos', async () => {
+  const [org] = await q(`SELECT * FROM organizations WHERE slug = 'casa-azul'`);
+  for (const campo of ['hero_titulo', 'hero_subtitulo', 'sobre']) {
+    if (!org[campo] || org[campo].length < 20) {
+      throw new Error(`${campo} vazio — a home abre com o texto neutro da plataforma`);
+    }
+  }
+  const tudo = [org.hero_titulo, org.hero_subtitulo, org.sobre].join(' ');
+
+  // Anos de atuacao, atendidos, unidades e selos sao plausiveis e chegaram por
+  // resumo de busca. Site de cliente nao e lugar para dado que nao conferimos
+  // na fonte — a mesma regra que manteve os numeros do piloto fora da home.
+  const numeros = tudo.match(/\b\d{2,}\b/g);
+  if (numeros) throw new Error('numero sem fonte no texto do cliente: ' + numeros.join(', '));
+  if (/melhores ONGs|selo|certifica/i.test(tudo)) {
+    throw new Error('o texto afirma premio ou selo que nao conferimos na fonte');
+  }
+
+  // Percentual tem fonte unica em tetos_deducao. Escrito aqui, viraria a copia
+  // que nao acompanha o banco.
+  if (/%/.test(tudo)) throw new Error('percentual escrito no texto do tenant');
 });
 
 await teste('a conta de captacao fica em branco de proposito', async () => {

@@ -43,6 +43,40 @@ const LOGO = '/assets/casa-azul-simbolo.png';
 const MARCA = 'Casa Azul Felipe Augusto';
 const RAZAO_SOCIAL = 'ASSISTENCIA SOCIAL CASA AZUL';
 
+/**
+ * Os textos da página inicial do cliente (migration 039).
+ *
+ * Sem eles, o site da Casa Azul abre com o texto neutro da plataforma: correto,
+ * e de quem ainda não cadastrou nada.
+ *
+ * O que está escrito aqui é só o que se sustenta: o que o PROJETO faz, palavra
+ * por palavra da síntese aprovada pelo Ministério, e como o mecanismo funciona.
+ *
+ * O que NÃO está, de propósito: anos de atuação, número de atendidos, unidades,
+ * selos. São afirmações plausíveis que chegaram por resumo de busca, e o site
+ * de um cliente não é lugar para dado que não conferimos na fonte — é a mesma
+ * regra que manteve os números do piloto fora da home. Quando a Casa Azul
+ * mandar os números dela, eles entram pela tela de clientes, com fonte.
+ *
+ * E nenhum percentual aqui: teto é dado, e vive em `tetos_deducao`. Escrever
+ * "6%" num texto de tenant criaria a cópia que não acompanha o banco.
+ */
+const TEXTOS = {
+  hero_titulo:
+    'Parte do seu imposto pode virar dança, música e futuro no Distrito Federal',
+  hero_subtitulo:
+    'Você não doa dinheiro a mais. Escolhe para onde vai uma parte do Imposto de ' +
+    'Renda que já deve — e ela financia o projeto Casa Azul Celebra, aprovado ' +
+    'pelo Ministério da Cultura pela Lei Rouanet.',
+  sobre:
+    'A Casa Azul Felipe Augusto é uma organização da sociedade civil do Distrito ' +
+    'Federal. O projeto Casa Azul Celebra: Ritmos que Transformam realiza oficinas ' +
+    'de expressão corporal com jovens atendidos pela instituição, culminando num ' +
+    'espetáculo de dança com música ao vivo, de acesso gratuito ao público. O ' +
+    'projeto está autorizado pelo Ministério da Cultura a captar a totalidade dos ' +
+    'recursos, e cada destinação vai direto para a Conta de Captação dele.'
+};
+
 async function organizacao(cliente) {
   const achou = await cliente.query('SELECT id FROM organizations WHERE slug = $1', [SLUG]);
 
@@ -60,40 +94,85 @@ async function organizacao(cliente) {
     // ajustar pela tela fica de pé.
     await cliente.query(`
       UPDATE organizations
-         SET name = $2, primary_color = $3, secondary_color = $4, logo_url = $5
+         SET name = $2, primary_color = $3, secondary_color = $4, logo_url = $5,
+             hero_titulo = $6, hero_subtitulo = $7, sobre = $8
        WHERE id = $1`,
-      [achou.rows[0].id, MARCA, CORES.primaria, CORES.secundaria, LOGO]);
+      [achou.rows[0].id, MARCA, CORES.primaria, CORES.secundaria, LOGO,
+       TEXTOS.hero_titulo, TEXTOS.hero_subtitulo, TEXTOS.sobre]);
     return achou.rows[0].id;
   }
 
   const { rows } = await cliente.query(`
     INSERT INTO organizations (name, slug, cnpj, plan_type, fund_type, fund_name,
                                max_percentage, contact_email, primary_color, secondary_color,
-                               logo_url, contracted_at, is_active)
+                               logo_url, hero_titulo, hero_subtitulo, sobre,
+                               contracted_at, is_active)
     VALUES ($1,$2,NULL,'basic','rouanet','Lei Rouanet — Lei 8.313/1991',
-            6, NULL, $3, $4, $5, NOW(), true)
+            6, NULL, $3, $4, $5, $6, $7, $8, NOW(), true)
     RETURNING id`,
-    [MARCA, SLUG, CORES.primaria, CORES.secundaria, LOGO]);
+    [MARCA, SLUG, CORES.primaria, CORES.secundaria, LOGO,
+     TEXTOS.hero_titulo, TEXTOS.hero_subtitulo, TEXTOS.sobre]);
   console.log('🌱 Organização Casa Azul criada');
   return rows[0].id;
 }
 
+// Ficha do projeto, conferida contra a consulta do SALIC de setembro de 2026
+// (PRONAC 2511274, situação E10 — autorizada a captação total).
+//
+// O segmento estava escrito como "Música" e o SALIC diz "Apresentação ou
+// Performance de Dança": a síntese fala em oficinas de expressão corporal e
+// espetáculo de dança COM música ao vivo, e a diferença é o que o destinador
+// lê para decidir se aquele projeto é a causa dele.
+const FICHA = {
+  titulo:     'Casa Azul Celebra: Ritmos que Transformam',
+  area:       'Artes Cênicas',
+  segmento:   'Apresentação ou Performance de Dança',
+  uf:         'DF',
+  cnpj:       '33.486.911/0001-20',   // a MATRIZ; há filiais /0002-00 e /0003-91
+  // A síntese oficial, como está no SALIC. É melhor do que qualquer resumo
+  // nosso: foi ela que o Ministério aprovou.
+  descricao:
+    'O projeto "Casa Azul Celebra" realizará oficinas de expressão corporal ' +
+    'com jovens atendidos pela instituição, culminando na apresentação de um ' +
+    'espetáculo de dança com música ao vivo. A proposta valoriza a inclusão ' +
+    'sociocultural por meio da arte, promovendo protagonismo juvenil, formação ' +
+    'artística e acesso gratuito ao público.'
+};
+
 async function projeto(cliente, orgId) {
   const achou = await cliente.query(
     'SELECT id FROM org_projects WHERE organization_id = $1 AND pronac = $2', [orgId, PRONAC]);
-  if (achou.rows.length) return;
 
-  // Dados conferidos contra o SALIC. A conta de captação fica em branco de
-  // propósito: só a Casa Azul pode informá-la, e depósito na conta errada não
-  // gera recibo — o servidor perde a dedução e a culpa é nossa.
+  // CONVERGE, não só "não duplica".
+  //
+  // A primeira versão daqui devolvia cedo quando a linha existia — o mesmo erro
+  // que o comentário de organizacao() descreve, e com o mesmo resultado: o
+  // segmento errado ("Música") ficou cristalizado no banco e nenhum deploy o
+  // corrigia. Semeador que não converge esconde o erro onde é mais difícil de
+  // ver do que no código.
+  //
+  // Os campos BANCÁRIOS ficam de fora, e é a parte que mais importa: conta de
+  // captação, agência e chave PIX só a Casa Azul informa, pela tela. Um seed
+  // que os tocasse apagaria, a cada deploy, o dado que faz o recibo existir —
+  // e depósito na conta errada não gera recibo: o servidor perde a dedução e a
+  // culpa é nossa.
+  if (achou.rows.length) {
+    await cliente.query(`
+      UPDATE org_projects
+         SET titulo = $2, area = $3, segmento = $4, descricao = $5, uf = $6,
+             proponente_nome = $7, proponente_cnpj = $8, updated_at = NOW()
+       WHERE id = $1`,
+      [achou.rows[0].id, FICHA.titulo, FICHA.area, FICHA.segmento, FICHA.descricao,
+       FICHA.uf, RAZAO_SOCIAL, FICHA.cnpj]);
+    return;
+  }
+
   await cliente.query(`
     INSERT INTO org_projects (organization_id, pronac, titulo, area, segmento, descricao, uf,
-                              proponente_nome, is_active, is_featured)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true,true)`,
-    [orgId, PRONAC, 'Casa Azul Celebra: Ritmos que Transformam',
-     'Artes Cênicas', 'Música',
-     'Projeto aprovado pelo Ministério da Cultura, autorizada a captação total dos recursos.',
-     'DF', RAZAO_SOCIAL]);
+                              proponente_nome, proponente_cnpj, is_active, is_featured)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,true,true)`,
+    [orgId, PRONAC, FICHA.titulo, FICHA.area, FICHA.segmento, FICHA.descricao,
+     FICHA.uf, RAZAO_SOCIAL, FICHA.cnpj]);
   console.log(`🌱 Projeto ${PRONAC} vinculado à Casa Azul`);
 }
 
