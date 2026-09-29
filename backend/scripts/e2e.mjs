@@ -290,6 +290,41 @@ await teste('assistente de destinação: o projeto do cliente já vem preenchido
   if (!desc.includes('teatro inclusivo')) throw new Error('a descrição não veio do cadastro: ' + desc);
 });
 
+await teste('a captação do projeto aparece na home, com a data do retrato', async pg => {
+  // É o bloco que dá urgência ao projeto e que faz o proponente ver a
+  // operação dele na tela. O que se mede aqui é o que um teste de unidade não
+  // alcança: que o valor, a barra e a DATA do retrato chegam ao DOM.
+  await ir(pg, 'index.html');
+
+  await ate(pg, () => {
+    const b = document.querySelector('[data-captacao-bloco]');
+    return b && !b.hidden;
+  }, 'o bloco da captação não apareceu');
+
+  const estado = await pg.evaluate(() => ({
+    autorizado: document.querySelector('[data-captacao="autorizado"]')?.textContent || '',
+    frase:      document.querySelector('[data-captacao="frase"]')?.textContent || '',
+    conferido:  document.querySelector('[data-captacao="conferido_em"]')?.textContent || '',
+    dataVisivel: !document.querySelector('[data-captacao-conferido]')?.hidden,
+    barraVisivel: !document.querySelector('[data-captacao-barra]')?.hidden
+  }));
+
+  if (!/635\.728/.test(estado.autorizado)) {
+    throw new Error('o valor autorizado não chegou: ' + estado.autorizado);
+  }
+  if (!/dias para o fim da janela/.test(estado.frase)) {
+    throw new Error('a frase do prazo não chegou: ' + estado.frase);
+  }
+  if (!estado.barraVisivel) throw new Error('a barra não apareceu com os dois números');
+
+  // A data do retrato é o que separa informar de afirmar: sem ela, um zero de
+  // setembro vira notícia em dezembro.
+  if (!estado.dataVisivel) throw new Error('o número aparece sem a data em que foi conferido');
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(estado.conferido.trim())) {
+    throw new Error('a data do retrato saiu fora do formato: ' + estado.conferido);
+  }
+});
+
 await teste('a foto do projeto do cliente chega à tela', async pg => {
   // Nenhum teste de unidade prova isto: eles provam que a rota entrega a
   // imagem e que o JSON a carrega. Que ela CHEGA ao elemento é trabalho de

@@ -50,6 +50,9 @@ db.public.none(`
     -- "ninguem inventou conta" leria undefined e passaria sem provar nada.
     bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT,
+    -- migration 053: quanto pode captar, quanto captou, e ate quando.
+    valor_autorizado NUMERIC, valor_captado NUMERIC,
+    captacao_inicio DATE, captacao_fim DATE, valores_em DATE,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
     updated_at TIMESTAMP DEFAULT NOW()
   );
@@ -118,6 +121,18 @@ await teste('a ficha do projeto e a do SALIC, nao a de memoria', async () => {
   if (!/oficinas de expressão corporal/.test(p.descricao || '')) {
     throw new Error('a descricao nao e a sintese do SALIC: ' + (p.descricao || '').slice(0, 60));
   }
+});
+
+await teste('a captacao vem da consulta oficial, com a data do retrato', async () => {
+  // Sem `valores_em`, um "zero captado" de setembro vira afirmacao atual em
+  // dezembro — na pagina que pede transferencia.
+  const [p] = await q(`SELECT * FROM org_projects WHERE pronac = '2511274'`);
+  if (Number(p.valor_autorizado) !== 635728.5) {
+    throw new Error('valor autorizado fora do SALIC: ' + p.valor_autorizado);
+  }
+  if (Number(p.valor_captado) !== 0) throw new Error('captado: ' + p.valor_captado);
+  if (!p.valores_em) throw new Error('o retrato foi gravado sem data de conferencia');
+  if (!p.captacao_fim) throw new Error('sem prazo nao ha urgencia, e ela e o argumento');
 });
 
 await teste('o seed CORRIGE um projeto que ficou errado num deploy anterior', async () => {

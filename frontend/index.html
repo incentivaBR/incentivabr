@@ -101,6 +101,27 @@
         <p class="text-white/45 text-xs mt-1">PRONAC <span data-projeto="pronac">—</span> · aprovado pelo Ministério da Cultura</p>
         <a data-destinar class="inline-block mt-4 font-bold px-6 py-3 rounded-xl text-sm text-white transition-all hover:scale-[1.02]"
            style="background:linear-gradient(135deg,#EE985C,#e07a35)">Destinar para este projeto →</a>
+
+        <!-- A captação: o que dá urgência ao projeto. O bloco inteiro some
+             quando não há valor nem prazo cadastrados (tenant.js). -->
+        <div data-captacao-bloco hidden class="mt-4 pt-4" style="border-top:1px solid rgba(255,255,255,0.10)">
+          <p class="text-white/70 text-sm leading-snug">
+            <span class="text-white font-bold" data-captacao="autorizado">—</span>
+            autorizados pelo Ministério para este projeto.
+          </p>
+          <div data-captacao-barra hidden class="mt-3 h-2 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.10)">
+            <div data-captacao-preenchida class="h-full rounded-full" style="width:0.5%;background:#EE985C;transition:width .9s ease-out"></div>
+          </div>
+          <p data-captacao-captado hidden class="text-white/50 text-xs mt-2">
+            <span data-captacao="captado">—</span> captados ·
+            faltam <span class="text-white/80 font-semibold" data-captacao="falta">—</span>
+          </p>
+          <p class="text-xs mt-2 font-semibold" style="color:#EE985C" data-captacao="frase"></p>
+          <p data-captacao-conferido hidden class="text-white/25 text-xs mt-1">
+            Valores conferidos na consulta oficial em <span data-captacao="conferido_em">—</span>.<span
+              data-captacao-defasado hidden> Pode haver captação posterior não refletida aqui.</span>
+          </p>
+        </div>
       </div>
 
       <!-- ── A CONTA, AQUI ─────────────────────────────────────────

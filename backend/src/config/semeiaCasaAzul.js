@@ -131,6 +131,14 @@ const FICHA = {
   cnpj:       '33.486.911/0001-20',   // a MATRIZ; há filiais /0002-00 e /0003-91
   // A síntese oficial, como está no SALIC. É melhor do que qualquer resumo
   // nosso: foi ela que o Ministério aprovou.
+  // Consulta ao SALIC de 29/09/2026. `valores_em` é o que impede este retrato
+  // de ser apresentado como notícia daqui a três meses: passado o prazo de
+  // validade, lib/captacao.js marca como defasado em vez de calar.
+  valor_autorizado: 635728.50,
+  valor_captado:    0,
+  captacao_inicio:  '2026-01-01',
+  captacao_fim:     '2026-12-31',
+  valores_em:       '2026-09-29',
   descricao:
     'O projeto "Casa Azul Celebra" realizará oficinas de expressão corporal ' +
     'com jovens atendidos pela instituição, culminando na apresentação de um ' +
@@ -160,19 +168,29 @@ async function projeto(cliente, orgId) {
     await cliente.query(`
       UPDATE org_projects
          SET titulo = $2, area = $3, segmento = $4, descricao = $5, uf = $6,
-             proponente_nome = $7, proponente_cnpj = $8, updated_at = NOW()
+             proponente_nome = $7, proponente_cnpj = $8,
+             valor_autorizado = $9, valor_captado = $10,
+             captacao_inicio = $11::date, captacao_fim = $12::date,
+             valores_em = $13::date, updated_at = NOW()
        WHERE id = $1`,
       [achou.rows[0].id, FICHA.titulo, FICHA.area, FICHA.segmento, FICHA.descricao,
-       FICHA.uf, RAZAO_SOCIAL, FICHA.cnpj]);
+       FICHA.uf, RAZAO_SOCIAL, FICHA.cnpj,
+       FICHA.valor_autorizado, FICHA.valor_captado,
+       FICHA.captacao_inicio, FICHA.captacao_fim, FICHA.valores_em]);
     return;
   }
 
   await cliente.query(`
     INSERT INTO org_projects (organization_id, pronac, titulo, area, segmento, descricao, uf,
-                              proponente_nome, proponente_cnpj, is_active, is_featured)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,true,true)`,
+                              proponente_nome, proponente_cnpj,
+                              valor_autorizado, valor_captado,
+                              captacao_inicio, captacao_fim, valores_em,
+                              is_active, is_featured)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::date,$13::date,$14::date,true,true)`,
     [orgId, PRONAC, FICHA.titulo, FICHA.area, FICHA.segmento, FICHA.descricao,
-     FICHA.uf, RAZAO_SOCIAL, FICHA.cnpj]);
+     FICHA.uf, RAZAO_SOCIAL, FICHA.cnpj,
+     FICHA.valor_autorizado, FICHA.valor_captado,
+     FICHA.captacao_inicio, FICHA.captacao_fim, FICHA.valores_em]);
   console.log(`🌱 Projeto ${PRONAC} vinculado à Casa Azul`);
 }
 
