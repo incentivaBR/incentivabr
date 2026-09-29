@@ -148,6 +148,65 @@ await teste('a pagina inicial so linka a carta de vendas de um lugar', () => {
   if (quantos !== 1) throw new Error('links para a carta de vendas: ' + quantos);
 });
 
+// ── O roteiro da demonstracao envelhece calado ─────────────────────────────
+//
+// A versao de ago/2026 mandava NAO abrir a index.html, porque na epoca ela
+// saia com a marca da plataforma. Em set/2026 ela virou a melhor parte da
+// demonstracao — e o roteiro seguiu mandando pular, por oito semanas, sem
+// nada quebrar. Documento de apresentacao nao tem CI: estas duas guardas sao
+// o que ele tem.
+const ROTEIRO = path.join(RAIZ, 'docs/apresentacao/ROTEIRO-CASA-AZUL.md');
+
+await teste('o roteiro nao manda pular a home, que hoje e do cliente', () => {
+  const texto = fs.readFileSync(ROTEIRO, 'utf8');
+  const manda = /n[aã]o\s+(comece|abra)[^.]{0,40}index\.html|nunca\s+comece[^.]{0,40}index/i.exec(texto);
+  if (manda) throw new Error('o roteiro ainda manda evitar a home: "' + manda[0].trim() + '"');
+
+  // E a home tem de continuar sendo do cliente, senao a instrucao nova e que
+  // fica errada. O E2E prova na tela; aqui se prova a marcacao.
+  const inicial = fs.readFileSync(path.join(RAIZ, 'frontend/index.html'), 'utf8');
+  for (const marca of ['data-tenant="hero_titulo"', 'data-so-cliente', 'data-projeto=']) {
+    if (!inicial.includes(marca)) {
+      throw new Error(`index.html perdeu ${marca} — o roteiro manda abri-la primeiro`);
+    }
+  }
+});
+
+await teste('o roteiro avisa da portaria antes de tudo', () => {
+  // Com SITE_SENHA ligada, toda pagina responde 401. Quem apresenta nao ve a
+  // tela de senha (o cookie dura 30 dias na maquina dele) e descobre na frente
+  // do cliente, noutra maquina. E o erro mais caro e mais facil de evitar.
+  const texto = fs.readFileSync(ROTEIRO, 'utf8');
+  if (!/SITE_SENHA/.test(texto)) throw new Error('o roteiro nao cita a senha do site');
+  if (!/401/.test(texto)) throw new Error('o roteiro nao diz o que acontece sem a senha');
+
+  // O aviso tem de vir antes das abas: depois da lista, ninguem le.
+  if (texto.indexOf('SITE_SENHA') > texto.indexOf('| 1 |')) {
+    throw new Error('o aviso da senha esta depois da lista de abas');
+  }
+});
+
+await teste('o roteiro nao promete SALIC ao vivo em modo simulacao', () => {
+  // routes/salic.js: "O que a simulacao muda e so uma coisa: nao consulta o
+  // SALIC." Dizer "vem do Ministerio agora" na frente do cliente e o tipo de
+  // detalhe que derruba a credibilidade se alguem checar.
+  // A propria instrucao do roteiro e "nao diga que vem da API do SALIC agora".
+  // Procurar a frase crua acusaria o aviso que existe para impedi-la — foi o
+  // que aconteceu na primeira versao desta guarda. Apaga-se a sentenca negada
+  // antes de procurar a afirmada.
+  // O negrito do markdown entra no meio das palavras ("a plataforma **nao**
+  // consulta o SALIC"), e um \s+ nao atravessa asterisco. Tira-se a enfase
+  // antes de procurar frase.
+  const texto = fs.readFileSync(ROTEIRO, 'utf8')
+    .replace(/\*+/g, '')
+    .replace(/n[ãa]o\s+(diga|afirme|prometa)[^.]*\./gi, ' ');
+  const promete = /(vem|v[eê]m)\s+da\s+API\s+do\s+SALIC[^.]{0,30}agora/i.exec(texto);
+  if (promete) throw new Error('o roteiro promete consulta ao vivo: "' + promete[0].trim() + '"');
+  if (!/n[aã]o\s+consulta\s+o\s+SALIC/i.test(texto)) {
+    throw new Error('o roteiro nao avisa que em simulacao o SALIC nao e consultado');
+  }
+});
+
 servidor.close();
 
 console.log('\n' + '='.repeat(64));
