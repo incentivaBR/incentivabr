@@ -88,6 +88,20 @@ function ehLogoDaPlataforma(url) {
   return /\/assets\/logo-incentivabr(-compact|-icon)?\.png$/i.test(String(url).split(/[?#]/)[0]);
 }
 
+/**
+ * Troca a marca da plataforma pela do cliente num texto curto.
+ *
+ * Serve o título da aba e o texto alternativo da logo — os dois lugares onde
+ * "IncentivaBR" chegava ao visitante do site do cliente sem passar por
+ * nenhum dos ganchos de tenant. O corpo das páginas não usa isto: lá a frase
+ * diz "a plataforma", que é verdade nos dois sites e não vira afirmação falsa
+ * quando o nome trocado é o do proponente (que, ao contrário da plataforma,
+ * recebe o dinheiro).
+ */
+function trocaAMarca(texto, nome) {
+  return String(texto).replace(/IncentivaBR/g, nome);
+}
+
 /** Acrescenta `?org=` a um endereço, preservando o que já houver de query. */
 function comOrg(endereco) {
   const org = orgDaSessao();
@@ -233,12 +247,15 @@ const tenant = {
       });
     }
 
-    // Atualizar título da página
-    if (org.slug !== 'www') {
-      const currentTitle = document.title;
-      if (!currentTitle.includes(org.name)) {
-        document.title = `${org.name} | IncentivaBR`;
-      }
+    // O título da aba, que era "Casa Azul | IncentivaBR"
+    //
+    // A aba do navegador é a primeira coisa que o visitante lê, e escrever ali
+    // a marca da plataforma no site do cliente é o mesmo vazamento que o
+    // rodapé comercial: o público dele não contratou nada nossa. Troca-se o
+    // nome, em vez de acrescentar — e a troca é idempotente, então não
+    // importa quantas vezes esta função rode.
+    if (org.slug !== 'www' && org.name) {
+      document.title = trocaAMarca(document.title, org.name);
     }
 
     // Disparar evento customizado
@@ -345,7 +362,12 @@ const tenant = {
     // um instante depois, assim que esta resposta chegava.
     if (brand.logo_url && !ehLogoDaPlataforma(brand.logo_url)) {
       document.querySelectorAll('.brand-logo').forEach(el => {
-        if (el.tagName === 'IMG') el.src = brand.logo_url;
+        if (el.tagName === 'IMG') {
+          el.src = brand.logo_url;
+          // O alt seguia "IncentivaBR" depois da troca: o leitor de tela
+          // anunciava a marca da plataforma olhando a logo do cliente.
+          el.alt = brand.name || el.alt;
+        }
       });
     }
 
@@ -365,6 +387,12 @@ const tenant = {
     // no ar, que é o caso em produção. O display em linha vence qualquer
     // classe; ao mostrar, é limpo para a classe voltar a mandar.
     const ehCliente = brand.eh_plataforma === false;
+
+    // O título da aba, também aqui: há páginas que carregam a marca sem passar
+    // pelo caminho da organização, e era nelas que "— IncentivaBR" ficava na
+    // aba do site do cliente. A troca é idempotente nos dois caminhos.
+    if (ehCliente && brand.name) document.title = trocaAMarca(document.title, brand.name);
+
     const mostra = (el, sim) => { el.hidden = !sim; el.style.display = sim ? '' : 'none'; };
     document.querySelectorAll('[data-so-cliente]').forEach(el => mostra(el, ehCliente));
     document.querySelectorAll('[data-so-plataforma]').forEach(el => mostra(el, !ehCliente));
@@ -421,6 +449,25 @@ const tenant = {
       };
       document.querySelectorAll('[data-fiscal]').forEach(el => {
         const v = valores[el.dataset.fiscal];
+        if (v != null && v !== '') el.textContent = v;
+      });
+    }
+
+    // Qual lei este site opera (migration 043). Duas páginas afirmavam "a
+    // IncentivaBR registra destinação apenas pela Lei Rouanet" com o nome da
+    // lei escrito à mão — frase que ficou falsa no dia em que passou a haver
+    // um mecanismo por cliente, e que nenhum cadastro corrige. O nome vem do
+    // catálogo, como o resto.
+    if (brand.mecanismo) {
+      window.MECANISMO = brand.mecanismo;
+      const m = brand.mecanismo;
+      const valores = {
+        nome:       m.nome || '',
+        base_legal: m.base_legal || '',
+        orgao:      m.orgao || ''
+      };
+      document.querySelectorAll('[data-mecanismo]').forEach(el => {
+        const v = valores[el.dataset.mecanismo];
         if (v != null && v !== '') el.textContent = v;
       });
     }
