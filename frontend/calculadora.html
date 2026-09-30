@@ -265,6 +265,16 @@
             <div class="text-xs text-gray-500 mt-1">Alíquota Efetiva</div>
           </div>
         </div>
+
+        <!-- O 13º que a pessoa digitou e ficou de fora, com o motivo. Sem isto
+             ela conclui que o campo não funcionou e digita de novo em outro. -->
+        <div id="nota13" class="hidden mt-5 pt-5 border-t border-gray-100 flex gap-2.5 items-start">
+          <span class="text-gray-400 text-sm flex-shrink-0">ℹ️</span>
+          <p class="text-gray-500 text-xs leading-relaxed">
+            O 13º salário informado (<strong id="nota13Valor" class="text-[#0F1E3D]">R$ 0</strong>)
+            não entra nos números acima. <span id="nota13Motivo"></span>
+          </p>
+        </div>
       </div>
 
       <!-- Isento -->
@@ -300,15 +310,53 @@
           completa; dizer o valor sem dizer a condição é meia informação no
           momento exato da decisão.
         -->
-        <div class="mt-5 pt-5 border-t border-white/10 flex gap-3 items-start">
-          <span class="text-[var(--secondary-solid)] text-base flex-shrink-0">⚠️</span>
-          <p class="text-white/70 text-sm leading-relaxed">
-            Este valor vale para quem declara pelo <strong class="text-white">modelo completo</strong>.
-            O <strong class="text-white">desconto simplificado substitui todas as deduções</strong> —
-            quem destina e depois declara na simplificada não abate nada.
-            <a href="guia-ir-servidor.html" class="text-[var(--secondary-solid)] underline">Entenda qual modelo é melhor para você</a>
-            antes de destinar.
+        <!--
+          Este aviso era um parágrafo cinza embaixo do número: informação
+          verdadeira num lugar onde ninguém para. Quem já viu o valor vai
+          direto ao botão. Então a condição virou PERGUNTA, e o botão de
+          destinar só aparece depois de respondida.
+
+          A plataforma atende pessoa física no modelo completo, e só. Não
+          calculamos o simplificado — seria inventar comparação que não é
+          nossa. O que fazemos é não deixar alguém destinar achando que abate,
+          quando não abate. O registro da declaração fica no assistente, na
+          declaração que a pessoa assina antes de confirmar.
+        -->
+        <div id="portaoCompleta" class="mt-5 pt-5 border-t border-white/10">
+          <p class="text-white font-bold text-sm mb-1">Antes de seguir: você declara pelo modelo completo?</p>
+          <p class="text-white/55 text-sm leading-relaxed mb-4">
+            O valor acima só volta para você no <strong class="text-white">modelo completo</strong>.
+            No desconto simplificado não há onde lançar a destinação — você doaria de fato, sem abater nada.
           </p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button type="button" id="btnSouCompleta"
+              class="flex-1 btn-acento text-[#0F1E3D] font-bold py-3 rounded-xl transition-all hover:scale-[1.01]">
+              Sim, declaro no completo
+            </button>
+            <button type="button" id="btnNaoSei"
+              class="flex-1 border border-white/25 text-white/80 font-semibold py-3 rounded-xl hover:bg-white/10 transition-colors">
+              Simplificado, ou não sei
+            </button>
+          </div>
+        </div>
+
+        <!-- A resposta "não sei" não é um beco: é o momento de falar com quem
+             faz a declaração, e o caminho de volta fica aberto. -->
+        <div id="avisoSimplificada" class="hidden mt-5 pt-5 border-t border-white/10">
+          <div class="flex gap-3 items-start mb-4">
+            <span class="text-base flex-shrink-0">🛑</span>
+            <p class="text-white/80 text-sm leading-relaxed">
+              <strong class="text-white">Então esta destinação não volta para você.</strong>
+              O desconto simplificado substitui todas as deduções: o valor sairia da sua conta
+              e não abateria nada do imposto. Confirme o modelo com quem faz a sua declaração
+              antes de destinar —
+              <a href="guia-ir-servidor.html" class="text-[var(--secondary-solid)] underline">o guia explica em dois minutos</a>.
+            </p>
+          </div>
+          <button type="button" id="btnConfirmeiCompleta"
+            class="text-[var(--secondary-solid)] text-sm font-semibold underline">
+            Confirmei: declaro no completo
+          </button>
         </div>
       </div>
 
@@ -435,10 +483,32 @@
 
       const limRouanet = result.limites_doacao?.rouanet || result.limites_doacao?.total_maximo || 0;
 
+      // O 13º que a pessoa digitou e não entrou na conta.
+      //
+      // Ele é tributado exclusivamente na fonte e não compõe a base do ajuste
+      // anual — então não muda o limite. Mas quem digitou R$ 10.000 e vê
+      // "Rendimentos Totais" sem eles conclui que o campo não funcionou, e
+      // digita de novo em outro lugar. A resposta diz o motivo; a tela mostra.
+      const t13 = result.decimo_terceiro;
+      const nota13 = document.getElementById('nota13');
+      if (nota13) {
+        const temValor = t13 && (t13.rendimento > 0 || t13.inss > 0);
+        nota13.classList.toggle('hidden', !temValor);
+        if (temValor) {
+          document.getElementById('nota13Valor').textContent = utils.formatCurrency(t13.rendimento);
+          document.getElementById('nota13Motivo').textContent = t13.motivo || '';
+        }
+      }
+
       if (result.ir_devido > 0 && limRouanet > 0) {
         document.getElementById('alertIsento').classList.add('hidden');
         document.getElementById('limitesCard').classList.remove('hidden');
-        document.getElementById('actionsCompleta').classList.remove('hidden');
+        // O botão de destinar só aparece depois da pergunta sobre o modelo de
+        // declaração. O portão volta ao estado inicial a cada cálculo: quem
+        // recalcula com outros números responde de novo, de propósito.
+        document.getElementById('actionsCompleta').classList.add('hidden');
+        document.getElementById('portaoCompleta').classList.remove('hidden');
+        document.getElementById('avisoSimplificada').classList.add('hidden');
         document.getElementById('limRouanet').textContent = utils.formatCurrency(limRouanet);
         document.getElementById('limTotal').textContent   = utils.formatCurrency(limRouanet);
       } else {
@@ -459,6 +529,34 @@
       document.getElementById('linkCriarConta').href =
         'login.html?tab=register&redirect=' + encodeURIComponent('destinar-rouanet.html' + window.location.search);
     }
+
+    // ── O portão do modelo de declaração ──
+    //
+    // A plataforma atende pessoa física no modelo completo. Quem declara no
+    // simplificado não tem onde lançar a destinação: o valor sai da conta e não
+    // abate nada. Avisar não é impedir — mas avisar num parágrafo cinza embaixo
+    // do número, que é o que havia, é o mesmo que não avisar.
+    (function () {
+      const portao  = document.getElementById('portaoCompleta');
+      const aviso   = document.getElementById('avisoSimplificada');
+      const acoes   = document.getElementById('actionsCompleta');
+      if (!portao) return;
+
+      const liberaDestinacao = () => {
+        portao.classList.add('hidden');
+        aviso.classList.add('hidden');
+        acoes.classList.remove('hidden');
+        acoes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      document.getElementById('btnSouCompleta').addEventListener('click', liberaDestinacao);
+      document.getElementById('btnConfirmeiCompleta').addEventListener('click', liberaDestinacao);
+      document.getElementById('btnNaoSei').addEventListener('click', () => {
+        portao.classList.add('hidden');
+        acoes.classList.add('hidden');
+        aviso.classList.remove('hidden');
+      });
+    })();
 
     // Tabs
     function switchTab(tab) {

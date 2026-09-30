@@ -92,7 +92,24 @@ router.post('/ir', async (req, res) => {
       });
     }
 
-    const rendimentosTotal = rendimentos_tributaveis + rendimento_13;
+    // O 13º NÃO entra na base do ajuste anual.
+    //
+    // Ele é tributado exclusivamente na fonte: vai na ficha "Rendimentos
+    // Sujeitos à Tributação Exclusiva/Definitiva", não compõe a base de
+    // cálculo da Declaração de Ajuste Anual e não gera novo ajuste. O INSS
+    // retido dele é deduzido do próprio 13º, não do rendimento anual.
+    //
+    // Até setembro de 2026 esta rota somava os dois na base anual. O efeito
+    // não era de arredondamento: a base inflava, o IR devido inflava, e o TETO
+    // DE DESTINAÇÃO inflava junto — que é errar para MAIS, o lado da malha
+    // fina. Com R$ 120.000 de rendimentos, R$ 10.000 de 13º, R$ 13.200 de INSS
+    // e R$ 1.100 de INSS do 13º, o teto saía R$ 1.257,82 onde a lei dá
+    // R$ 1.110,97: R$ 146,85 de folga que não existe, 13% a mais.
+    //
+    // Os dois campos continuam sendo aceitos, e o que a pessoa digitou volta
+    // na resposta dizendo por que ficou de fora. Fazer o número desaparecer da
+    // tela sem explicação é o caminho para ela digitar de novo em outro campo.
+    const rendimentosTotal = rendimentos_tributaveis;
 
     // Declaração completa: deduções legais
     const deducaoDependentes = dependentes * DEDUCAO_DEPENDENTE;
@@ -103,7 +120,6 @@ router.post('/ir', async (req, res) => {
       deducao_saude +
       deducaoEducacaoLimitada +
       inss +
-      inss_13 +
       previdencia_privada;
 
     const baseCalculo = Math.max(0, rendimentosTotal - totalDeducoes);
@@ -113,9 +129,22 @@ router.post('/ir', async (req, res) => {
       saude: Math.round(deducao_saude * 100) / 100,
       educacao: Math.round(deducaoEducacaoLimitada * 100) / 100,
       inss: Math.round(inss * 100) / 100,
-      inss_13: Math.round(inss_13 * 100) / 100,
       previdencia_privada: Math.round(previdencia_privada * 100) / 100,
       total: Math.round(totalDeducoes * 100) / 100
+    };
+
+    // O que a pessoa digitou de 13º, e por que não está na conta acima.
+    //
+    // A plataforma NÃO calcula o imposto do 13º: seria outra tabela (a mensal,
+    // aplicada em separado) e um número que não muda o teto de destinação,
+    // que é a única coisa que esta rota existe para responder. Afirmar cálculo
+    // que não é nosso é o que a gente não faz.
+    const decimoTerceiro = {
+      rendimento: Math.round(rendimento_13 * 100) / 100,
+      inss: Math.round(inss_13 * 100) / 100,
+      entra_no_ajuste: false,
+      motivo: 'Tributação exclusiva na fonte: o 13º não compõe a base de cálculo '
+            + 'da Declaração de Ajuste Anual, e por isso não altera o limite de destinação.'
     };
 
     // Calcular IR devido
@@ -143,6 +172,7 @@ router.post('/ir', async (req, res) => {
       pode_destinar: true,
       rendimentos_total: Math.round(rendimentosTotal * 100) / 100,
       deducoes: deducoesDetalhadas,
+      decimo_terceiro: decimoTerceiro,
       base_calculo: Math.round(baseCalculo * 100) / 100,
       ir_devido,
       aliquota_nominal: aliquota * 100,
