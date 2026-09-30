@@ -98,6 +98,21 @@
           <p id="msg-rouanet" class="text-xs mt-1.5 hidden"></p>
         </div>
 
+        <!-- As outras leis, atras de uma porta fechada.
+             A plataforma opera a Rouanet: das sete leis do catalogo, so ela tem
+             `disponivel_para_cliente = TRUE`. Mas o calculo cruzado destes
+             campos NAO foi apagado, de proposito — ele e o conserto da
+             migration 045, que achou um erro real: as duas destinacoes de
+             PRONON e PRONAS eram somadas contra um so 1%, e a ferramenta
+             acusava excesso onde a lei permite o dobro. Quem tem destinacao em
+             outra lei abre aqui e a checagem continua inteira. Quem nao tem ve
+             uma tela sobre os 6%, que e o que este site faz. -->
+        <details style="margin-top:4px">
+          <summary style="cursor:pointer;list-style:none;padding:14px 16px;border:1px solid rgba(255,255,255,0.10);border-radius:14px;background:rgba(255,255,255,0.03);font-size:13px;color:rgba(255,255,255,0.65)">
+            Tenho destina&ccedil;&otilde;es em outras leis de incentivo
+            <span style="display:block;font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px">Esporte, FDCA, Fundo do Idoso, Reciclagem, PRONON e PRONAS/PCD. Esta plataforma n&atilde;o registra destina&ccedil;&atilde;o por elas &mdash; a confer&ecirc;ncia aqui existe porque o teto &eacute; compartilhado, e estourar por soma cai na malha fina igual.</span>
+          </summary>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
         <!-- Esporte -->
         <div class="card" id="card-esporte">
           <div class="flex items-center justify-between mb-2">
@@ -188,6 +203,8 @@
           </div>
           <p id="msg-pronon-total" class="text-xs mt-2 hidden"></p>
         </div>
+          </div>
+        </details>
 
       </div>
     </div>
@@ -325,6 +342,19 @@
 
   function validar() {
     const ir = parseVal('ir-devido');
+
+    // Valor digitado nas outras leis mantém a porta aberta.
+    //
+    // Sem isto, quem preenchesse o Esporte e fechasse o bloco veria um laudo
+    // acusando estouro do teto com o número que o causou escondido — e o teto é
+    // compartilhado, então a causa está justamente ali. A porta nasce fechada
+    // porque este site opera a Rouanet; ela não se fecha sobre um valor.
+    const outras = document.querySelector('details');
+    if (outras && !outras.open) {
+      const temOutro = ['v-esporte', 'v-fia', 'v-fdi', 'v-reciclagem', 'v-pronon', 'v-pronas']
+        .some(id => parseVal(id) > 0);
+      if (temOutro) outras.open = true;
+    }
 
     // TETO GLOBAL — a verificação que faltava.
     //

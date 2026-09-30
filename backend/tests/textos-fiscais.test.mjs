@@ -126,10 +126,17 @@ const paginas = fs.readdirSync(FRONTEND).filter(f => f.endsWith('.html'));
 await teste('nenhuma pagina traz "6%" fora de um [data-fiscal] (fora de <script> e <meta>)', () => {
   const soltos = [];
   for (const p of paginas) {
-    let dentro = false;
+    let dentro = false, comentario = false;
     fs.readFileSync(path.join(FRONTEND, p), 'utf8').split('\n').forEach((l, i) => {
       if (/<script\b/.test(l)) dentro = true;
       if (dentro) { if (l.includes('</script>')) dentro = false; return; }
+      // Comentário não chega a ninguém, e o que explica POR QUE o percentual
+      // não se escreve à mão costuma citá-lo. Esta guarda acusava justamente o
+      // texto que existe para sustentá-la: o comentário do bloco das outras
+      // leis no validador dizia "uma tela sobre os 6%".
+      if (comentario) { if (l.includes('-->')) comentario = false; return; }
+      if (/<!--/.test(l) && !l.includes('-->')) { comentario = true; return; }
+      if (/<!--[\s\S]*?-->/.test(l)) l = l.replace(/<!--[\s\S]*?-->/g, '');
       if (l.includes('<meta')) return;
       const resto = l.replace(/data-fiscal="teto_pct">6%<\/span>/g, '');
       if (/(?<![\d.,])6%/.test(resto)) soltos.push(`${p}:${i + 1}`);
