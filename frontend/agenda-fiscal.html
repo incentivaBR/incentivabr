@@ -191,22 +191,22 @@
     {
       data: new Date(ANO, MES, HOJE.getDate()),
       titulo: `Agora — Janela de destinação ${anoCalendario} aberta`,
-      detalhe: `Você pode destinar para FDCA, FDI, Rouanet, Esporte e Saúde. O valor abate do IR Devido na DIRPF ${anoDIRPF}.`,
+      detalhe: `Aqui você destina pela Lei Rouanet, e o valor abate do IR Devido na DIRPF ${anoDIRPF}. As outras leis de incentivo dividem o mesmo teto e estão listadas abaixo como referência.`,
       tipo: 'open',
       passado: false,
       atual: true,
     },
     {
       data: new Date(ANO, 8, 30), // set do ano atual
-      titulo: `Setembro ${anoCalendario} — Prazo ideal para FDCA e FDI`,
-      detalhe: 'Confirme CNPJ e conta bancária do fundo. Faça a transferência e guarde o recibo.',
+      titulo: `Setembro ${anoCalendario} — Antes da virada do trimestre`,
+      detalhe: 'Deixar para dezembro é o que faz perder o ano: confira agora se o projeto tem prazo de captação aberto.',
       tipo: 'open',
       passado: MES > 8,
       atual: false,
     },
     {
       data: new Date(ANO, 10, 30), // nov do ano atual
-      titulo: `Novembro ${anoCalendario} — Prazo ideal para Rouanet e Esporte`,
+      titulo: `Novembro ${anoCalendario} — Prazo ideal para destinar`,
       detalhe: 'Verifique se o projeto tem PRONAC ativo e prazo de captação aberto. Faça a transferência.',
       tipo: 'open',
       passado: MES > 10,
@@ -266,6 +266,7 @@
       onde: `Deduções → Incentivos Fiscais → PRONAC/Cultura`,
       status: 'open',
       statusLabel: `Aberto — destinação ${anoCalendario}`,
+      naPlataforma: true,
       alerta: 'Verifique se o projeto escolhido ainda tem prazo de captação ativo antes de transferir.',
     },
     {
@@ -356,6 +357,9 @@
         </div>
         <span class="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0 ${tagClass}">${m.statusLabel}</span>
       </div>
+      ${m.naPlataforma
+        ? '<div class="text-xs font-semibold mb-3" style="color:#EE985C">✓ Esta plataforma registra a destinação por esta lei</div>'
+        : '<div class="text-xs text-white/35 mb-3">Refer&ecirc;ncia: esta plataforma n&atilde;o registra destina&ccedil;&atilde;o por esta lei. A destina&ccedil;&atilde;o &eacute; feita fora dela.</div>'}
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/60">
         <div>
           <div class="font-semibold text-white/80 mb-0.5">📅 Quando destinar</div>
