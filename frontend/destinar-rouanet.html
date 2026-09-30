@@ -429,7 +429,7 @@
   <!-- Em produção a faixa não some: o que muda é o que ela avisa. Some seria
        pior — o destinador perderia a única linha que diz onde o dinheiro cai. -->
   <div id="prodStrip" data-modo="producao" hidden style="display:none;background:#EFF6FF;border-bottom:1px solid #BFDBFE;padding:8px 20px;text-align:center;font-size:12px;color:#1E3A8A;font-family:'Montserrat',sans-serif;line-height:1.5">
-    <strong style="color:#1E40AF">Esta é uma destinação real.</strong> A transferência é feita por você, direto para a Conta de Captação do projeto — o IncentivaBR não recebe nem movimenta o valor.
+    <strong style="color:#1E40AF">Esta é uma destinação real.</strong> A transferência é feita por você, direto para a Conta de Captação do projeto — a plataforma não recebe nem movimenta o valor.
   </div>
 
   <!-- ── Progress steps (oculto até confirmar o projeto) ──────── -->
@@ -808,7 +808,7 @@
                 Declaro que sou contribuinte de Imposto de Renda (Pessoa Física) e que as informações prestadas são verdadeiras para fins desta demonstração. Autorizo o registro desta simulação para que a plataforma calcule meu limite e gere o comprovante, conforme a <a href="politica-privacidade.html" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.
               </span>
               <span data-modo="producao" hidden>
-                Declaro que sou contribuinte de Imposto de Renda Pessoa Física, que entrego a declaração pelo <strong>modelo completo</strong> e que as informações prestadas são verdadeiras. Autorizo o IncentivaBR a enviar meu nome, CPF, e-mail e o valor desta destinação a <span data-termo="recibo_emissor">o proponente do projeto</span>, para que seja emitido em meu nome o <strong><span data-termo="recibo">Recibo de Mecenato</span></strong> — documento que só quem emite pode emitir, e que é o que vale na declaração. Tudo conforme a <a href="politica-privacidade.html" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.
+                Declaro que sou contribuinte de Imposto de Renda Pessoa Física, que entrego a declaração pelo <strong>modelo completo</strong> e que as informações prestadas são verdadeiras. Autorizo a plataforma a enviar meu nome, CPF, e-mail e o valor desta destinação a <span data-termo="recibo_emissor">o proponente do projeto</span>, para que seja emitido em meu nome o <strong><span data-termo="recibo">Recibo de Mecenato</span></strong> — documento que só quem emite pode emitir, e que é o que vale na declaração. Tudo conforme a <a href="politica-privacidade.html" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.
               </span>
               <span id="modoIndefinido" style="color:#B45309">
                 Carregando as condições desta destinação…
@@ -915,7 +915,7 @@
           <div style="display:flex;align-items:center;gap:10px;background:#F8FAFF;border:1px solid #E0E7FF;border-radius:12px;padding:12px 16px;margin-bottom:16px">
             <span style="font-size:20px;flex-shrink:0">🎓</span>
             <p style="margin:0;font-size:12px;color:#4338CA;line-height:1.5">
-              Ferramenta da <strong>IncentivaBR</strong> para apoiar contribuintes na compreensão dos mecanismos de incentivo fiscal.
+              Ferramenta de apoio ao contribuinte na compreensão dos mecanismos de incentivo fiscal.
             </p>
           </div>
 
@@ -1081,8 +1081,13 @@
               <i class="fas fa-columns"></i> Ir para meu painel
             </a>
 
-            <!-- Sobre o IncentivaBR -->
-            <div style="background:#F8FAFF;border:1px solid #E0E7FF;border-radius:12px;padding:14px 16px;margin:4px 0 20px;text-align:left">
+            <!-- Sobre o IncentivaBR (só na IncentivaBR)
+                 Texto institucional da plataforma na tela de conclusão. No
+                 site de um cliente, é a plataforma se apresentando ao público
+                 dele no momento em que ele acabou de destinar para o projeto
+                 do cliente. O aviso de registro no INPI, que é fato sobre o
+                 programa, continua no rodapé legal de toda página. -->
+            <div data-so-plataforma style="background:#F8FAFF;border:1px solid #E0E7FF;border-radius:12px;padding:14px 16px;margin:4px 0 20px;text-align:left">
               <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#4338CA">Sobre o IncentivaBR</p>
               <p style="margin:0;font-size:11px;color:#4B5563;line-height:1.7">O IncentivaBR é uma solução desenvolvida para apoiar servidores e empregados públicos a compreender e utilizar, com segurança, o direito de destinar parte do Imposto de Renda a projetos incentivados. Este sistema utiliza metodologia própria, com tecnologia registrada no INPI sob o nº BR512025000647‑0 e conteúdo protegido por direitos autorais. É vedada a reprodução, total ou parcial, sem autorização expressa.</p>
             </div>
@@ -1967,7 +1972,7 @@
 <script src="js/tina.js"></script>
 
 <!-- Rodapé legal fixo -->
-<div style="position:fixed;bottom:0;left:0;right:0;background:rgba(13,27,62,0.96);padding:6px 16px;text-align:center;font-size:10px;color:rgba(255,255,255,0.3);z-index:9990;letter-spacing:0.3px;backdrop-filter:blur(4px)">
+<div data-aviso-legal style="position:fixed;bottom:0;left:0;right:0;background:rgba(13,27,62,0.96);padding:6px 16px;text-align:center;font-size:10px;color:rgba(255,255,255,0.3);z-index:9990;letter-spacing:0.3px;backdrop-filter:blur(4px)">
   © 2026 IncentivaBR · Sistema e marca protegidos por direitos autorais e registro no INPI nº BR512025000647‑0 · Reprodução não autorizada sujeita às sanções legais.
 </div>
 

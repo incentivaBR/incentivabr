@@ -82,7 +82,7 @@
       <span class="tag bg-blue-500/20 text-blue-300 mb-3 block">Legislação</span>
       <h2 class="text-2xl font-black mb-2">Base Legal Completa</h2>
       <p class="text-white/60 mb-3 text-sm">Clique em cada modalidade para ver o artigo, o limite e o link para o texto oficial.</p>
-      <p class="text-white/40 text-xs mb-6 border border-white/10 rounded-xl px-4 py-3">A IncentivaBR registra destinação apenas pela <strong class="text-white/70">Lei Rouanet</strong>. As demais modalidades estão aqui para você orientar o cliente com o quadro completo; a destinação por elas é feita fora da plataforma.</p>
+      <p class="text-white/40 text-xs mb-6 border border-white/10 rounded-xl px-4 py-3">Este site registra destinação apenas pela <strong class="text-white/70" data-mecanismo="nome">Lei Rouanet</strong>. As demais modalidades estão aqui para você orientar o cliente com o quadro completo; a destinação por elas é feita fora da plataforma.</p>
 
       <!-- Bloco: como funciona para TODAS as modalidades -->
       <div class="mb-8 bg-blue-950/60 border border-blue-400/25 rounded-2xl p-5">
@@ -482,7 +482,7 @@
           <div id="content-faq5" class="accordion-content px-5 pb-5">
             <div class="border-t border-white/10 pt-4 text-sm text-white/70 space-y-2">
               <p>A destinação precisa ocorrer <strong class="text-white">antes do encerramento do prazo da DIRPF</strong> (geralmente 31 de maio). Após o prazo, não é possível incluir na declaração já entregue sem retificação.</p>
-              <p>Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve — ser feita ao longo do ano-calendário, antes do prazo da declaração. A plataforma IncentivaBR é projetada exatamente para isso.</p>
+              <p>Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve — ser feita ao longo do ano-calendário, antes do prazo da declaração. Esta plataforma é feita exatamente para isso.</p>
               <p class="text-white/50">Posicionamento correto agora (pós-maio/2026): <em>"A destinação de 2027 começa agora. Você tem o ano inteiro para planejar."</em></p>
             </div>
           </div>
@@ -511,7 +511,7 @@
           <div id="content-faq7" class="accordion-content px-5 pb-5">
             <div class="border-t border-white/10 pt-4 text-sm text-white/70 space-y-2">
               <p>Consulte o SALIC (Sistema de Apoio às Leis de Incentivo à Cultura) do Ministério da Cultura. Projetos aprovados aparecem com status "Em execução" e dentro do prazo de captação.</p>
-              <p>A IncentivaBR lista apenas projetos com PRONAC ativo e verificado — isso elimina o risco de o cliente fazer uma destinação para um projeto vencido ou irregular.</p>
+              <p>A plataforma lista apenas projetos com PRONAC ativo e verificado — isso elimina o risco de o cliente fazer uma destinação para um projeto vencido ou irregular.</p>
             </div>
           </div>
         </div>
@@ -567,8 +567,8 @@
 
         <div class="bg-white/5 border border-white/10 rounded-2xl p-5 card-hover">
           <div class="text-2xl mb-3">🚀</div>
-          <div class="font-bold mb-1">Plataforma IncentivaBR</div>
-          <div class="text-white/50 text-xs mb-4">Envie o link da plataforma para o cliente fazer a destinação de forma guiada e segura.</div>
+          <div class="font-bold mb-1">Link para o cliente destinar</div>
+          <div class="text-white/50 text-xs mb-4">Envie o link deste site para o cliente fazer a destinação de forma guiada e segura.</div>
           <a href="piloto.html" class="inline-flex items-center gap-1.5 bg-gold/15 text-gold text-xs font-bold px-4 py-2 rounded-lg hover:bg-gold/25 transition">
             Ver plataforma →
           </a>
@@ -583,7 +583,7 @@ Olá! Na revisão da sua declaração, identifiquei que você pode destinar part
 O valor destinado abate diretamente do seu Imposto de Renda. Você paga menos ou recebe mais de restituição. É um direito legal previsto em lei.
 
 Para calcular exatamente quanto você pode destinar e escolher um projeto, acesse:
-👉 IncentivaBR.com.br
+👉 <span id="msg-wa-site">este site</span>
 
 Qualquer dúvida, é só me chamar!
       </div>
@@ -591,8 +591,12 @@ Qualquer dúvida, é só me chamar!
     </div>
   </section>
 
-  <!-- ── SELO EMBAIXADOR ── -->
-  <section id="selo" class="py-16 px-4 border-t border-white/8">
+  <!-- ── SELO EMBAIXADOR (só na IncentivaBR) ──
+       Este bloco recruta contadores para um programa da IncentivaBR, com o
+       e-mail dela no botão. No site de um cliente ele abria para o público
+       DELE — a plataforma fazendo prospecção na página de quem a contratou,
+       que é o mesmo vazamento do cartão de white-label na home. -->
+  <section data-so-plataforma id="selo" class="py-16 px-4 border-t border-white/8">
     <div class="max-w-3xl mx-auto">
       <div class="bg-gradient-to-br from-gold/10 to-orange-500/5 border border-gold/20 rounded-3xl p-8 text-center">
         <div class="text-5xl mb-4">🏆</div>
@@ -732,6 +736,17 @@ Qualquer dúvida, é só me chamar!
         ${proprias.map(m => linha(m, irDevido * m.pct)).join('')}
       `;
     }
+
+    // O endereço que vai na mensagem é o deste site, não um escrito à mão.
+    //
+    // Estava "IncentivaBR.com.br" fixo: no site de um cliente, o contador
+    // copiava a mensagem e mandava o cliente dele para a nossa página, onde
+    // o projeto do cliente não está. O endereço certo é sempre o da página
+    // que o contador está lendo.
+    (function () {
+      const alvo = document.getElementById('msg-wa-site');
+      if (alvo && location.host) alvo.textContent = location.host.replace(/^www\./, '');
+    })();
 
     // ── Copiar mensagem WhatsApp ──
     function copiarMensagem() {

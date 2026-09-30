@@ -4,7 +4,7 @@
 F03 · Biblioteca Jurídica
 ## A lei está do seu lado.
 O laudo também.
-Base normativa da Lei Rouanet, que a IncentivaBR opera, e das outras seis leis de incentivo ao IR, para consulta — leis, instruções normativas, fichas DIRPF e requisitos de comprovante. Para orientar clientes com segurança.
+Base normativa da lei que este site opera e das outras seis leis de incentivo ao IR, para consulta — leis, instruções normativas, fichas DIRPF e requisitos de comprovante. Para orientar clientes com segurança.
 Ver fichas por modalidade →
 Espaço do Contador
 mecanismos com base legal consolidada
@@ -15,7 +15,7 @@ dos contribuintes do DF desconhecem (CRC-DF 2021)
 BASE NORMATIVA POR MODALIDADE
 ### Fichas legais: Rouanet e as demais leis
 Selecione a modalidade para ver lei, IN RFB, ficha DIRPF e requisitos do comprovante.
-A IncentivaBR registra destinação apenas pela Lei Rouanet. As outras fichas são material de consulta para o contador; não há caminho de destinação para elas na plataforma.
+Este site registra destinação apenas pela Lei Rouanet. As outras fichas são material de consulta para o contador; não há caminho de destinação para elas na plataforma.
 🎭 Rouanet
 ⚽ Esporte
 👧 FDCA
@@ -211,7 +211,7 @@ Para cada destinação, guardar por mínimo 5 anos:
 - FDCA/FDI: CNPJ do fundo e número do recibo
 - PRONON/PRONAS: número CNES da entidade habilitada
 - Reciclagem: CNPJ da cooperativa com habilitação MAPA ativa
-O Recibo de Mecenato gerado pela plataforma IncentivaBR já contém automaticamente todos os dados exigidos por modalidade.
+O Recibo de Mecenato é emitido pelo proponente do projeto, não pela plataforma. A plataforma guarda o documento no painel do destinador e avisa quando ele chega.
 Posso orientar o mesmo cliente em mais de uma modalidade?
 Sim, pode destinar a mais de uma modalidade no mesmo ano — mas os percentuais não se somam. O art. 22 da Lei 9.532/1997 limita a soma das deduções dos incisos I a III do art. 12 da Lei 9.250/1995 — fundos da criança e do idoso, projetos culturais do PRONAC e audiovisual — a 6% do imposto devido, sem limite específico para nenhuma delas. Para pessoa física, o incentivo ao esporte também concorre com esse teto, e a LC 222/2025 eleva o conjunto a 7% quando ele entra.
 Na prática: um cliente com R$ 10.000 de IR devido tem R$ 600 no total, a distribuir entre Rouanet, FDCA e Fundo do Idoso como preferir — e não R$ 600 em cada. Fora desse teto ficam o PRONON e o PRONAS/PCD, que têm 1% cada, independentes entre si.
@@ -369,7 +369,7 @@ Documento
 Onde obter
 Prazo
 Recibo de Mecenato
-(emitido pela IncentivaBR)
+(emitido pelo proponente do projeto)
 Dashboard do site · E-mail de confirmação
 5 anos
 Comprovante de transferência
@@ -463,7 +463,7 @@ Guarde o comprovante de transferência bancária — ele é exigido pela Receita
 De cada 100 contribuintes elegíveis, 99 nunca destinaram um centavo. Não é falta de vontade — é barreira com solução.
 "Parece muito complicado"
 Tem solução
-É menos complicado do que parece. São 4 passos: calcular → escolher projeto → fazer TED → declarar. O IncentivaBR guia cada etapa.
+É menos complicado do que parece. São 4 passos: calcular → escolher projeto → fazer TED → declarar. A plataforma guia cada etapa.
 "Desconfio que o dinheiro não chega"
 Tem solução
 Os projetos são aprovados pelo Ministério da Cultura e listados no SALIC (sistema oficial do governo federal). A Conta de Captação de cada projeto é aberta pelo MinC no Banco do Brasil e fica bloqueada até a liberação. Você pode verificar qualquer dado no site oficial antes de transferir.
@@ -472,7 +472,7 @@ Tem solução
 Não é dinheiro novo — é o imposto que você já pagaria ao governo, só redirecionado. Seu bolso fica exatamente igual. E mesmo R$ 300 pagam 10 aulas de música para jovens em situação de vulnerabilidade.
 "Tenho medo de cair na malha fina"
 Tem solução
-O risco está em errar o limite ou perder o comprovante. A dedução é a prevista em lei se você respeitar o limite de 6%, informar o valor correto na ficha " Doações Efetuadas " e guardar o comprovante por 5 anos. O IncentivaBR recusa qualquer valor acima do limite antes de registrar a destinação.
+O risco está em errar o limite ou perder o comprovante. A dedução é a prevista em lei se você respeitar o limite de 6%, informar o valor correto na ficha " Doações Efetuadas " e guardar o comprovante por 5 anos. A plataforma recusa qualquer valor acima do limite antes de registrar a destinação.
 "Deixo para o ano que vem"
 Tem solução
 O prazo é 31 de dezembro do ano-base. Quem deixa para depois perde o benefício daquele ano. 5 anos de procrastinação = mais de R$ 5.000 que poderiam ter ido para a cultura.
@@ -655,7 +655,7 @@ Quais documentos preciso guardar e por quanto tempo?
 Guarde por mínimo 5 anos:
 - Comprovante de transferência bancária
 - Comunicado de Mecenato emitido pelo proponente
-- Registro da destinação na plataforma IncentivaBR
+- Registro da destinação nesta plataforma
 Dica: crie uma pasta "Destinações IR 2025" no Google Drive ou OneDrive com backup automático.
 ### Declaração do IR
 Até quando posso fazer a destinação?
@@ -717,7 +717,7 @@ Preciso assinar ou me responsabilizar pela destinação do cliente?
 Não. O contador orienta e lança na declaração. A relação jurídica da destinação é entre o cliente (doador) e o projeto ou fundo. Sua responsabilidade profissional é garantir que o lançamento esteja correto na DIRPF e que o comprovante recebido pelo cliente seja válido (PRONAC ativo, CNPJ correto, dados completos).
 E se o cliente já tiver pago o IR e quiser fazer a destinação depois?
 A destinação precisa ocorrer antes do encerramento do prazo da DIRPF (geralmente 31 de maio). Após o prazo, não é possível incluir na declaração já entregue sem retificação.
-Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve — ser feita ao longo do ano-calendário, antes do prazo da declaração. A plataforma IncentivaBR é projetada exatamente para isso.
+Para todas as modalidades: a destinação ao projeto ou fundo pode — e deve — ser feita ao longo do ano-calendário, antes do prazo da declaração. Esta plataforma é feita exatamente para isso.
 Posicionamento correto agora (pós-maio/2026): "A destinação de 2027 começa agora. Você tem o ano inteiro para planejar."
 Posso destinar para mais de uma modalidade no mesmo ano?
 Sim — com atenção aos limites individuais de cada modalidade.
@@ -726,4 +726,4 @@ FDCA (ECA art. 260, II) e FDI (Lei 12.213/2010) dividem o mesmo teto de 6%, junt
 O limite absoluto final: a soma de todas as destinações não pode exceder o IR Devido total do cliente.
 Como verificar se um projeto Rouanet tem PRONAC ativo?
 Consulte o SALIC (Sistema de Apoio às Leis de Incentivo à Cultura) do Ministério da Cultura. Projetos aprovados aparecem com status "Em execução" e dentro do prazo de captação.
-A IncentivaBR lista apenas projetos com PRONAC ativo e verificado — isso elimina o risco de o cliente fazer uma destinação para um projeto vencido ou irregular.
+A plataforma lista apenas projetos com PRONAC ativo e verificado — isso elimina o risco de o cliente fazer uma destinação para um projeto vencido ou irregular.
