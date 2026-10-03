@@ -325,6 +325,50 @@ await teste('a captação do projeto aparece na home, com a data do retrato', as
   }
 });
 
+await teste('o relógio do prazo chega ao topo da home, com a urgência', async pg => {
+  // O site explicava o benefício e não dizia quando ele acaba. O que se mede
+  // aqui é o que nenhum teste de unidade alcança: que o número de dias, a
+  // frase e a CONSEQUÊNCIA chegam ao DOM, e que o nível de urgência vira
+  // atributo — é dele que o CSS tira a cor, e um atributo vazio deixaria o
+  // bloco cinza no último dia do ano.
+  await ir(pg, 'index.html');
+
+  await ate(pg, () => {
+    const b = document.querySelector('[data-prazo-bloco]');
+    return b && !b.hidden;
+  }, 'o relógio do prazo não apareceu');
+
+  const estado = await pg.evaluate(() => {
+    const b = document.querySelector('[data-prazo-bloco]');
+    return {
+      dias:         document.querySelector('[data-prazo="dias"]')?.textContent?.trim() || '',
+      frase:        document.querySelector('[data-prazo="frase"]')?.textContent || '',
+      consequencia: document.querySelector('[data-prazo="consequencia"]')?.textContent || '',
+      urgencia:     b?.dataset.urgencia || '',
+      origem:       b?.dataset.origem || '',
+      conviteVisivel: !document.querySelector('[data-prazo-convite]')?.hidden,
+      fechadoVisivel: !document.querySelector('[data-prazo-fechado]')?.hidden
+    };
+  });
+
+  if (!/^\d+$/.test(estado.dias)) throw new Error('os dias não chegaram: ' + estado.dias);
+  if (!/Falta/.test(estado.frase)) throw new Error('a frase não chegou: ' + estado.frase);
+
+  // A consequência é o que move quem lê: sem ela, o número é só um número.
+  if (!/declara em \d{4}/.test(estado.consequencia)) {
+    throw new Error('a consequência não nomeia o ano: ' + estado.consequencia);
+  }
+  if (!['baixo', 'medio', 'alto', 'critico', 'hoje', 'encerrado'].includes(estado.urgencia)) {
+    throw new Error('a urgência não virou atributo: ' + JSON.stringify(estado.urgencia));
+  }
+  if (!estado.origem) throw new Error('a origem do prazo não chegou ao DOM');
+
+  // O fixture tem janela aberta, então o convite fica e o aviso de encerrado
+  // não. Se os dois aparecessem juntos, a tela se contradiria.
+  if (!estado.conviteVisivel) throw new Error('o convite sumiu com a janela aberta');
+  if (estado.fechadoVisivel) throw new Error('o aviso de encerrado apareceu com a janela aberta');
+});
+
 await teste('a foto do projeto do cliente chega à tela', async pg => {
   // Nenhum teste de unidade prova isto: eles provam que a rota entrega a
   // imagem e que o JSON a carrega. Que ela CHEGA ao elemento é trabalho de
