@@ -40,6 +40,23 @@
     .orange-glow { box-shadow: 0 8px 32px rgba(238,152,92,0.35); }
     .orange-glow:hover { box-shadow: 0 12px 48px rgba(238,152,92,0.5); }
 
+    /* O RELÓGIO.
+       A urgência é um atributo que o tenant.js escreve a partir do backend
+       (lib/prazoDaDecisao.js); a aparência é decidida aqui. Assim o nível de
+       alarme da tela nunca discorda do número de dias, e nenhum estilo é
+       escolhido em JavaScript. */
+    .prazo-bloco { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+    .prazo-dias  { font-size: 2.25rem; color: #EE985C; font-variant-numeric: tabular-nums; }
+
+    .prazo-bloco[data-urgencia="medio"]   { background: rgba(238,152,92,0.08); border-color: rgba(238,152,92,0.30); }
+    .prazo-bloco[data-urgencia="alto"]    { background: rgba(238,152,92,0.13); border-color: rgba(238,152,92,0.50); }
+    .prazo-bloco[data-urgencia="critico"],
+    .prazo-bloco[data-urgencia="hoje"]    { background: rgba(224,122,53,0.18); border-color: rgba(238,152,92,0.75); }
+    .prazo-bloco[data-urgencia="critico"] .prazo-dias,
+    .prazo-bloco[data-urgencia="hoje"] .prazo-dias { font-size: 2.75rem; }
+    .prazo-bloco[data-urgencia="encerrado"] { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
+    .prazo-bloco[data-urgencia="encerrado"] .prazo-dias { display: none; }
+
     .hero-grid {
       background-image:
         linear-gradient(rgba(238,152,92,0.04) 1px, transparent 1px),
@@ -164,7 +181,37 @@
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-3 justify-center fade-up">
+      <!-- O RELÓGIO.
+           A home explicava o benefício e não dizia quando ele acaba. Quem
+           entende e concorda sai da página para decidir depois, e "depois" é
+           onde a destinação morre.
+           São dois prazos e o que vence primeiro manda (lib/prazoDaDecisao.js):
+           o fim do ano-calendário, que vale para qualquer pessoa, e a janela de
+           captação do projeto, quando houver. A cor vem de `data-urgencia`, que
+           o tenant.js escreve — nenhum estilo é decidido em JavaScript.
+           O bloco nasce `hidden`: sem resposta da API não há relógio, e um
+           contador zerado na tela seria pior que nenhum. -->
+      <div data-prazo-bloco hidden
+           class="mx-auto max-w-md mb-7 rounded-2xl px-5 py-4 fade-up prazo-bloco">
+        <div class="flex items-baseline justify-center gap-2.5">
+          <span class="font-black leading-none prazo-dias" data-prazo="dias">—</span>
+          <span class="text-white/70 text-sm font-semibold" data-prazo="frase"></span>
+        </div>
+        <p class="text-white/45 text-xs mt-2 leading-relaxed text-center" data-prazo="consequencia"></p>
+      </div>
+
+      <!-- Projeto com janela encerrada não recebe convite: continuar
+           oferecendo "destinar" para uma conta que não pode receber é o pior
+           resultado desta tela. -->
+      <div data-prazo-fechado hidden
+           class="mx-auto max-w-md mb-7 rounded-2xl px-5 py-4 text-center"
+           style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14)">
+        <p class="text-white/80 text-sm font-semibold mb-1">A captação deste projeto está encerrada.</p>
+        <p class="text-white/45 text-xs">Deixe seu e-mail e avisamos quando houver um projeto aberto.</p>
+        <a href="cadastro-avisos.html" class="inline-block mt-3 text-sm font-bold" style="color:#EE985C">Quero ser avisado &rarr;</a>
+      </div>
+
+      <div data-prazo-convite class="flex flex-col sm:flex-row gap-3 justify-center fade-up">
         <a href="calculadora-rapida.html"
            class="font-bold px-8 py-4 rounded-2xl text-base transition-all hover:scale-[1.02] text-white orange-glow"
            style="background:linear-gradient(135deg,#EE985C,#e07a35)">

@@ -14,6 +14,7 @@ import express from 'express';
 import pool from '../../config/database.js';
 import { fotoParaATela, fotoPublicavel } from '../lib/fotoDoProjeto.js';
 import { situacaoDaCaptacao, fraseDaCaptacao } from '../lib/captacao.js';
+import { prazoQueManda } from '../lib/prazoDaDecisao.js';
 import { entregaImagem } from '../lib/entregaArquivo.js';
 
 const router = express.Router();
@@ -335,9 +336,20 @@ const PROJETOS_DEMO = [
  *
  * Fica ANTES de '/org-project' porque o Express casa na ordem de registro.
  */
-/** A situação da captação já com a frase pronta, ou null. */
-function comFrase(c) {
-  return c ? { ...c, frase: fraseDaCaptacao(c) } : null;
+/**
+ * A captação com a frase pronta, e o prazo que manda sobre ela.
+ *
+ * `prazo` fica FORA de `captacao` de propósito: a captação pode ser null (sem
+ * valores cadastrados) e o prazo do ano-calendário nunca falta. Aninhá-lo
+ * dentro faria o relógio sumir justamente no cliente que ainda não preencheu
+ * os valores do projeto — que é quem mais precisa dele na tela.
+ */
+function captacaoEPrazo(projeto) {
+  const c = situacaoDaCaptacao(projeto);
+  return {
+    captacao: c ? { ...c, frase: fraseDaCaptacao(c) } : null,
+    prazo:    prazoQueManda(c)
+  };
 }
 
 router.get('/org-project/foto', async (req, res) => {
@@ -442,7 +454,7 @@ router.get('/org-project', async (req, res) => {
           descricao:  orgProject?.descricao || null,
           proponente: { nome: orgProject?.proponente_nome || null },
           foto:       fotoParaATela(orgProject),
-          captacao:   comFrase(situacaoDaCaptacao(orgProject)),
+          ...captacaoEPrazo(orgProject),
           situacao:   'Em execução',
           link_salic: `https://salic.cultura.gov.br/cidadao/projeto/detalharProjeto/${pronac}/versao/1`
         }
@@ -474,7 +486,7 @@ router.get('/org-project', async (req, res) => {
       return { ...r, projeto: {
         ...r.projeto,
         foto: fotoParaATela(orgProject),
-        captacao: comFrase(situacaoDaCaptacao(aoVivo))
+        ...captacaoEPrazo(aoVivo)
       } };
     };
 

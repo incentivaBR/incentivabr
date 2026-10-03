@@ -603,6 +603,51 @@ function aplicaFoto(foto) {
  *     separa "não entrou" de "não sabemos";
  *   - apresentar retrato velho como atual. `defasado` acende a data.
  */
+/**
+ * O relógio: quanto tempo a pessoa tem, e o que perde se deixar passar.
+ *
+ * A página marca `[data-prazo-bloco]` e, dentro, `[data-prazo="dias"]`,
+ * `"frase"` e `"consequencia"`. O nível de urgência vai para
+ * `data-urgencia` no bloco, para o CSS decidir a cor sem que o JavaScript
+ * escreva estilo.
+ *
+ * Projeto com janela encerrada esconde o convite: `[data-prazo-convite]` sai
+ * da tela e `[data-prazo-fechado]` entra. Continuar oferecendo "destinar" para
+ * um projeto que não pode receber é o pior resultado possível desta tela.
+ */
+function aplicaPrazo(p) {
+  const blocos = document.querySelectorAll('[data-prazo-bloco]');
+  if (!blocos.length) return;
+  if (!p) { blocos.forEach(b => { b.hidden = true; }); return; }
+
+  const escreve = (chave, texto) => {
+    document.querySelectorAll(`[data-prazo="${chave}"]`).forEach(el => {
+      el.textContent = texto;
+    });
+  };
+
+  // Dia negativo não vira "-3 dias" na tela: o prazo acabou, e quem lê precisa
+  // da palavra, não do número.
+  escreve('dias', p.dias != null && p.dias >= 0 ? String(p.dias) : '—');
+  escreve('frase', p.frase || '');
+  escreve('consequencia', p.consequencia || '');
+
+  blocos.forEach(b => {
+    b.hidden = false;
+    b.dataset.urgencia = p.urgencia || 'baixo';
+    b.dataset.origem = p.origem || '';
+  });
+
+  const mostra = (sel, sim) => document.querySelectorAll(sel).forEach(el => {
+    el.hidden = !sim;
+    el.style.display = sim ? '' : 'none';
+  });
+  mostra('[data-prazo-convite]', !p.projeto_encerrado);
+  mostra('[data-prazo-fechado]', !!p.projeto_encerrado);
+
+  window.__prazo = p;
+}
+
 function aplicaCaptacao(c) {
   const blocos = document.querySelectorAll('[data-captacao-bloco]');
   if (!blocos.length) return;
@@ -710,6 +755,7 @@ async function preencheProjeto() {
 
   aplicaFoto(projeto.foto);
   aplicaCaptacao(projeto.captacao);
+  aplicaPrazo(projeto.prazo);
 
   window.__projeto = projeto;
   window.dispatchEvent(new CustomEvent('projetoCarregado', { detail: projeto }));

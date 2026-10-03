@@ -253,13 +253,25 @@
   });
 
   // ── Cards de modalidades ──
+  //
+  // "Quando destinar" é 31 DE DEZEMBRO, não 31 de maio.
+  //
+  // Este campo dizia `até 31/mai/${anoDIRPF}` nas seis modalidades, e 31/mai é
+  // o prazo da DECLARAÇÃO — outra coisa. A dedução é do valor efetivamente
+  // pago dentro do ano-calendário: transferência feita em 2 de janeiro entra
+  // na declaração de dois anos depois, não na de abril. O FAQ e o
+  // `como-funciona.html` já diziam 31 de dezembro; só a agenda discordava, e
+  // discordava para o lado que faz perder o ano achando que há folga.
+  //
+  // Na dúvida fica o prazo menor, pela mesma razão do teto: errar para menos é
+  // recuperável no ano seguinte.
   const modalidades = [
     {
       emoji: '🎭',
       nome: 'Lei Rouanet — Art. 18',
       lei: 'Lei 8.313/1991',
       limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido',
-      janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
+      janela: `1º/jan a 31/dez/${anoCalendario}`,
       prazoCaptacao: 'Verificar projeto a projeto (PRONAC ativo no SALIC)',
       comoFazer: 'Transferência bancária (PIX/TED) direta para a conta do projeto aprovado',
       comprovante: 'Recibo emitido pelo proponente com PRONAC + CNPJ + valor + data',
@@ -274,7 +286,7 @@
       nome: 'Lei do Esporte',
       lei: 'Lei 11.438/2006',
       limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
-      janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
+      janela: `1º/jan a 31/dez/${anoCalendario}`,
       prazoCaptacao: 'Verificar projeto a projeto (aprovação Ministério do Esporte)',
       comoFazer: 'Transferência bancária para a conta do projeto esportivo aprovado',
       comprovante: 'Recibo com CNPJ do projeto, número de aprovação, valor e data',
@@ -288,7 +300,7 @@
       nome: 'FDCA — Fundo da Criança e do Adolescente',
       lei: 'Lei 8.069/1990 (ECA) Art. 260 II',
       limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
-      janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
+      janela: `1º/jan a 31/dez/${anoCalendario}`,
       prazoCaptacao: `Destinação ao fundo até 31/mai/${anoDIRPF}`,
       comoFazer: `Transferência ao FDCA-DF ou fundo municipal/estadual. Confirmar CNPJ e conta corrente junto ao CDCA-DF`,
       comprovante: 'Recibo do fundo com CNPJ, número, valor e data. Código <span data-fiscal="dirpf_eca">40</span> na DIRPF',
@@ -302,7 +314,7 @@
       nome: 'FDI — Fundo do Idoso',
       lei: 'Lei 12.213/2010',
       limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
-      janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
+      janela: `1º/jan a 31/dez/${anoCalendario}`,
       prazoCaptacao: `Destinação ao fundo até 31/mai/${anoDIRPF}`,
       comoFazer: 'Transferência ao Fundo Nacional, Estadual ou Municipal do Idoso',
       comprovante: 'Recibo do fundo com CNPJ, número, valor e data. Código <span data-fiscal="dirpf_idoso">44</span> na DIRPF',
@@ -316,7 +328,7 @@
       nome: 'Lei de Incentivo à Reciclagem — Recicla+',
       lei: 'Lei 14.260/2021',
       limite: '<span data-fiscal="teto_pct">6%</span> do IR Devido — teto compartilhado com as demais modalidades',
-      janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
+      janela: `1º/jan a 31/dez/${anoCalendario}`,
       prazoCaptacao: 'Verificar cooperativa habilitada no MAPA',
       comoFazer: 'Transferência a cooperativa de catadores habilitada',
       comprovante: 'Recibo da cooperativa com CNPJ, valor e data',
@@ -330,7 +342,7 @@
       nome: 'PRONON e PRONAS/PCD — Saúde',
       lei: 'Lei 12.715/2012',
       limite: '1% do IR Devido para cada programa (art. 4º, § 6º, I, "d") — pessoa física só até o ano-calendário de 2025',
-      janela: `Ano-calendário ${anoCalendario} — até 31/mai/${anoDIRPF}`,
+      janela: `1º/jan a 31/dez/${anoCalendario}`,
       prazoCaptacao: 'Verificar entidade habilitada pelo Ministério da Saúde',
       comoFazer: 'Destinação a entidade habilitada — PRONON (oncologia) ou PRONAS (deficiência)',
       comprovante: 'Recibo da entidade + comprovação de habilitação',

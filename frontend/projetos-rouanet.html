@@ -52,6 +52,19 @@
       --secondary-hover: #D4874E;
       --secondary-dark:  #E07A35;
     }
+  
+    /* O RELÓGIO. A urgência é atributo que o tenant.js escreve a partir do
+       backend; a aparência é decidida aqui, para o nível de alarme nunca
+       discordar do número de dias e nenhum estilo sair de JavaScript. */
+    .prazo-bloco { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+    .prazo-dias  { font-size: 2.25rem; color: var(--secondary-solid, #EE985C); font-variant-numeric: tabular-nums; }
+    .prazo-bloco[data-urgencia="medio"]   { background: rgba(238,152,92,0.08); border-color: rgba(238,152,92,0.30); }
+    .prazo-bloco[data-urgencia="alto"]    { background: rgba(238,152,92,0.13); border-color: rgba(238,152,92,0.50); }
+    .prazo-bloco[data-urgencia="critico"],
+    .prazo-bloco[data-urgencia="hoje"]    { background: rgba(224,122,53,0.18); border-color: rgba(238,152,92,0.75); }
+    .prazo-bloco[data-urgencia="critico"] .prazo-dias,
+    .prazo-bloco[data-urgencia="hoje"] .prazo-dias { font-size: 2.75rem; }
+    .prazo-bloco[data-urgencia="encerrado"] .prazo-dias { display: none; }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Projetos Disponíveis — IncentivaBR</title>
@@ -124,6 +137,18 @@
         <span data-projeto="area">Cultura</span> · <span data-projeto="uf">Brasil</span><br>
         Custo para você: <strong class="text-white">zero.</strong>
       </p>
+
+
+      <!-- O RELÓGIO (lib/prazoDaDecisao.js). Dois prazos, o que vence
+           primeiro manda: o fim do ano-calendário, que vale para qualquer
+           pessoa, e a janela de captação deste projeto, quando houver. -->
+      <div data-prazo-bloco hidden class="mx-auto max-w-md mb-7 rounded-2xl px-5 py-4 prazo-bloco">
+        <div class="flex items-baseline justify-center gap-2.5">
+          <span class="font-black leading-none prazo-dias" data-prazo="dias">&mdash;</span>
+          <span class="text-white/70 text-sm font-semibold" data-prazo="frase"></span>
+        </div>
+        <p class="text-white/45 text-xs mt-2 leading-relaxed text-center" data-prazo="consequencia"></p>
+      </div>
 
       <!-- Banner personalizado com valor da calculadora -->
       <div id="valorPersonalizado" class="hidden mb-8">
