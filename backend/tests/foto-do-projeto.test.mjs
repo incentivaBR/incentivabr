@@ -119,7 +119,10 @@ db.public.none(`
     foto_chave TEXT, foto_credito TEXT, foto_sha256 TEXT, foto_bytes INT,
     foto_atualizada_em TIMESTAMP, foto_autorizacao_em TIMESTAMP, foto_autorizacao_por UUID,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT NOW());
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
+  );
 `);
 const pgMem = db.adapters.createPg();
 const pool = new pgMem.Pool();

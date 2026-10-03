@@ -118,6 +118,19 @@
     /* ── Wizard body ───────────────────────────────────────────── */
     .wizard-body { max-width: 720px; margin: 0 auto; padding: 28px 16px 72px; }
 
+    /* O RELÓGIO. A urgência é atributo que o tenant.js escreve a partir do
+       backend; a aparência é decidida aqui, para o alarme nunca discordar do
+       número de dias. Paleta clara, porque o assistente é claro. */
+    .prazo-bloco { background: #F8FAFF; border: 1px solid #E0E7FF; }
+    .prazo-dias  { font-size: 1.75rem; color: #B45309; font-variant-numeric: tabular-nums; }
+    .prazo-bloco[data-urgencia="medio"]   { background: #FFFBEB; border-color: #FDE68A; }
+    .prazo-bloco[data-urgencia="alto"]    { background: #FFF7ED; border-color: #FDBA74; }
+    .prazo-bloco[data-urgencia="critico"],
+    .prazo-bloco[data-urgencia="hoje"]    { background: #FEF2F2; border-color: #FCA5A5; }
+    .prazo-bloco[data-urgencia="critico"] .prazo-dias,
+    .prazo-bloco[data-urgencia="hoje"] .prazo-dias { color: #B91C1C; font-size: 2rem; }
+    .prazo-bloco[data-urgencia="encerrado"] .prazo-dias { display: none; }
+
     /* ── Offline banner ────────────────────────────────────────── */
     .offline-banner {
       background: #FFFBEB; border: 1px solid #FDE68A;
@@ -506,6 +519,19 @@
         </div>
       </div>
 
+      <!-- O RELÓGIO (lib/prazoDaDecisao.js).
+           Fica entre a promessa e o convite, que é onde a pessoa decide
+           COMEÇAR. Dois prazos e o que vence primeiro manda: o fim do
+           ano-calendário, que vale para qualquer pessoa, e a janela de
+           captação deste projeto, quando houver. -->
+      <div data-prazo-bloco hidden class="prazo-bloco" style="border-radius:14px;padding:14px 18px;margin-bottom:16px">
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <span class="prazo-dias" style="font-weight:900;line-height:1" data-prazo="dias">&mdash;</span>
+          <span style="font-size:13px;font-weight:700;color:#0F1E3D" data-prazo="frase"></span>
+        </div>
+        <p style="margin:6px 0 0;font-size:11px;color:#6B7280;line-height:1.6" data-prazo="consequencia"></p>
+      </div>
+
       <!-- Descrição do projeto -->
       <div style="background:white;border-radius:14px;border:1px solid #E8ECF4;padding:18px 20px;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
@@ -515,7 +541,21 @@
         <p id="s0Desc" style="margin:0;font-size:13px;color:#4B5563;line-height:1.7">Carregando...</p>
       </div>
 
+      <!-- Janela encerrada: o assistente NÃO começa.
+           A rota também recusa (`captacao_encerrada`), porque esconder o botão
+           não fecha o endereço — mas deixar o botão convidando para uma recusa
+           seria desperdiçar a confiança de quem clicou. -->
+      <div data-prazo-fechado hidden style="background:#FEF2F2;border:1px solid #FECACA;border-radius:14px;padding:18px 20px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:800;color:#991B1B;margin-bottom:6px">A captação deste projeto está encerrada.</div>
+        <p style="margin:0 0 12px;font-size:12px;color:#B91C1C;line-height:1.6">
+          Enquanto o prazo não for prorrogado, ele não pode receber destinação &mdash; e sem isso não haveria
+          <span data-termo="recibo">Recibo de Mecenato</span> para a sua declaração. Não faça nenhuma transferência.
+        </p>
+        <a href="cadastro-avisos.html" style="font-size:13px;font-weight:700;color:#0F1E3D;text-decoration:underline">Avise-me quando houver projeto aberto &rarr;</a>
+      </div>
+
       <!-- CTA -->
+      <div data-prazo-convite>
       <button onclick="confirmarProjeto()" style="width:100%;background:var(--secondary-color,#EE985C);color:#0F1E3D;border:none;border-radius:14px;padding:16px 24px;font-size:16px;font-weight:800;font-family:'Montserrat',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.15s;margin-bottom:10px">
         Ver quanto posso destinar <i class="fas fa-arrow-right"></i>
       </button>
@@ -531,7 +571,7 @@
         no simplificado não há como deduzir.<br>
         O <span data-termo="recibo">Recibo de Mecenato</span> é emitido por <span data-termo="recibo_emissor">o proponente do projeto</span>, não por esta plataforma.
       </p>
-
+      </div><!-- /data-prazo-convite -->
 
     </div><!-- /step0 -->
 
@@ -866,6 +906,22 @@
               Nesta etapa você está apenas conhecendo o processo, <strong>sem nenhuma cobrança automática</strong>.
               Quando decidir fazer a destinação de verdade, você já saberá exatamente como proceder.
             </span>
+          </div>
+
+          <!-- A data que vale é a da TRANSFERÊNCIA, não a do registro aqui.
+               `donations.transferido_em` (migration 048) existe exatamente por
+               isto: `created_at` é o registro na plataforma e `confirmed_at` é
+               a conferência do gestor, e nenhuma das duas é o dia em que o
+               dinheiro saiu. Quem registra em 30 de dezembro e transfere em 2
+               de janeiro destinou no ano seguinte — e descobre na declaração.
+               Aqui não se faz pressão: diz-se a regra, no passo em que ela
+               decide. -->
+          <div data-prazo-bloco hidden class="prazo-bloco" style="border-radius:12px;padding:12px 16px;margin-bottom:14px">
+            <p style="margin:0;font-size:12px;color:#0F1E3D;font-weight:700" data-prazo="frase"></p>
+            <p style="margin:4px 0 0;font-size:11px;color:#6B7280;line-height:1.6">
+              Vale a data em que o dinheiro <strong>sai da sua conta</strong>, não a do registro nesta tela.
+              <span data-prazo="consequencia"></span>
+            </p>
           </div>
 
           <div class="valor-destinar-box">

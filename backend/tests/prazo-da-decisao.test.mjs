@@ -195,7 +195,7 @@ teste('o singular aparece quando falta um dia', () => {
 // ───────────────────────────────────────────────────────────────────────────
 
 const leia = (n) => fs.readFileSync(path.join(RAIZ, 'frontend', n), 'utf8');
-const PAGINAS_COM_RELOGIO = ['index.html', 'projetos-rouanet.html', 'calculadora.html'];
+const PAGINAS_COM_RELOGIO = ['index.html', 'projetos-rouanet.html', 'calculadora.html', 'destinar-rouanet.html'];
 
 teste('as paginas que pedem acao tem o relogio', () => {
   for (const nome of PAGINAS_COM_RELOGIO) {
@@ -253,7 +253,68 @@ teste('a home esconde o convite quando o projeto fechou', () => {
 });
 
 // ───────────────────────────────────────────────────────────────────────────
-// 6. A agenda fiscal, que discordava do resto do site
+// 6. O assistente: o relógio, a porta fechada e a data que vale
+// ───────────────────────────────────────────────────────────────────────────
+
+const ASSISTENTE = leia('destinar-rouanet.html');
+
+teste('o assistente nao comeca com a janela encerrada', () => {
+  // A rota tambem recusa (`captacao_encerrada`), porque esconder o botao nao
+  // fecha o endereco. Mas deixar o botao convidando para uma recusa seria
+  // desperdicar a confianca de quem clicou.
+  if (!/data-prazo-fechado/.test(ASSISTENTE)) throw new Error('nao ha porta fechada');
+  if (!/data-prazo-convite/.test(ASSISTENTE)) throw new Error('o convite nao esta marcado');
+
+  // O botao que inicia o assistente tem de estar DENTRO do convite.
+  const i = ASSISTENTE.indexOf('data-prazo-convite');
+  const j = ASSISTENTE.indexOf('/data-prazo-convite');
+  if (!(i > 0 && j > i)) throw new Error('o convite nao fecha');
+  if (!ASSISTENTE.slice(i, j).includes('confirmarProjeto()')) {
+    throw new Error('o botao de comecar ficou fora do convite');
+  }
+});
+
+teste('a porta fechada diz por que, nao so que fechou', () => {
+  const i = ASSISTENTE.indexOf('data-prazo-fechado');
+  const trecho = ASSISTENTE.slice(i, i + 1400);
+  if (!/n[ãa]o faça nenhuma transfer[êe]ncia/i.test(trecho)) {
+    throw new Error('a porta fechada nao manda parar a transferencia');
+  }
+  if (!/data-termo="recibo"/.test(trecho)) {
+    throw new Error('a porta fechada escreve o nome do recibo a mao');
+  }
+});
+
+teste('o passo do pagamento fala da data da TRANSFERENCIA', () => {
+  // `donations.transferido_em` (migration 048) existe por isto: quem registra
+  // em 30 de dezembro e transfere em 2 de janeiro destinou no ano seguinte.
+  const i = ASSISTENTE.indexOf('id="step4"');
+  if (i === -1) throw new Error('o passo do pagamento mudou de nome');
+  const passo = ASSISTENTE.slice(i, ASSISTENTE.indexOf('id="step5"'));
+  if (!/data-prazo-bloco/.test(passo)) throw new Error('o passo do pagamento nao tem o prazo');
+  if (!/sai da sua conta/.test(passo)) {
+    throw new Error('o passo do pagamento nao diz qual data vale');
+  }
+});
+
+teste('a rota recusa janela encerrada, em qualquer modo', () => {
+  // A guarda de tela e meia guarda. Esta linha e a outra metade.
+  const rota = fs.readFileSync(path.join(RAIZ, 'backend/src/routes/donations.js'), 'utf8');
+  if (!/captacao_encerrada/.test(rota)) throw new Error('a rota nao recusa janela encerrada');
+  if (!/captacao_fim/.test(rota)) throw new Error('a rota nao le a coluna da janela');
+
+  // A recusa NAO pode estar presa a SIMULATION_MODE: janela fechada e fato do
+  // projeto. E o corte tem de ser `>`, nunca `>=`, senao fecha um dia antes.
+  const i = rota.indexOf('captacao_encerrada');
+  const bloco = rota.slice(rota.lastIndexOf('if (op?.captacao_fim)', i), i);
+  if (/SIMULATION_MODE/.test(bloco)) throw new Error('a recusa foi presa ao modo simulacao');
+  if (!/hojeUtc\s*>\s*fimUtc/.test(bloco)) {
+    throw new Error('o corte da janela nao e estritamente depois do ultimo dia');
+  }
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// 7. A agenda fiscal, que discordava do resto do site
 // ───────────────────────────────────────────────────────────────────────────
 
 teste('a agenda nao diz mais que da para destinar ate 31/mai', () => {

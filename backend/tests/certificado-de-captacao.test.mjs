@@ -208,7 +208,10 @@ db.public.none(`
     is_featured BOOLEAN DEFAULT false,
     certificado_numero TEXT, certificado_publicado_em DATE, certificado_valido_ate DATE,
     registro_osc_valido_ate DATE, meta_captacao NUMERIC,
-    created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW());
+    created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
+  );
   -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
   CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
     sistema_oficial TEXT, sistema_url TEXT,
