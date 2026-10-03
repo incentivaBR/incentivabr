@@ -75,7 +75,10 @@ db.public.none(`
     bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT NOW());
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
+  );
   CREATE TABLE donations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID, organization_id UUID, official_fund_id UUID, pronac TEXT, projeto_titulo TEXT,
     ir_devido NUMERIC, donation_amount NUMERIC, fiscal_year INT, status TEXT DEFAULT 'pending',

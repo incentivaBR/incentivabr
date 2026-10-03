@@ -288,6 +288,26 @@ await teste('assistente de destinação: o projeto do cliente já vem preenchido
   await ate(pg, () => document.querySelector('#s0Title')?.textContent.includes('Mostra Casa Azul'), 'título não apareceu');
   const desc = await texto(pg, '#s0Desc');
   if (!desc.includes('teatro inclusivo')) throw new Error('a descrição não veio do cadastro: ' + desc);
+
+  // O relógio e a porta: com a janela aberta, o convite fica e o aviso de
+  // encerrado não aparece. A página tem dois `[data-prazo-bloco]` (este passo
+  // e o do pagamento) e os dois são preenchidos pelo mesmo gancho — se um
+  // ficasse vazio, o passo do pagamento mostraria uma caixa em branco.
+  const prazo = await pg.evaluate(() => {
+    const blocos = [...document.querySelectorAll('[data-prazo-bloco]')];
+    return {
+      quantos: blocos.length,
+      vazios: blocos.filter(b => !b.querySelector('[data-prazo="frase"]')?.textContent.trim()).length,
+      urgencia: blocos[0]?.dataset.urgencia || '',
+      conviteVisivel: !document.querySelector('[data-prazo-convite]')?.hidden,
+      fechadoVisivel: !document.querySelector('[data-prazo-fechado]')?.hidden
+    };
+  });
+  if (prazo.quantos < 2) throw new Error('o assistente perdeu um dos relógios');
+  if (prazo.vazios) throw new Error(`${prazo.vazios} relógio(s) sem frase no assistente`);
+  if (!prazo.urgencia) throw new Error('a urgência não chegou ao assistente');
+  if (!prazo.conviteVisivel) throw new Error('o convite sumiu com a janela aberta');
+  if (prazo.fechadoVisivel) throw new Error('a porta fechada apareceu com a janela aberta');
 });
 
 await teste('a captação do projeto aparece na home, com a data do retrato', async pg => {

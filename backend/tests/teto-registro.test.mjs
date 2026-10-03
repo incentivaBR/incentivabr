@@ -35,7 +35,10 @@ db.public.none(`
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID, pronac TEXT, titulo TEXT,
     proponente_nome TEXT, proponente_cnpj TEXT, bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT, is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT NOW());
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
+  );
   CREATE TABLE tetos_deducao (codigo TEXT PRIMARY KEY, descricao TEXT, percentual NUMERIC(5,2), base_legal TEXT,
     vigencia_inicio DATE, vigencia_fim DATE, confirmado_por_parecer BOOLEAN DEFAULT FALSE, observacao TEXT);
   -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.

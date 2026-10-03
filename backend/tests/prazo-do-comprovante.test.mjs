@@ -222,7 +222,10 @@ db.public.none(`
   CREATE TABLE org_projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID,
     official_fund_id UUID, is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT NOW());
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
+  );
 `);
 const pgMem = db.adapters.createPg();
 const pool = new pgMem.Pool();

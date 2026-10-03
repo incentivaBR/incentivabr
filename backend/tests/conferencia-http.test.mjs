@@ -46,7 +46,9 @@ db.public.none(`
     bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
   );
   -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
   CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,

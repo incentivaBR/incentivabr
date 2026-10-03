@@ -58,7 +58,9 @@ db.public.none(`
     bank_name TEXT, bank_code TEXT, bank_agency TEXT, bank_account TEXT,
     pix_key TEXT, pix_key_type TEXT,
     is_active BOOLEAN DEFAULT true, is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 053: a rota de registro recusa janela de captacao encerrada.
+    captacao_fim DATE
   );
   -- migration 051: mecanismoDaOrg() junta laws para o vocabulario do mecanismo.
   CREATE TABLE laws (slug TEXT PRIMARY KEY, name TEXT, base_legal TEXT, orgao TEXT,
@@ -247,6 +249,79 @@ await teste('depois da 034: conta da www zerada e 261847 desativado', async () =
 await teste('depois da 034, a rota recusa em vez de devolver a conta ficticia', async () => {
   const r = await registrar();
   igual(r.status, 409, 'status');
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// A JANELA DE CAPTACAO: esconder o convite nao fecha o endereco
+//
+// A home e o assistente deixaram de convidar quando a janela do projeto
+// acaba. Isso e tela. A rota continuava aceitando — e esconder um link nunca
+// fez o endereco sumir, que e a mesma licao ja escrita sobre
+// `para-associacoes.html`.
+//
+// Registrar destinacao para projeto que nao pode mais captar e pior que erro
+// de tela: a pessoa transfere, o dinheiro entra numa conta que nao pode
+// receber por aquele incentivo, nao ha Recibo de Mecenato, e ela perde a
+// deducao — descobrindo na declaracao.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Projeto ativo com conta preenchida e a janela terminando em `fim`. */
+const projetoComJanela = async (fim) => {
+  await q(`DELETE FROM org_projects`);
+  await q(`INSERT INTO org_projects
+             (organization_id, pronac, titulo, bank_agency, bank_account, captacao_fim, is_active)
+           VALUES ('${orgId}', '2511274', 'Mostra', '2895-9', '97.365-3',
+                   ${fim === null ? 'NULL' : `'${fim}'`}, true)`);
+};
+
+await teste('janela encerrada -> 409, nada gravado, e o aviso de nao transferir', async () => {
+  await projetoComJanela('2020-12-31');
+  const antes = await totalDestinacoes();
+  const r = await registrar();
+  igual(r.status, 409, 'status');
+  igual(r.corpo.codigo, 'captacao_encerrada', 'codigo');
+  igual(await totalDestinacoes(), antes, 'nao pode gravar');
+  if (!/não faça nenhuma transferência/i.test(r.corpo.message)) {
+    throw new Error('a mensagem nao avisa para nao transferir: ' + r.corpo.message);
+  }
+  // A mensagem tem de dizer POR QUE, senao parece erro do sistema.
+  if (!/recibo/i.test(r.corpo.message)) {
+    throw new Error('a mensagem nao explica a consequencia: ' + r.corpo.message);
+  }
+});
+
+await teste('a recusa vale TAMBEM em simulacao', async () => {
+  // Janela fechada e fato do projeto, nao prontidao da plataforma. Em
+  // simulacao a rota perdoa a conta ausente; nao perdoa isto.
+  process.env.SIMULATION_MODE = 'true';
+  await projetoComJanela('2020-12-31');
+  const r = await registrar();
+  process.env.SIMULATION_MODE = 'false';
+  igual(r.status, 409, 'status');
+  igual(r.corpo.codigo, 'captacao_encerrada', 'codigo');
+});
+
+await teste('janela aberta registra normalmente', async () => {
+  await projetoComJanela('2099-12-31');
+  const r = await registrar();
+  igual(r.status, 201, 'status');
+});
+
+await teste('janela NULA nao recusa: nao saber nao e estar fechado', async () => {
+  // `captacao_fim` nulo e "nao sabemos". Recusar por nao saber travaria todo
+  // cliente que ainda nao preencheu o campo — e o campo e novo (migration 053).
+  await projetoComJanela(null);
+  const r = await registrar();
+  igual(r.status, 201, 'status');
+});
+
+await teste('o ultimo dia da janela ainda registra', async () => {
+  // Erro de contorno classico: `>=` em vez de `>` fecharia a porta um dia
+  // antes, e um dia a menos de captacao e um dia de projeto perdido.
+  const hoje = new Date().toISOString().slice(0, 10);
+  await projetoComJanela(hoje);
+  const r = await registrar();
+  igual(r.status, 201, 'status');
 });
 
 servidor.close();

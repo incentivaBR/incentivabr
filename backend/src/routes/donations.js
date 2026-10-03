@@ -253,7 +253,8 @@ async function registraDestinacao(req, res) {
     // Sem ela, fora da simulação, a destinação não é registrada — a resposta
     // diz o porquê, para o destinador não transferir para conta nenhuma.
     const opResult = await client.query(
-      `SELECT proponente_nome, proponente_cnpj, bank_name, bank_code, bank_agency, bank_account, pix_key, pix_key_type
+      `SELECT proponente_nome, proponente_cnpj, bank_name, bank_code, bank_agency, bank_account, pix_key, pix_key_type,
+              captacao_fim
        FROM org_projects WHERE organization_id = $1 AND is_active = true
        ORDER BY is_featured DESC, created_at DESC LIMIT 1`,
       [org?.id]
@@ -269,6 +270,38 @@ async function registraDestinacao(req, res) {
           ? 'Esta organização não tem projeto ativo cadastrado. A destinação não foi registrada — não faça nenhuma transferência.'
           : 'A Conta de Captação deste projeto ainda não foi informada pelo proponente. A destinação não foi registrada — não faça nenhuma transferência até a conta aparecer nesta etapa.'
       });
+    }
+
+    // ── Janela de captação: esconder o convite não fecha o endereço ────────
+    //
+    // A home deixou de convidar quando a janela do projeto acabou
+    // (`[data-prazo-convite]`), mas isto é tela. A rota continuava aceitando, e
+    // esconder um link nunca fez o endereço sumir — a mesma lição que já está
+    // escrita sobre `para-associacoes.html`.
+    //
+    // Registrar destinação para projeto que não pode mais captar é pior que um
+    // erro de tela: a pessoa transfere, o dinheiro entra numa conta que não
+    // pode receber por aquele incentivo, e não há Recibo de Mecenato — ela
+    // perde a dedução e descobre na declaração.
+    //
+    // A recusa vale em QUALQUER modo, inclusive simulação: janela fechada é
+    // fato do projeto, não prontidão da plataforma. E só vale quando a data
+    // EXISTE e passou: `captacao_fim` nulo é "não sabemos", e recusar por não
+    // saber travaria todo cliente que ainda não preencheu o campo.
+    if (op?.captacao_fim) {
+      const fim = new Date(op.captacao_fim);
+      const hoje = new Date();
+      const fimUtc  = Date.UTC(fim.getUTCFullYear(), fim.getUTCMonth(), fim.getUTCDate());
+      const hojeUtc = Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate());
+      if (hojeUtc > fimUtc) {
+        return res.status(409).json({
+          status: 'error',
+          codigo: 'captacao_encerrada',
+          message: 'A janela de captação deste projeto está encerrada. A destinação não foi '
+                 + 'registrada — não faça nenhuma transferência: o projeto não pode mais '
+                 + 'receber por este incentivo, e não haveria recibo para a sua declaração.'
+        });
+      }
     }
 
     // ── Teto: dentro da transação, com o contribuinte bloqueado ────────────
