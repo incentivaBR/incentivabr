@@ -624,7 +624,7 @@ Não. Servidores seguem as mesmas regras das demais pessoas físicas.
 A única diferença — favorável — é que você tem previsibilidade de renda (salário fixo), o que facilita o planejamento da destinação.
 Como estimo quanto posso destinar com base no meu contracheque?
 O contracheque mostra o imposto retido, e a conta do limite é sobre o imposto devido. São coisas diferentes:
-Limite (6%) = IR devido × 0,06
+Limite = 6% do seu IR devido
 Exemplo: IR devido de R$ 20.000 → pode destinar até R$ 1.200
 O IR devido está na ficha "Cálculo do Imposto" da sua declaração do ano passado. O retido é o que foi recolhido mês a mês: quem tem despesas médicas, educação ou previdência privada costuma ter retido maior que o devido, e usar o retido nesta conta estima um limite maior do que a lei permite.
 Não tem a declaração à mão? A Calculadora IR → chega ao IR devido a partir dos seus rendimentos e deduções.
