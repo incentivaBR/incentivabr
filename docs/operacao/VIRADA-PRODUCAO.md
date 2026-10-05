@@ -97,30 +97,47 @@ Hoje os dados bancários exibidos em simulação são fixos no código
 
 ---
 
-## 3. A questão dos 6% — precisa de tributarista, não de opinião nossa
+## 3. ~~A questão dos 6%~~ — NÃO É BLOQUEADOR, decidido em 5 de outubro de 2026
 
-O código aplica um teto rígido de 6%:
+Este item dizia que a virada dependia de um parecer de tributarista. Não
+depende, e o código mostra por quê.
 
-```js
-const LIMITE_ROUANET = 0.06;   // donations.js:78
-```
+**O que mudou desde que o item foi escrito:**
 
-A base é o art. 22 da Lei 9.532/97, que fixa o limite **global** de 6% do imposto
-devido para o conjunto das deduções de incentivo (Rouanet art. 26, ECA, Idoso).
-Já a destinação a projeto aprovado no art. 18 da Lei 8.313/91 é deduzida
-integralmente do imposto devido, e é justamente sobre a interação entre os dois
-dispositivos que existe divergência de interpretação.
+O texto citava `const LIMITE_ROUANET = 0.06` em `donations.js:78`. Essa
+constante não existe mais desde a migration 030: o teto vem de
+`tetos_deducao`, por mecanismo, e é conferido dentro da transação com lock por
+contribuinte (`lib/tetos.js`). Não há número de teto escrito em rota nenhuma.
 
-**Onde a divergência aparece hoje no nosso próprio material:** o
-`biblioteca-juridica.html` diverge do deck e da Lean Inception. Como esse arquivo
-alimenta as respostas da TINA, a assistente pode estar dizendo algo diferente do
-que a apresentação comercial afirma.
+**Por que o parecer não muda o sistema:**
 
-- [ ] Levar a um tributarista e obter parecer escrito
-- [ ] Alinhar `biblioteca-juridica.html`, o deck e a Lean Inception à mesma tese
-- [ ] Ajustar `LIMITE_ROUANET` se o parecer indicar outro tratamento
-- [ ] Guardar o parecer: se um servidor for questionado na declaração, é ele que
-      responde por nós
+- os 6% são a leitura **conservadora**. Se o parecer disser 6%, nada muda; se
+  disser mais, a plataforma estava liberando a menos, e errar para menos é
+  recuperável no ano seguinte — errar para mais é malha fina;
+- `confirmado_por_parecer` é lido em **um lugar só** no código inteiro
+  (`lib/textosFiscais.js`), e só para acrescentar a frase "Parecer do
+  tributarista: pendente" no resumo que vai para a TINA. Não entra em cálculo,
+  não gateia rota, não decide nada;
+- `SIMULATION_MODE` não consulta esse campo em lugar nenhum: depende só da
+  variável de ambiente;
+- a plataforma não emite o documento fiscal. O Recibo de Mecenato é do
+  proponente, e quem lança a dedução é o contribuinte, na declaração dele,
+  conferida por quem a assina.
+
+**O que o parecer protegeria, e que segue sendo decisão de negócio:** a
+assinatura por trás da interpretação, se um servidor for questionado. Adacto
+decidiu em 5/out/2026 que isso não trava a virada. Fica registrado aqui para
+que a decisão seja dele, com data, e não um esquecimento.
+
+**O que CONTINUA aberto, e é mais barato que um parecer:**
+
+- [ ] Conferir no programa do IRPF os códigos da ficha "Doações Efetuadas"
+      (`41` cultura, `40` ECA). `lib/textosFiscais.js` os marca como **não
+      confirmados em fonte primária** desde setembro, e eles agora aparecem na
+      mensagem que o contribuinte manda ao contador. Isso se resolve abrindo a
+      declaração e olhando — não precisa de tributarista
+- [ ] `docs/juridico/CONSULTA-TRIBUTARISTA.md` segue existindo como lista de
+      perguntas em aberto. Parou de ser pré-requisito; virou pauta
 
 ---
 
