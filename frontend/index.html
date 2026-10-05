@@ -66,6 +66,29 @@
     html[data-hero-calculado] .hero-cta-antes { display: none; }
     html[data-hero-calculado] .hero-cta-depois { display: inline-block; }
 
+    /* A prova de confiança do topo.
+       Três fatos, cada um com a sua marca. A marca é decorativa (o texto já
+       se explica sozinho), por isso fica fora do fluxo de leitura por
+       aria-hidden e a lista não tem marcador próprio. */
+    .prova-marca {
+      flex-shrink: 0;
+      width: 1.25rem; height: 1.25rem;
+      margin-top: 0.15rem;
+      border-radius: 9999px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 900; line-height: 1;
+      color: #EE985C;
+      background: rgba(238,152,92,0.14);
+      border: 1px solid rgba(238,152,92,0.34);
+    }
+    /* O terceiro fato é um limite, não um benefício: a marca é neutra para
+       não vender como vantagem o que é ressalva. */
+    .prova-marca[data-prova-marca="limite"] {
+      color: rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.20);
+    }
+
     .hero-grid {
       background-image:
         linear-gradient(rgba(238,152,92,0.04) 1px, transparent 1px),
@@ -222,6 +245,50 @@
           </div>
         </div>
       </div>
+
+      <!-- ── A SEGUNDA PAREDE: "ISSO É REAL? EU PERCO DINHEIRO?" ──────
+           A pergunta que decide não é "como funciona" — é se a pessoa perde
+           dinheiro e se a plataforma fica com ele. A resposta estava no FAQ,
+           no fim da página, atrás de um clique: quem tem a dúvida sai antes
+           de chegar lá.
+
+           São três fatos, e o terceiro é o que constrói a confiança
+           justamente porque admite um limite: quem declara no simplificado
+           não tem onde lançar a dedução, e dizer isso aqui evita a
+           transferência que não volta.
+
+           Nenhum percentual é escrito à mão — vem de /api/config/brand por
+           data-fiscal. A plataforma se chama "a plataforma": trocar pelo nome
+           do cliente tornaria a frase falsa, porque é na conta dele que o
+           dinheiro entra. -->
+      <ul data-prova class="mx-auto max-w-md mb-7 text-left fade-up">
+        <li class="flex gap-3 items-start mb-3">
+          <span class="prova-marca" aria-hidden="true">&#10003;</span>
+          <span class="text-white/50 text-sm leading-relaxed">
+            <strong class="text-white/85">Custo l&iacute;quido zero.</strong>
+            Voc&ecirc; transfere agora e, na declara&ccedil;&atilde;o, o valor abate
+            <span data-fiscal="art18_pct">100%</span> do imposto devido. &Eacute; o mesmo imposto
+            que voc&ecirc; j&aacute; paga, com o destino escolhido por voc&ecirc;.
+          </span>
+        </li>
+        <li class="flex gap-3 items-start mb-3">
+          <span class="prova-marca" aria-hidden="true">&#10003;</span>
+          <span class="text-white/50 text-sm leading-relaxed">
+            <strong class="text-white/85">Voc&ecirc; transfere direto.</strong>
+            O valor sai do seu banco para a conta oficial do projeto. A plataforma
+            n&atilde;o recebe nem movimenta o dinheiro: ela confere o limite, registra a
+            destina&ccedil;&atilde;o e guarda os comprovantes.
+          </span>
+        </li>
+        <li class="flex gap-3 items-start">
+          <span class="prova-marca" data-prova-marca="limite" aria-hidden="true">!</span>
+          <span class="text-white/50 text-sm leading-relaxed">
+            <strong class="text-white/85">S&oacute; vale no modelo completo.</strong>
+            No modelo simplificado n&atilde;o existe onde lan&ccedil;ar a dedu&ccedil;&atilde;o, e o valor
+            n&atilde;o volta. Se voc&ecirc; declara no simplificado, n&atilde;o transfira.
+          </span>
+        </li>
+      </ul>
 
       <!-- O RELÓGIO.
            A home explicava o benefício e não dizia quando ele acaba. Quem

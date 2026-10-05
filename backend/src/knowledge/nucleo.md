@@ -480,8 +480,10 @@ Para servidores públicos
 ### Você tem condição ideal para destinar
 Servidores têm salário fixo e IR previsível — condição ideal para planejar a destinação com antecedência. O imposto retido em folha não impede a destinação. O que importa é o IR devido calculado na declaração anual completa.
 Estimativa rápida
-IR retido no ano passado × 6% = valor máximo que você pode destinar este ano.
-Exemplo: reteve R$ 18.000 → pode destinar até R$ 1.080 para projetos culturais.
+IR devido no ano passado × 6% = valor máximo que você pode destinar este ano.
+Exemplo: IR devido de R$ 18.000 → pode destinar até R$ 1.080 para projetos culturais.
+O IR devido está na ficha C lculo do Imposto da sua declara o. N o use o
+valor retido no contracheque: ele costuma ser maior, e a conta sairia acima do limite legal.
 Não existe procedimento diferenciado para servidores — as mesmas regras da Lei Rouanet se aplicam a todos os contribuintes pessoa física.
 ### Dúvidas frequentes
 Quem pode destinar?
@@ -595,6 +597,9 @@ Declaração IR
 Vou perder dinheiro ou pagar mais imposto?
 Não! O valor destinado é deduzido integralmente do IR devido. Você redireciona dinheiro que já iria para o governo para um projeto cultural. Custo adicional: zero.
 Exemplo: IR devido R$ 10.000 → destina R$ 600 (6%) → paga só R$ 9.400 ao governo. A diferença vai para a cultura.
+Preciso declarar no modelo completo?
+Sim. A dedução é lançada na ficha "Doações Efetuadas" da declaração completa. No modelo simplificado, o desconto padrão substitui todas as deduções — não existe onde informar a destinação.
+Se você declara no simplificado, não transfira: o valor não volta como dedução. Quem decide o modelo é o programa da Receita, comparando os dois no fim do preenchimento — confirme com quem assina a sua declaração antes de destinar.
 O que é a Lei Rouanet?
 A Lei 8.313/1991 permite que pessoas físicas destinem até 6% do IR devido para projetos culturais aprovados pelo Ministério da Cultura (MinC) e cadastrados no sistema SALIC.
 O dinheiro vai direto para a Conta de Captação do projeto, no Banco do Brasil. É uma conta bloqueada, aberta pelo Ministério da Cultura e específica daquele PRONAC — o proponente só movimenta os recursos após a liberação do MinC.
@@ -618,11 +623,11 @@ Existe algum procedimento específico para servidores públicos?
 Não. Servidores seguem as mesmas regras das demais pessoas físicas.
 A única diferença — favorável — é que você tem previsibilidade de renda (salário fixo), o que facilita o planejamento da destinação.
 Como estimo quanto posso destinar com base no meu contracheque?
-O valor exato só é conhecido após simular a declaração completa, mas você pode estimar assim:
-IR retido no ano anterior ≈ IR devido neste ano
-Limite (6%) = IR retido no ano anterior × 0,06
-Exemplo: reteve R$ 20.000 → pode destinar até R$ 1.200
-Use nossa Calculadora IR → para uma estimativa mais precisa.
+O contracheque mostra o imposto retido, e a conta do limite é sobre o imposto devido. São coisas diferentes:
+Limite (6%) = IR devido × 0,06
+Exemplo: IR devido de R$ 20.000 → pode destinar até R$ 1.200
+O IR devido está na ficha "Cálculo do Imposto" da sua declaração do ano passado. O retido é o que foi recolhido mês a mês: quem tem despesas médicas, educação ou previdência privada costuma ter retido maior que o devido, e usar o retido nesta conta estima um limite maior do que a lei permite.
+Não tem a declaração à mão? A Calculadora IR → chega ao IR devido a partir dos seus rendimentos e deduções.
 Existe risco de cair na malha fina?
 O risco está em errar o limite ou perder o comprovante. A dedução é a prevista em lei se você respeitar o limite de 6%, informar o valor correto na ficha "Doações Efetuadas" (código 41) e guardar o comprovante por 5 anos.
 A destinação pela Lei Rouanet é prevista em lei desde 1991 e a Receita Federal a confere na declaração como qualquer outra dedução.

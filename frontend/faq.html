@@ -104,6 +104,26 @@
           </div>
         </div>
 
+        <!-- A condição que o site não dizia em lugar nenhum desta página.
+             A dedução existe na ficha de doações da declaração COMPLETA; no
+             modelo simplificado não há onde lançá-la, e quem transferiu
+             acreditando que voltaria perde o valor. É ressalva, não detalhe:
+             fica entre as primeiras perguntas de propósito. -->
+        <div class="faq-item bg-white rounded-2xl border border-gray-100 overflow-hidden" data-keywords="modelo completo simplificado desconto padrao declaracao qual modelo nao volta">
+          <button class="faq-question w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-[#0F1E3D] hover:bg-gray-50 transition-colors" onclick="toggleFAQ(this)">
+            <span>Preciso declarar no modelo completo?</span>
+            <svg class="faq-chevron w-5 h-5 text-[#0F1E3D] shrink-0 ml-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer">
+            <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
+              <p class="mb-3"><strong class="text-[#0F1E3D]">Sim.</strong> A dedução é lançada na ficha "Doações Efetuadas" da declaração <strong class="text-[#0F1E3D]">completa</strong>. No modelo simplificado, o desconto padrão substitui todas as deduções — não existe onde informar a destinação.</p>
+              <div class="bg-[#0F1E3D]/5 border-l-4 border-[#EE985C] rounded-r-xl px-4 py-3 text-[#0F1E3D] text-xs font-medium">
+                Se você declara no simplificado, <strong>não transfira</strong>: o valor não volta como dedução. Quem decide o modelo é o programa da Receita, comparando os dois no fim do preenchimento — confirme com quem assina a sua declaração antes de destinar.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="faq-item bg-white rounded-2xl border border-gray-100 overflow-hidden" data-keywords="lei rouanet o que e como funciona cultura MinC SALIC mecenato conta de captacao">
           <button class="faq-question w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-[#0F1E3D] hover:bg-gray-50 transition-colors" onclick="toggleFAQ(this)">
             <span>O que é a Lei Rouanet?</span>
@@ -213,13 +233,13 @@
           </button>
           <div class="faq-answer">
             <div class="px-6 pb-5 pt-1 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
-              <p class="mb-3">O valor exato só é conhecido após simular a declaração completa, mas você pode estimar assim:</p>
+              <p class="mb-3">O contracheque mostra o <strong class="text-[#0F1E3D]">imposto retido</strong>, e a conta do limite é sobre o <strong class="text-[#0F1E3D]">imposto devido</strong>. São coisas diferentes:</p>
               <div class="bg-[#0F1E3D]/5 border-l-4 border-[#0F1E3D]/30 rounded-r-xl px-4 py-3 text-[#0F1E3D] text-xs font-medium mb-3">
-                <strong>IR retido no ano anterior ≈ IR devido neste ano</strong><br><br>
-                Limite (<span data-fiscal="teto_pct">6%</span>) = IR retido no ano anterior × 0,06<br>
-                Exemplo: reteve R$ 20.000 → pode destinar até <strong>R$ 1.200</strong>
+                Limite (<span data-fiscal="teto_pct">6%</span>) = <strong>IR devido</strong> × 0,06<br>
+                Exemplo: IR devido de R$ 20.000 → pode destinar até <strong>R$ 1.200</strong>
               </div>
-              <p>Use nossa <a href="calculadora.html" class="text-[#0F1E3D] font-semibold underline underline-offset-2">Calculadora IR →</a> para uma estimativa mais precisa.</p>
+              <p class="mb-3">O IR devido está na ficha <strong class="text-[#0F1E3D]">"Cálculo do Imposto"</strong> da sua declaração do ano passado. O retido é o que foi recolhido mês a mês: quem tem despesas médicas, educação ou previdência privada costuma ter retido <strong class="text-[#0F1E3D]">maior</strong> que o devido, e usar o retido nesta conta estima um limite maior do que a lei permite.</p>
+              <p>Não tem a declaração à mão? A <a href="calculadora.html" class="text-[#0F1E3D] font-semibold underline underline-offset-2">Calculadora IR →</a> chega ao IR devido a partir dos seus rendimentos e deduções.</p>
             </div>
           </div>
         </div>
