@@ -575,6 +575,41 @@
     document.getElementById('resultado').classList.remove('hidden');
     document.getElementById('estado-inicial').classList.add('hidden');
   }
+
+  // ── Chegar aqui já preenchido ──────────────────────────────────────────
+  //
+  // O validador é a página mais técnica do site e era a mais escondida: só se
+  // chegava a ela pela Biblioteca Jurídica, por um link que fala de base legal
+  // das outras seis leis. Quem acabou de destinar não procura isso.
+  //
+  // Agora o assistente e o painel trazem a pessoa com os números já na URL —
+  // ?ir=18516.22&rouanet=1110.97 — e a conferência aparece pronta. É o momento
+  // de maior disposição: ela acabou de transferir e quer saber se está certo.
+  //
+  // Os valores vêm do nosso próprio fluxo, mas entram pela URL como qualquer
+  // outro dado de fora: viram número por Number(), nunca texto em innerHTML, e
+  // o que não for número finito e positivo é ignorado em silêncio — link
+  // estragado não pode encher a tela de NaN.
+  (function () {
+    const q = new URLSearchParams(location.search);
+    const campos = { ir: 'ir-devido', rouanet: 'v-rouanet' };
+    let veio = false;
+
+    for (const [chave, id] of Object.entries(campos)) {
+      const n = Number(q.get(chave));
+      if (!Number.isFinite(n) || n <= 0) continue;
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.value = BRL(n);
+      veio = true;
+    }
+
+    if (!veio) return;
+    validar();
+    // Com o laudo pronto, a tela abre no resultado — senão a pessoa chega numa
+    // página que ela não pediu e não vê o que veio buscar.
+    document.getElementById('resultado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  })();
 </script>
   <!-- tenant.js publica window.TETO_FRACAO, lido do banco -->
     <script src="js/auth.js"></script>

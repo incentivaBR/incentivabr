@@ -1131,6 +1131,23 @@
               </button>
             </div>
 
+            <!-- A CONFERÊNCIA, no momento de maior disposição.
+                 O validador é a página mais técnica do site e era a mais
+                 escondida: só se chegava a ela pela Biblioteca Jurídica, por
+                 um link sobre base legal das outras seis leis. Quem acabou de
+                 destinar não procura isso — mas é exatamente quem quer saber
+                 se está tudo certo antes de declarar.
+                 O link leva os números na URL e a conferência abre pronta. -->
+            <a id="btnConferirLimites" href="validador.html"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+                      background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;font-weight:700;font-size:14px;
+                      padding:13px 20px;border-radius:12px;margin:0 0 12px;width:100%;box-sizing:border-box">
+              <span style="font-size:16px">🛡️</span> Conferir se est&aacute; dentro do limite
+            </a>
+            <p style="margin:-6px 0 16px;font-size:11px;color:#9CA3AF;text-align:center;line-height:1.5">
+              Gera um laudo com os limites conferidos, para voc&ecirc; guardar com o comprovante.
+            </p>
+
             <!-- O caminho de volta. Sem isto o wizard terminava sem porta para o
                  painel, onde ficam a situação da conferência e o recibo. -->
             <a href="dashboard.html" id="btnIrPainel" class="btn-primary-rouanet" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin:0 0 16px;width:100%;box-sizing:border-box">
@@ -1212,6 +1229,25 @@
     const orgParam  = urlParams.get('org') || '';
 
     // ── Estado global ───────────────────────────────────────────
+    /**
+     * O link da conferência, com os números desta destinação.
+     *
+     * `comOrg` não existe aqui: quem reescreve link interno é o tenant.js, e
+     * ele já passou quando esta tela aparece. Então o `org` entra à mão, pelo
+     * mesmo motivo do link de destinar — sem ele, a pessoa atravessa do site
+     * do cliente para o da plataforma no último passo.
+     */
+    function apontaConferencia() {
+      const a = document.getElementById('btnConferirLimites');
+      if (!a) return;
+      const p = new URLSearchParams();
+      if (state.ir_devido > 0) p.set('ir', state.ir_devido);
+      if (state.valor > 0)     p.set('rouanet', state.valor);
+      const org = new URLSearchParams(location.search).get('org');
+      if (org) p.set('org', org);
+      a.href = 'validador.html' + (p.toString() ? '?' + p : '');
+    }
+
     const state = {
       org:         null,
       projeto:     null,
@@ -1677,6 +1713,7 @@
 
     function pularComprovante() {
       document.getElementById('successDonationId').textContent = state.donationId || '—';
+      apontaConferencia();
       document.getElementById('successMsg').textContent = state.simulationMode
         ? `Nesta simulação, você redirecionou ${BRL(state.valor)} para ${nomeDoProjeto()}.`
         : `Sua destinação de ${BRL(state.valor)} está registrada. Falta anexar o comprovante da transferência para que ${termo('recibo_emissor')} emita o ${termo('recibo')}.`;
