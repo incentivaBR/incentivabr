@@ -1,8 +1,8 @@
 # CI mínimo — Raio-X de set/2026, risco 09 ("zero CI").
 #
-# Roda a suíte do backend a cada push e a cada pull request. A suíte usa
-# pg-mem: não precisa de Postgres nem de chave nenhuma. Se um teste quebrar,
-# o check fica vermelho no PR e no commit de main.
+# Roda a suíte do backend a cada pull request e a cada push em `main`. A suíte
+# usa pg-mem: não precisa de Postgres nem de chave nenhuma. Se um teste
+# quebrar, o check fica vermelho no PR e no commit de main.
 #
 # Deploy só com verde: na Railway, Settings → Deploy → "Wait for CI" faz o
 # serviço esperar este check passar antes de publicar o commit de main.
@@ -11,9 +11,26 @@
 # As duas configurações são feitas no painel, não neste arquivo.
 name: CI
 
+# UM RUN POR COMMIT, NÃO DOIS.
+#
+# Com `push: branches: ['**']`, todo branch com PR aberto disparava DOIS runs
+# do mesmo commit — um do evento `push`, um do `pull_request` — com quatro
+# jobs cada. Oito jobs para verificar um commit, metade deles repetida, e os
+# dois runs ficam em grupos de concorrência diferentes (`refs/heads/x` e
+# `refs/pull/N/merge`), então nenhum cancela o outro.
+#
+# Isso é desperdício enquanto há runner sobrando e vira problema quando não
+# há: job que espera demais na fila é cancelado, e o cancelamento cai em job
+# aleatório. Em 5/out/2026 um PR precisou de quatro tentativas por isso, com
+# os mesmos testes passando em todas elas.
+#
+# O que se perde: push em branch de trabalho SEM pull request aberto não roda
+# CI. É aceitável porque aqui todo branch vira PR antes de ir para `main`, e o
+# primeiro run do PR cobre todos os commits anteriores dele. O que não pode
+# faltar é `main` — é dela que a Railway publica.
 on:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
 
 # Um push novo no mesmo branch cancela a execução anterior: só o último
