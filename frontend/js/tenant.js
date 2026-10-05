@@ -487,6 +487,25 @@ const tenant = {
         const v = valores[el.dataset.mecanismo];
         if (v != null && v !== '') el.textContent = v;
       });
+
+      // O VOCABULÁRIO DO MECANISMO, EM QUALQUER PÁGINA.
+      //
+      // `[data-termo]` existe desde a migration 051 e só o assistente o
+      // preenchia, do projeto do tenant. Fora dele o gancho ficava parado na
+      // reserva — "Recibo de Mecenato" escrito no HTML, com a aparência de
+      // vir do catálogo e sem vir. Num cliente de outro mecanismo, a página
+      // dizia o nome do documento errado com cara de dado.
+      //
+      // A fonte é a mesma dos dois caminhos (`lib/jornada.js` →
+      // `vocabulario()`), então ligar aqui não cria uma segunda verdade: só
+      // alcança as páginas que o assistente não alcança.
+      const v = m.vocabulario || {};
+      for (const chave of Object.keys(v)) {
+        if (!v[chave]) continue;
+        document.querySelectorAll(`[data-termo="${chave}"]`).forEach(el => {
+          el.textContent = v[chave];
+        });
+      }
     }
 
     // Avisa quem depende do teto para calcular.
