@@ -10,6 +10,7 @@ import { authenticateToken } from '../middleware/auth.js';
 import { mascaraCPF } from '../lib/cpf.js';
 import { mecanismosDisponiveis, podeSerDoCliente, MECANISMO_PADRAO } from '../lib/mecanismos.js';
 import { situacaoDoCertificado, fraseDoCertificado, validaCertificado } from '../lib/certificado.js';
+import { confereTamanhos } from '../lib/limitesDeTexto.js';
 import { situacaoDaCaptacao, fraseDaCaptacao, validaCaptacao } from '../lib/captacao.js';
 import { recebeArquivo } from '../lib/recebeArquivo.js';
 import { armazenamento, novaChave } from '../services/armazenamento.js';
@@ -120,6 +121,18 @@ router.get('/orgs', async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // POST /api/admin/orgs — Criar novo cliente (white-label)
 // ─────────────────────────────────────────────────────────────
+// Como a tela chama cada campo. Sem isso a mensagem de erro diria
+// "bank_account", que é o nome da coluna e não o que está escrito na etiqueta.
+const ROTULOS = {
+  name: 'Nome da instituição', slug: 'Identificador', contact_email: 'E-mail de contato',
+  contact_phone: 'Telefone', cnpj: 'CNPJ', custom_domain: 'Domínio próprio',
+  website_url: 'Site', primary_color: 'Cor principal', secondary_color: 'Cor de destaque',
+  pronac: 'PRONAC', uf: 'UF', proponente_cnpj: 'CNPJ do proponente',
+  bank_name: 'Banco', bank_code: 'Código do banco', bank_agency: 'Agência',
+  bank_account: 'Conta', pix_key_type: 'Tipo da chave PIX',
+  certificado_numero: 'Número da resolução'
+};
+
 router.post('/orgs', async (req, res) => {
   try {
     const {
@@ -150,6 +163,14 @@ router.post('/orgs', async (req, res) => {
     if (!mecanismo.ok) {
       return res.status(400).json({ status: 'error', message: mecanismo.motivo });
     }
+
+    // Campo longo demais virava 22001 e a rota respondia "Erro interno." —
+    // quem cadastrava não descobria qual campo. O limite vem do banco.
+    const cabe = await confereTamanhos('organizations', {
+      name, slug, custom_domain, website_url, cnpj, contact_email, contact_phone,
+      primary_color, secondary_color
+    }, ROTULOS);
+    if (!cabe.ok) return res.status(400).json({ status: 'error', message: cabe.erro, campo: cabe.campo });
 
     const result = await pool.query(`
       INSERT INTO organizations (
@@ -336,6 +357,13 @@ router.post('/orgs/:id/projects', async (req, res) => {
       return res.status(400).json({ status: 'error', message: cert.erro });
     }
     const c = cert.valores;
+
+    const cabe = await confereTamanhos('org_projects', {
+      pronac, uf, proponente_cnpj,
+      bank_name, bank_code, bank_agency, bank_account, pix_key_type,
+      certificado_numero: c.certificado_numero
+    }, ROTULOS);
+    if (!cabe.ok) return res.status(400).json({ status: 'error', message: cabe.erro, campo: cabe.campo });
 
     const result = await pool.query(`
       INSERT INTO org_projects (
