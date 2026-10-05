@@ -285,6 +285,77 @@ await teste('a conta do topo nao escreve o percentual a mao', () => {
   if (!/TETO_FRACAO/.test(corpo)) throw new Error('a conta nao le o teto do servidor');
 });
 
+// ───────────────────────────────────────────────────────────────────────────
+// 5. O caminho curto: quem já tem o número precisa de um botão
+// ───────────────────────────────────────────────────────────────────────────
+
+await teste('o convite de destinar fica DENTRO do resultado, com o valor', () => {
+  // O botao principal da pagina levava a um formulario de oito campos — a
+  // pessoa que acabou de ver o numero era mandada recomecar, mais dificil.
+  const caixa = HOME.slice(HOME.indexOf('id="heroResultado"'), HOME.indexOf('<!-- O RELÓGIO'));
+  if (!/a\s+data-destinar/.test(caixa)) throw new Error('nao ha convite dentro do resultado');
+  if (!/id="heroDestinarValor"/.test(caixa)) throw new Error('o convite nao traz o valor');
+  // E o JavaScript tem de escrever o valor nele.
+  if (!/heroDestinarValor[\s\S]{0,160}BRL\(podeDestinar\)/.test(HOME)) {
+    throw new Error('o valor nao chega ao botao');
+  }
+});
+
+await teste('janela encerrada tambem fecha o convite do topo', () => {
+  // Sem isto, o projeto encerrado some do resto da pagina e continua sendo
+  // oferecido no resultado — que e a tela que a pessoa esta olhando.
+  // `legivel()` tira os comentarios ANTES de procurar: o comentario que
+  // explica por que o convite fica dentro de [data-prazo-convite] cita o
+  // atributo, entao sem isto a guarda passaria com a marca removida do HTML.
+  // E a quinta vez que este repositorio pisa nisso.
+  const caixa = legivel(HOME.slice(HOME.indexOf('id="heroResultado"'), HOME.indexOf('<!-- O RELÓGIO')));
+  const i = caixa.indexOf('a data-destinar');
+  if (i === -1) throw new Error('o convite sumiu do resultado');
+  if (!/data-prazo-convite/.test(caixa.slice(0, i))) {
+    throw new Error('o convite do topo nao esta dentro de [data-prazo-convite]');
+  }
+});
+
+await teste('a troca dos botoes e CSS, nao JavaScript', () => {
+  // Mesma regra do `data-urgencia`: o JavaScript constata o fato, o CSS
+  // decide a aparencia. Se o JS escolhesse, o par de botoes poderia discordar
+  // do que esta na tela.
+  for (const classe of ['hero-cta-antes', 'hero-cta-depois']) {
+    if (!HOME.includes(classe)) throw new Error('falta a classe ' + classe);
+  }
+  if (!/html\[data-hero-calculado\]\s+\.hero-cta-antes\s*\{[^}]*display:\s*none/.test(HOME)) {
+    throw new Error('o CSS nao esconde "Calcular" depois do resultado');
+  }
+  const script = legivel(HOME.slice(HOME.indexOf("const campo = document.getElementById('heroIr')")));
+  if (/\.style\.display|classList\.(add|remove)\(['"]hero-cta/.test(script.slice(0, 2600))) {
+    throw new Error('o JavaScript escolhe qual botao aparece');
+  }
+  if (!/dataset\.heroCalculado/.test(script.slice(0, 2600))) {
+    throw new Error('o JavaScript nao publica o fato');
+  }
+});
+
+await teste('apagar o campo desfaz o estado de calculado', () => {
+  // Sem isto o botao principal seguiria "Refinar" com o resultado fora da
+  // tela, e a pagina pediria refino de nada.
+  const script = legivel(HOME.slice(HOME.indexOf("const campo = document.getElementById('heroIr')")));
+  if (!/delete\s+document\.documentElement\.dataset\.heroCalculado/.test(script.slice(0, 2600))) {
+    throw new Error('o estado de calculado nunca e desfeito');
+  }
+});
+
+await teste('o caminho detalhado leva a calculadora, nao de volta ao atalho', () => {
+  // `calculadora-rapida.html` e so um redirecionamento; mandar para la quem
+  // quer refinar e um salto a mais sem ganho.
+  // Ancorado na TAG, nao na primeira aparicao da classe: ela aparece antes no
+  // CSS, e a guarda media o bloco de estilo em vez do link.
+  const m = /<a\s+href="([^"]+)"\s+class="hero-cta-depois/.exec(HOME);
+  if (!m) throw new Error('o link de refinar sumiu do HTML');
+  if (m[1] !== 'calculadora.html') {
+    throw new Error('o botao de refinar nao vai para a calculadora: ' + m[1]);
+  }
+});
+
 console.log('\nO 13º fora da base, e o modelo completo como condição\n');
 ok.forEach(n => console.log('  ok   ' + n));
 falhas.forEach(([n, m]) => console.log('  FALHA ' + n + '\n         ' + m));

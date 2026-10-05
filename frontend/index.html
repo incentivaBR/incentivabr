@@ -57,6 +57,15 @@
     .prazo-bloco[data-urgencia="encerrado"] { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
     .prazo-bloco[data-urgencia="encerrado"] .prazo-dias { display: none; }
 
+    /* O par de botões do herói: um de cada vez.
+       Antes do resultado vale "Calcular"; depois dele, "Refinar", porque
+       mandar de volta ao formulário de oito campos quem já tem o número é
+       desfazer o que o topo acabou de resolver. O JavaScript só constata o
+       fato em html[data-hero-calculado]; quem escolhe a aparência é o CSS. */
+    .hero-cta-depois { display: none; }
+    html[data-hero-calculado] .hero-cta-antes { display: none; }
+    html[data-hero-calculado] .hero-cta-depois { display: inline-block; }
+
     .hero-grid {
       background-image:
         linear-gradient(rgba(238,152,92,0.04) 1px, transparent 1px),
@@ -191,6 +200,26 @@
           <p class="text-white/30 text-xs mt-3">
             Estimativa. O valor exato sai da sua declaração, e a plataforma confere antes de registrar.
           </p>
+
+          <!-- O CAMINHO CURTO.
+               Quem já tem o número não precisa de uma calculadora: precisa de
+               um botão. O botão principal da página levava a um formulário de
+               oito campos, fazendo a pessoa recomeçar mais difícil do que o
+               topo tinha acabado de resolver.
+               O valor viaja no link por `data-destinar="valor=…"`, que o
+               tenant.js junta ao PRONAC e ao título do projeto do tenant.
+               Dentro de `[data-prazo-convite]`: com a janela de captação
+               encerrada, este convite some junto com o resto. -->
+          <div data-prazo-convite class="mt-4">
+            <a data-destinar
+               class="flex items-center justify-center gap-2 font-black px-6 py-4 rounded-xl text-base transition-all hover:scale-[1.02] text-white orange-glow no-underline"
+               style="background:linear-gradient(135deg,#EE985C,#e07a35)">
+              Destinar <span id="heroDestinarValor">—</span> &rarr;
+            </a>
+            <p class="text-white/30 text-xs mt-2 text-center">
+              Leva ao assistente com este valor j&aacute; preenchido. Voc&ecirc; confere tudo antes de transferir.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -224,11 +253,22 @@
         <a href="cadastro-avisos.html" class="inline-block mt-3 text-sm font-bold" style="color:#EE985C">Quero ser avisado &rarr;</a>
       </div>
 
+      <!-- DOIS BOTÕES, UM DE CADA VEZ.
+           Antes do resultado, "Calcular" é o convite certo. DEPOIS dele, é a
+           pessoa sendo mandada de volta ao começo — e competindo com o botão
+           de destinar que acabou de aparecer no resultado. Os dois estão aqui
+           no HTML e o CSS escolhe qual aparece, a partir de
+           `html[data-hero-calculado]`: a troca não é decidida em JavaScript,
+           que só constata o fato. -->
       <div data-prazo-convite class="flex flex-col sm:flex-row gap-3 justify-center fade-up">
-        <a href="calculadora-rapida.html"
-           class="font-bold px-8 py-4 rounded-2xl text-base transition-all hover:scale-[1.02] text-white orange-glow"
+        <a href="calculadora-rapida.html" class="hero-cta-antes
+           font-bold px-8 py-4 rounded-2xl text-base transition-all hover:scale-[1.02] text-white orange-glow"
            style="background:linear-gradient(135deg,#EE985C,#e07a35)">
           Calcular quanto posso destinar →
+        </a>
+        <a href="calculadora.html" class="hero-cta-depois
+           border border-white/15 hover:border-white/35 text-white/75 hover:text-white px-8 py-4 rounded-2xl text-base transition-all font-medium">
+          Refinar com minhas dedu&ccedil;&otilde;es
         </a>
         <a href="como-funciona.html"
            class="border border-white/15 hover:border-white/35 text-white/75 hover:text-white px-8 py-4 rounded-2xl text-base transition-all font-medium">
@@ -581,11 +621,27 @@
         // tetos_deducao). Enquanto a marca não chegou, não há o que mostrar:
         // inventar 0.06 aqui seria a cópia que não acompanha o banco.
         const fracao = window.TETO_FRACAO;
-        if (!ir || !fracao) { caixa.hidden = true; return; }
+        if (!ir || !fracao) {
+          caixa.hidden = true;
+          // Apagou o campo: volta tudo ao estado de quem ainda não calculou.
+          // Sem isto, o botão principal continuaria sendo "Refinar" com o
+          // resultado fora da tela, e a página pediria refino de nada.
+          delete document.documentElement.dataset.heroCalculado;
+          return;
+        }
 
         const podeDestinar = Math.round(ir * fracao * 100) / 100;
         limite.textContent = BRL(podeDestinar);
         caixa.hidden = false;
+
+        // O número também no botão: "Destinar R$ 945,97 →" é um convite
+        // concreto; "Destinar" sozinho é mais uma etapa.
+        const noBotao = document.getElementById('heroDestinarValor');
+        if (noBotao) noBotao.textContent = BRL(podeDestinar);
+
+        // Há resultado: o par de botões lá embaixo troca de lado. Só o fato
+        // vai para o documento — a aparência está no CSS.
+        document.documentElement.dataset.heroCalculado = '1';
 
         // Leva o valor para o assistente. O PRONAC e o título já estão na
         // href, postos pelo tenant.js a partir do projeto da organização —

@@ -160,6 +160,36 @@ await teste('a conta está no topo da home, e o valor viaja até o assistente', 
     return h.includes('pronac=2511274') && /valor=1200/.test(h);
   }, 'o link não carrega projeto e valor: ' + await pg.evaluate(
         () => document.querySelector('a[data-destinar]')?.getAttribute('href') || '(sem href)'));
+
+  // O CAMINHO CURTO. Quem já tem o número precisa de um botão, não de um
+  // formulário: o convite tem de estar DENTRO do resultado, com o valor
+  // escrito nele, e o par de botões lá embaixo tem de parar de oferecer
+  // "calcular" para quem acabou de calcular.
+  const curto = await pg.evaluate(() => {
+    const a = document.querySelector('#heroResultado a[data-destinar]');
+    return {
+      visivel: !!a?.getClientRects().length,
+      texto: (a?.textContent || '').replace(/\s+/g, ' ').trim(),
+      calculado: document.documentElement.dataset.heroCalculado || '',
+      antes:  !!document.querySelector('.hero-cta-antes')?.getClientRects().length,
+      depois: !!document.querySelector('.hero-cta-depois')?.getClientRects().length
+    };
+  });
+  if (!curto.visivel) throw new Error('o botão de destinar não aparece com o resultado');
+  if (!/1\.200/.test(curto.texto)) throw new Error('o botão não traz o valor: ' + curto.texto);
+  if (curto.antes)   throw new Error('"Calcular" continua sendo oferecido a quem já calculou');
+  if (!curto.depois) throw new Error('o caminho do cálculo detalhado sumiu');
+
+  // E apagar o campo volta tudo ao começo: sem isto a página pediria refino
+  // de um número que não está mais na tela.
+  await pg.fill('#heroIr', '');
+  await ate(pg, () => !document.documentElement.dataset.heroCalculado,
+            'apagar o campo não desfez o estado de calculado');
+  const voltou = await pg.evaluate(() => ({
+    antes:  !!document.querySelector('.hero-cta-antes')?.getClientRects().length,
+    depois: !!document.querySelector('.hero-cta-depois')?.getClientRects().length
+  }));
+  if (!voltou.antes || voltou.depois) throw new Error('os botões não voltaram ao estado inicial');
 });
 
 await teste('quem digita antes de a marca chegar não fica sem resposta', async pg => {
