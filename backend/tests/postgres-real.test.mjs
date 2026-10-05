@@ -279,6 +279,96 @@ await teste('o vocabulario do mecanismo existe no banco e esta completo (migrati
   }
 });
 
+await teste('todo status que o codigo escreve CABE na coluna (migration 054)', async () => {
+  // A licao da coluna que o codigo le sem existir, um nivel adiante: o valor
+  // que o codigo ESCREVE tem de caber.
+  //
+  // `donations.status` nasceu VARCHAR(20) e o fluxo tem um status de 21 —
+  // `awaiting_confirmation`, escrito quando o contribuinte anexa o
+  // comprovante. O pg-mem nao aplica comprimento de VARCHAR, entao a suite
+  // inteira passava verde. Num Postgres de verdade e erro 22001: a pessoa
+  // transferia o dinheiro, anexava o comprovante, recebia "Erro ao enviar
+  // comprovante" e a destinacao ficava em `pending` para sempre — fora da fila
+  // do gestor, sem recibo, com o dinheiro ja fora da conta dela.
+  const [{ character_maximum_length: largura }] = await q(
+    `SELECT character_maximum_length FROM information_schema.columns
+      WHERE table_schema='public' AND table_name='donations' AND column_name='status'`);
+
+  // Os literais vem do CODIGO, nao de uma lista escrita aqui: uma lista a mao
+  // envelhece no dia em que alguem acrescentar um status numa rota.
+  const SRC = path.join(AQUI, '../src');
+  const arquivos = [];
+  (function varre(dir) {
+    for (const nome of fs.readdirSync(dir)) {
+      const alvo = path.join(dir, nome);
+      if (fs.statSync(alvo).isDirectory()) varre(alvo);
+      else if (nome.endsWith('.js')) arquivos.push(alvo);
+    }
+  })(SRC);
+
+  const achados = new Map();          // status -> primeiro arquivo onde aparece
+  for (const arq of arquivos) {
+    const texto = fs.readFileSync(arq, 'utf8');
+    texto.split('\n').forEach((linha) => {
+      if (!/\bstatus\b/.test(linha)) return;
+      if (/^\s*(\/\/|\*)/.test(linha)) return;        // comentario nao escreve nada
+      for (const m of linha.matchAll(/'([a-z][a-z_]{2,})'/g)) {
+        if (!achados.has(m[1])) achados.set(m[1], path.relative(SRC, arq));
+      }
+    });
+  }
+
+  // O vocabulario real esta no CHECK da coluna: o que o banco aceita e a
+  // verdade, e cruzar com ele descarta os literais que so passavam perto da
+  // palavra "status" na mesma linha.
+  const [{ pg_get_constraintdef: regra }] = await q(
+    `SELECT pg_get_constraintdef(oid) FROM pg_constraint
+      WHERE conname = 'donations_status_conhecido'`);
+  const permitidos = new Set([...regra.matchAll(/'([a-z_]+)'/g)].map(m => m[1]));
+
+  if (!permitidos.size) throw new Error('a coluna status nao declara o vocabulario (CHECK ausente)');
+
+  const grandes = [...permitidos].filter(s => s.length > largura);
+  if (grandes.length) {
+    throw new Error(
+      `status maior que a coluna VARCHAR(${largura}): ` +
+      grandes.map(s => `${s} (${s.length})`).join(', '));
+  }
+
+  // E o caminho inverso: status escrito numa rota e desconhecido do banco
+  // seria recusado pelo CHECK em producao, em silencio ate alguem tentar.
+  const fora = [...achados].filter(([s]) =>
+    /^(pending|awaiting_|confirmed|cancelled|mecenato_|error$)/.test(s) && !permitidos.has(s));
+  if (fora.length) {
+    throw new Error('status escrito no codigo e ausente do CHECK: ' +
+      fora.map(([s, a]) => `${s} (${a})`).join(', '));
+  }
+});
+
+await teste('o comprovante avanca a destinacao num Postgres de verdade', async () => {
+  // O teste acima guarda a regra; este guarda o efeito, que e o que importa:
+  // depois do upload a destinacao tem de SAIR de `pending`, senao ela nunca
+  // chega a fila do gestor. Escrito como o banco ve, sem passar pela rota, de
+  // proposito — e o UPDATE que falhava, nao o multer.
+  const [org] = await q(`SELECT id FROM organizations LIMIT 1`);
+  const [pessoa] = await q(
+    `INSERT INTO users (cpf, nome, email, senha_hash, email_verified, organization_id)
+     VALUES ('11144477735','Auditoria','auditoria-status@exemplo.invalido','!',true,$1)
+     ON CONFLICT (email) DO UPDATE SET nome = EXCLUDED.nome
+     RETURNING id`, [org.id]);
+  const [d] = await q(
+    `INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido, fiscal_year, status)
+     VALUES ($1,$2,100,2000,2026,'pending') RETURNING id`, [pessoa.id, org.id]);
+
+  await q(`UPDATE donations SET status = 'awaiting_confirmation' WHERE id = $1`, [d.id]);
+
+  const [depois] = await q(`SELECT status FROM donations WHERE id = $1`, [d.id]);
+  igual(depois.status, 'awaiting_confirmation', 'status apos o comprovante');
+
+  await q(`DELETE FROM donations WHERE id = $1`, [d.id]);
+  await q(`DELETE FROM users WHERE id = $1`, [pessoa.id]);
+});
+
 servidor.close();
 await pool.end();
 
