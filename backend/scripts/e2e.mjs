@@ -419,6 +419,43 @@ await teste('o relógio do prazo chega ao topo da home, com a urgência', async 
   if (estado.fechadoVisivel) throw new Error('o aviso de encerrado apareceu com a janela aberta');
 });
 
+await teste('o validador chega pronto quando vem com os números na URL', async pg => {
+  // O validador era a melhor pagina do site e a mais escondida: so se chegava
+  // a ela pela Biblioteca Juridica. Agora o assistente e o painel trazem a
+  // pessoa com os numeros na URL. O que se mede aqui, e nenhum teste estatico
+  // alcanca: os campos preenchidos, o laudo gerado e a conclusao na tela.
+  await ir(pg, 'validador.html?ir=18516.22&rouanet=1110.97');
+
+  await ate(pg, () => {
+    const r = document.getElementById('resultado');
+    return r && !r.classList.contains('hidden');
+  }, 'a conferência não apareceu pronta');
+
+  const tela = await pg.evaluate(() => ({
+    ir:      document.getElementById('ir-devido')?.value || '',
+    rouanet: document.getElementById('v-rouanet')?.value || '',
+    laudo:   document.getElementById('laudo-itens')?.innerText || ''
+  }));
+  if (!/18\.516,22/.test(tela.ir))      throw new Error('o IR devido não chegou: ' + tela.ir);
+  if (!/1\.110,97/.test(tela.rouanet))  throw new Error('o valor não chegou: ' + tela.rouanet);
+  if (!/Conclus[ãa]o/.test(tela.laudo))  throw new Error('o laudo não foi gerado: ' + tela.laudo.slice(0, 120));
+  if (/NaN/.test(tela.laudo))            throw new Error('NaN no laudo: ' + tela.laudo.slice(0, 120));
+});
+
+await teste('URL estragada não produz laudo nenhum', async pg => {
+  // `?ir=abc` e `?rouanet=-5` sao dado de fora como qualquer outro. O pior
+  // resultado seria uma tela de NaN com cara de conferencia.
+  await ir(pg, 'validador.html?ir=abc&rouanet=-5');
+  await pg.waitForTimeout(600);
+  const tela = await pg.evaluate(() => ({
+    ir:      document.getElementById('ir-devido')?.value || '',
+    rouanet: document.getElementById('v-rouanet')?.value || '',
+    aberto:  !document.getElementById('resultado')?.classList.contains('hidden')
+  }));
+  if (tela.ir || tela.rouanet) throw new Error('lixo da URL entrou nos campos: ' + JSON.stringify(tela));
+  if (tela.aberto) throw new Error('a conferência abriu sem número nenhum');
+});
+
 await teste('a foto do projeto do cliente chega à tela', async pg => {
   // Nenhum teste de unidade prova isto: eles provam que a rota entrega a
   // imagem e que o JSON a carrega. Que ela CHEGA ao elemento é trabalho de
