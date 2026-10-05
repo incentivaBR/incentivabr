@@ -208,7 +208,13 @@
         <p id="heroIrAjuda" class="text-white/30 text-xs mt-2 leading-relaxed">
           É o <strong class="text-white/50">Imposto Devido</strong> da sua declaração &mdash; ficha
           &ldquo;C&aacute;lculo do Imposto&rdquo;. N&atilde;o &eacute; o que foi retido no contracheque.
-          <a href="calculadora.html" class="underline hover:text-white/60" style="color:#EE985C">N&atilde;o sei o meu &rarr;</a>
+          <!-- "Não sei o meu" não é "calcule por mim": é "onde eu acho isso?".
+               Este link levava direto à calculadora de oito campos, que estima
+               — quando o número exato está na declaração que a pessoa já tem.
+               O guia mostra onde, com o resumo da declaração desenhado, e leva
+               à calculadora quem não tem a declaração em mãos. Quem não mexe na
+               própria declaração encontra lá a mensagem para o contador. -->
+          <a href="guia-ir-servidor.html#parte1" class="underline hover:text-white/60" style="color:#EE985C">Onde eu acho esse n&uacute;mero? &rarr;</a>
         </p>
 
         <div id="heroResultado" hidden aria-live="polite"

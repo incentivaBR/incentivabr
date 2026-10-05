@@ -221,7 +221,12 @@ await teste('nenhuma pagina escreve a mao um numero que o [data-fiscal] ja serve
     ['percentual do art. 18 (data-fiscal="art18_pct")',
      /\b100\s*%\s*dedut/i],
     ['fracao do teto escrita como numero',
-     /(?:×|\bx\b|\*)\s*0,0\d/]
+     /(?:×|\bx\b|\*)\s*0,0\d/],
+    // "IRRF" é o imposto retido com outro nome, e foi por esse nome que a
+    // conta errada sobreviveu duas vezes no guia do servidor depois de ter
+    // sido tirada de três outras páginas.
+    ['teto calculado sobre o imposto retido',
+     /(IRRF|retid\w+)[^.<]{0,80}(×|\bx\b|\*)\s*(0,0?\d|<span data-fiscal="teto_pct")/i]
   ];
 
   const achados = [];

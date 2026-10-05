@@ -251,7 +251,7 @@ Requisito: a destinação via Lei Rouanet exige a Declaração Completa (não a 
 Servidores públicos com renda acima de 2 salários mínimos devem optar pelo modelo completo para aproveitar as deduções.
 ### Parte 1 — Como encontrar o valor do IR Devido
 O que você destina pode voltar pra você
-Imposto retido na fonte (ano) R$ 10.000
+Imposto devido no ano R$ 10.000
 Destinação Rouanet (6%) − R$ 600
 Restituição extra + R$ 600
 Custo líquido pro seu bolso R$ 0
@@ -288,10 +288,15 @@ O valor que você precisa é o Imposto Devido — no exemplo: R$ 8.200,00.
 Seu limite de destinação = R$ 8.200 × 6% = R$ 492,00.
 Dica: mesmo que o Imposto a Restituir seja diferente de zero, o que importa para o limite é o
 Imposto Devido, não o valor retido ou restituído.
-#### Via imposto retido na fonte (quando não tem a declaração em mãos)
-Estimativa
-Se você não tem a declaração IRPF em mãos, pode usar o imposto retido na fonte ao longo do ano como estimativa.
-Esse valor aparece nos seus contracheques mensais e é uma aproximação razoável — mas o valor exato está na declaração.
+#### Pelo contracheque, quando não tem a declaração em mãos
+Não serve para o limite
+O contracheque mostra o imposto retido, que é o que foi recolhido mês a mês.
+O limite de destinação é calculado sobre o imposto devido, que só aparece
+depois das deduções do ajuste anual — e para quem tem despesas médicas, educação ou previdência
+privada o retido costuma ser maior que o devido.
+Então o contracheque serve para uma coisa, e é uma coisa útil:
+saber se você paga IR. Se há IRRF no seu contracheque, há o que destinar.
+O quanto vem da declaração (Método 1) ou da calculadora.
 - 1
 ##### Abra o contracheque de dezembro do ano anterior
 O contracheque de dezembro geralmente acumula o total anual na coluna "Ano" ou "Acumulado".
@@ -303,12 +308,14 @@ INSS: R$ 710,00
 IRRF (mês): R$ 680,00
 IRRF (acumulado ano): R$ 7.900,00
 - 3
-##### Use o IRRF acumulado como estimativa do IR Devido
-No exemplo: IRRF acumulado = R$ 7.900 → limite estimado = R$ 7.900 × 6% = R$ 474,00.
-Atenção: o IRRF retido é uma estimativa do IR Devido. O valor exato só é calculado na declaração anual,
-considerando todas as deduções (saúde, dependentes, educação etc.). Use o
-MeuLimite
-para uma estimativa mais precisa.
+##### Tem IRRF? Então você tem o que destinar
+No exemplo há IRRF acumulado no ano, então há imposto a destinar. Esse número
+não é o seu limite: ele é maior que o devido para quem tem deduções, e
+usá-lo na conta dos 6% daria um limite acima do que a lei permite.
+Para chegar ao número: o Método 1 tira o IR devido da sua declaração do ano passado.
+Se você não a tem em mãos, a
+calculadora
+chega ao IR devido a partir dos seus rendimentos e deduções — não do valor retido.
 #### Via SIGEPE (servidor federal)
 Federal
 O SIGEPE (Sistema de Gestão de Pessoas do Governo Federal) permite consultar o histórico de remuneração
@@ -320,10 +327,34 @@ Entre em sigepe.gov.br com seu login gov.br (CPF + senha).
 ##### Vá em "Contracheque" → "Histórico de Pagamentos"
 Selecione o ano de referência e exporte o resumo anual.
 - 3
-##### Some todos os valores de "IRRF" do ano
-A soma dos IRRF mensais é o total retido na fonte — use como base de estimativa do IR Devido.
+##### Baixe o Informe de Rendimentos do ano
+É ele que traz os rendimentos e o IRRF consolidados do ano, e é dele que sai a sua declaração.
+O IR devido aparece depois, no cálculo da declaração — a soma do IRRF
+não é o IR devido.
 O SIGEPE também emite o Informe de Rendimentos anual, que é a fonte mais confiável para preencher
 a declaração. Disponível em: SIGEPE → Minha Área → Informe de Rendimentos.
+#### Minha declaração quem faz é o contador
+Então você não precisa procurar número nenhum. Quem tem o IR devido na mão é ele —
+e são só duas perguntas:
+- 1.
+Qual foi o meu imposto devido no ano passado?
+- 2.
+A minha declaração é no modelo completo?
+(no simplificado a dedução não existe, e o valor não volta)
+A mensagem abaixo já pergunta as duas e explica o que você quer fazer. Copie e mande para ele:
+Olá! Quero destinar parte do meu Imposto de Renda devido a um projeto cultural aprovado pela Lei Rouanet, usando o incentivo do art. 18 (100% dedutível, até 6% do imposto devido).
+Preciso de duas informações suas:
+1) Qual foi o meu imposto devido no último ano-calendário?
+2) Minha declaração é feita no modelo completo?
+A transferência vai direto para a conta de captação do projeto, aprovada pelo Ministério da Cultura, e o proponente emite o Recibo de Mecenato em meu nome. Na declaração, o valor entra na ficha " Doações Efetuadas ", código 41.
+Se você concordar, me diga até quanto posso destinar que eu faço a transferência ainda este ano — a dedução vale pelo valor pago dentro do ano-calendário.
+O projeto e as regras estão em este site
+Copiar mensagem
+Abrir no WhatsApp
+Abrir no e-mail
+✓ Mensagem copiada.
+Quem decide se o valor cabe é quem assina a sua declaração. A plataforma confere o limite
+antes de registrar, mas não substitui contador nem advogado.
 ### Parte 2 — Como lançar a destinação na declaração de IR
 Após fazer a transferência para o projeto cultural, você precisa registrar a destinação na sua declaração anual do IRPF
 (programa da Receita Federal). Siga os passos abaixo.

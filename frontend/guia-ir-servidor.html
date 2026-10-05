@@ -119,7 +119,7 @@
       <div class="bg-[#0F1E3D] rounded-2xl p-5 mb-6 text-white">
         <p class="text-sm font-bold text-[#EE985C] mb-3">O que você destina pode voltar pra você</p>
         <div class="font-mono text-sm space-y-1 text-white/90 mb-3">
-          <div class="flex justify-between"><span>Imposto retido na fonte (ano)</span><span>R$ 10.000</span></div>
+          <div class="flex justify-between"><span>Imposto devido no ano</span><span>R$ 10.000</span></div>
           <div class="flex justify-between"><span>Destinação Rouanet (<span data-fiscal="teto_pct">6%</span>)</span><span class="text-red-300">− R$ 600</span></div>
           <div class="border-t border-white/20 mt-2 pt-2 flex justify-between font-bold"><span>Restituição extra</span><span class="text-[#EE985C]">+ R$ 600</span></div>
           <div class="flex justify-between"><span>Custo líquido pro seu bolso</span><span class="text-green-300 font-bold">R$ 0</span></div>
@@ -215,14 +215,30 @@
       <details class="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
         <summary class="flex items-center gap-3 px-6 py-5 cursor-pointer hover:bg-slate-50 transition-colors">
           <div class="w-8 h-8 rounded-full bg-[#0F1E3D] text-white text-sm font-bold flex items-center justify-center flex-shrink-0">2</div>
-          <h3 class="font-bold text-[#0F1E3D] flex-1 text-[15px]">Via imposto retido na fonte (quando não tem a declaração em mãos)</h3>
-          <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide flex-shrink-0 hidden sm:inline">Estimativa</span>
+          <h3 class="font-bold text-[#0F1E3D] flex-1 text-[15px]">Pelo contracheque, quando não tem a declaração em mãos</h3>
+          <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide flex-shrink-0 hidden sm:inline">Não serve para o limite</span>
           <i class="fas fa-chevron-down text-slate-400 chevron transition-transform duration-200 flex-shrink-0 ml-1"></i>
         </summary>
         <div class="px-6 py-6 border-t border-slate-100">
+          <!-- ESTE MÉTODO NÃO CALCULA LIMITE.
+               Ele dizia "use o IRRF acumulado como estimativa do IR Devido" e
+               multiplicava por 6% — a mesma conta que já foi tirada da home, do
+               FAQ e do como-funciona. Quem tem despesas médicas, educação ou
+               previdência privada tem retido MAIOR que o devido, então a conta
+               prometia limite acima do que a lei dá.
+               O contracheque continua servindo para uma coisa só, e é uma coisa
+               útil: dizer se você paga IR. Quem paga tem o que destinar; o
+               quanto vem da declaração ou da calculadora. -->
           <p class="text-sm text-slate-600 leading-relaxed mb-5">
-            Se você não tem a declaração IRPF em mãos, pode usar o <strong>imposto retido na fonte</strong> ao longo do ano como estimativa.
-            Esse valor aparece nos seus contracheques mensais e é uma aproximação razoável — mas o valor exato está na declaração.
+            O contracheque mostra o <strong>imposto retido</strong>, que é o que foi recolhido mês a mês.
+            O limite de destinação é calculado sobre o <strong>imposto devido</strong>, que só aparece
+            depois das deduções do ajuste anual — e para quem tem despesas médicas, educação ou previdência
+            privada o retido costuma ser <strong>maior</strong> que o devido.
+          </p>
+          <p class="text-sm text-slate-600 leading-relaxed mb-5">
+            Então o contracheque serve para uma coisa, e é uma coisa útil:
+            <strong>saber se você paga IR</strong>. Se há IRRF no seu contracheque, há o que destinar.
+            O quanto vem da declaração (Método 1) ou da calculadora.
           </p>
           <ol class="space-y-5">
             <li class="flex gap-4 items-start">
@@ -252,9 +268,11 @@
             <li class="flex gap-4 items-start">
               <div class="w-7 h-7 rounded-full bg-[#0F1E3D] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
               <div>
-                <h4 class="font-bold text-[#0F1E3D] text-sm mb-1">Use o IRRF acumulado como estimativa do IR Devido</h4>
+                <h4 class="font-bold text-[#0F1E3D] text-sm mb-1">Tem IRRF? Então você tem o que destinar</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">
-                  No exemplo: IRRF acumulado = R$ 7.900 → limite estimado = R$ 7.900 × <span data-fiscal="teto_pct">6%</span> = <strong>R$ 474,00</strong>.
+                  No exemplo há IRRF acumulado no ano, então há imposto a destinar. Esse número
+                  <strong>não é o seu limite</strong>: ele é maior que o devido para quem tem deduções, e
+                  usá-lo na conta dos <span data-fiscal="teto_pct">6%</span> daria um limite acima do que a lei permite.
                 </p>
               </div>
             </li>
@@ -262,10 +280,10 @@
           <div class="flex gap-3 items-start bg-amber-50 border border-amber-300 rounded-xl p-4 mt-5">
             <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5 flex-shrink-0"></i>
             <p class="text-sm text-amber-900 leading-relaxed">
-              <strong>Atenção:</strong> o IRRF retido é uma <em>estimativa</em> do IR Devido. O valor exato só é calculado na declaração anual,
-              considerando todas as deduções (saúde, dependentes, educação etc.). Use o
-              <a href="calculadora.html" class="font-semibold underline text-amber-700">MeuLimite</a>
-              para uma estimativa mais precisa.
+              <strong>Para chegar ao número:</strong> o Método 1 tira o IR devido da sua declaração do ano passado.
+              Se você não a tem em mãos, a
+              <a href="calculadora.html" class="font-semibold underline text-amber-700">calculadora</a>
+              chega ao IR devido a partir dos seus rendimentos e deduções — não do valor retido.
             </p>
           </div>
         </div>
@@ -306,9 +324,11 @@
             <li class="flex gap-4 items-start">
               <div class="w-7 h-7 rounded-full bg-[#0F1E3D] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
               <div>
-                <h4 class="font-bold text-[#0F1E3D] text-sm mb-1">Some todos os valores de "IRRF" do ano</h4>
+                <h4 class="font-bold text-[#0F1E3D] text-sm mb-1">Baixe o Informe de Rendimentos do ano</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">
-                  A soma dos IRRF mensais é o total retido na fonte — use como base de estimativa do IR Devido.
+                  É ele que traz os rendimentos e o IRRF consolidados do ano, e é dele que sai a sua declaração.
+                  O <strong>IR devido</strong> aparece depois, no cálculo da declaração — a soma do IRRF
+                  <strong>não</strong> é o IR devido.
                 </p>
               </div>
             </li>
@@ -322,6 +342,87 @@
           </div>
         </div>
       </details>
+
+      <!-- ── QUEM FAZ A DECLARAÇÃO COM CONTADOR ────────────────────────
+           Os três métodos acima pressupõem que a pessoa mexe na própria
+           declaração. Muita gente não mexe: entrega os documentos ao contador
+           e recebe o recibo pronto. Para essa pessoa, "procure a ficha Cálculo
+           do Imposto" é um beco — ela não tem o arquivo, não tem o acesso e
+           não vai pedir para ter.
+
+           O que ela tem é o contador. A mensagem abaixo é escrita do ponto de
+           vista dela, pede as duas coisas que só o contador sabe (o IR devido
+           e se a declaração é no modelo completo) e deixa a decisão com ela.
+
+           NÃO é o e-mail da plataforma para o contador: nada sai daqui. O
+           texto fica na tela, a pessoa copia e manda do aparelho dela, por
+           onde ela já fala com o contador. Nenhum dado pessoal atravessa.
+
+           O endereço vem de `location.host`: no site de um cliente, um
+           endereço escrito à mão mandaria o contador para a página errada —
+           lição já aprendida na mensagem do Espaço do Contador. -->
+      <div class="bg-white rounded-2xl shadow-sm overflow-hidden border-2 border-[#EE985C]/30 mt-8" id="com-contador">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-[#EE985C]/15 text-[#EE985C] flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-user-tie text-sm"></i>
+          </div>
+          <h3 class="font-bold text-[#0F1E3D] flex-1 text-[15px]">Minha declaração quem faz é o contador</h3>
+        </div>
+        <div class="px-6 py-6">
+          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+            Então você não precisa procurar número nenhum. Quem tem o IR devido na mão é ele —
+            e são só <strong>duas perguntas</strong>:
+          </p>
+          <ol class="space-y-2 mb-5 text-sm text-slate-700">
+            <li class="flex gap-3"><span class="font-bold text-[#EE985C]">1.</span>
+              <span>Qual foi o meu <strong>imposto devido</strong> no ano passado?</span></li>
+            <li class="flex gap-3"><span class="font-bold text-[#EE985C]">2.</span>
+              <span>A minha declaração é no <strong>modelo completo</strong>?
+                <span class="text-slate-500">(no simplificado a dedução não existe, e o valor não volta)</span></span></li>
+          </ol>
+
+          <p class="text-sm text-slate-600 leading-relaxed mb-3">
+            A mensagem abaixo já pergunta as duas e explica o que você quer fazer. Copie e mande para ele:
+          </p>
+
+          <div id="msg-contador"
+               class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-[13px] text-slate-700 leading-relaxed whitespace-pre-line">Olá! Quero destinar parte do meu Imposto de Renda devido a um projeto cultural aprovado pela <span data-mecanismo="nome">Lei Rouanet</span>, usando o incentivo do art. 18 (<span data-fiscal="art18_pct">100%</span> dedutível, até <span data-fiscal="teto_pct">6%</span> do imposto devido).
+
+Preciso de duas informações suas:
+1) Qual foi o meu imposto devido no último ano-calendário?
+2) Minha declaração é feita no modelo completo?
+
+A transferência vai direto para a conta de captação do projeto, aprovada pelo Ministério da Cultura, e o proponente emite o <span data-termo="recibo">Recibo de Mecenato</span> em meu nome. Na declaração, o valor entra na ficha "<span data-fiscal="dirpf_ficha">Doações Efetuadas</span>", código <span data-fiscal="dirpf_cultura">41</span>.
+
+Se você concordar, me diga até quanto posso destinar que eu faço a transferência ainda este ano — a dedução vale pelo valor pago dentro do ano-calendário.
+
+O projeto e as regras estão em <span id="msg-contador-site">este site</span></div>
+
+          <div class="flex flex-wrap gap-2 mt-3">
+            <button type="button" onclick="copiarMensagemContador(this)"
+                    class="inline-flex items-center gap-2 bg-[#0F1E3D] hover:bg-[#1a2f5c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+              <i class="fas fa-copy"></i> Copiar mensagem
+            </button>
+            <a id="msg-contador-wa" href="#" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 border border-slate-200 hover:border-slate-400 text-slate-700 text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+              <i class="fab fa-whatsapp"></i> Abrir no WhatsApp
+            </a>
+            <a id="msg-contador-email" href="#"
+               class="inline-flex items-center gap-2 border border-slate-200 hover:border-slate-400 text-slate-700 text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+              <i class="fas fa-envelope"></i> Abrir no e-mail
+            </a>
+          </div>
+          <p id="msg-contador-ok" class="hidden mt-2 text-emerald-700 text-xs font-semibold">✓ Mensagem copiada.</p>
+
+          <div class="flex gap-3 items-start bg-slate-50 border border-slate-200 rounded-xl p-4 mt-5">
+            <i class="fas fa-circle-info text-slate-400 mt-0.5 flex-shrink-0"></i>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Quem decide se o valor cabe é quem assina a sua declaração. A plataforma confere o limite
+              antes de registrar, mas não substitui contador nem advogado.
+            </p>
+          </div>
+        </div>
+      </div>
 
     </section><!-- /parte1 -->
 
@@ -644,6 +745,70 @@
   <script src="js/layout.js"></script>
   <script>Layout.init('como');</script>
   <script src="js/tina.js"></script>
+
+  <script>
+    // ── A MENSAGEM PARA O CONTADOR ──────────────────────────────────────
+    //
+    // Nada sai daqui: o texto fica na tela e a pessoa manda do aparelho dela,
+    // por onde já fala com o contador. Por isso não há rota, não há e-mail de
+    // terceiro guardado e nada muda no mapa de dados pessoais.
+    //
+    // O endereço vem de `location.host`, nunca escrito à mão: no site de um
+    // cliente, um endereço fixo mandaria o contador para a página da
+    // plataforma, onde o projeto do cliente não está.
+    (function () {
+      const bloco = document.getElementById('msg-contador');
+      if (!bloco) return;
+
+      const alvo = document.getElementById('msg-contador-site');
+      if (alvo && location.host) alvo.textContent = location.host.replace(/^www\./, '');
+
+      // O texto é lido do DOM, não montado aqui: assim ele sai com o que o
+      // tenant.js já preencheu (nome da lei, percentual, nome do recibo) e
+      // não há uma segunda cópia da mensagem para divergir da primeira.
+      const texto = () => bloco.innerText.trim();
+
+      function aponta() {
+        const t = encodeURIComponent(texto());
+        const wa = document.getElementById('msg-contador-wa');
+        const mail = document.getElementById('msg-contador-email');
+        if (wa) wa.href = 'https://wa.me/?text=' + t;
+        if (mail) {
+          mail.href = 'mailto:?subject=' +
+            encodeURIComponent('Destinação de parte do meu IR devido — duas perguntas') +
+            '&body=' + t;
+        }
+      }
+
+      // Uma vez agora (sem JavaScript do tenant a reserva já é legível) e de
+      // novo quando a marca chega, porque é ela que troca os termos.
+      aponta();
+      window.addEventListener('brandLoaded', aponta);
+      setTimeout(aponta, 1200);
+
+      window.copiarMensagemContador = function (btn) {
+        const ok = document.getElementById('msg-contador-ok');
+        const feito = () => {
+          if (ok) { ok.classList.remove('hidden'); setTimeout(() => ok.classList.add('hidden'), 3000); }
+          if (btn) {
+            const antes = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copiado';
+            setTimeout(() => { btn.innerHTML = antes; }, 2000);
+          }
+        };
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(texto()).then(feito).catch(() => bloco.focus());
+        } else {
+          // Sem permissão de área de transferência o texto continua na tela,
+          // selecionável. Falhar em silêncio seria pior que não ter o botão.
+          const faixa = document.createRange();
+          faixa.selectNodeContents(bloco);
+          const sel = window.getSelection();
+          sel.removeAllRanges(); sel.addRange(faixa);
+        }
+      };
+    })();
+  </script>
 
 <!-- incentivabr-legal -->
 <div style="max-width:1100px;margin:0 auto;padding:22px 18px 30px;text-align:center;border-top:1px solid rgba(128,128,128,0.14);font-size:11px;line-height:1.7;color:rgba(128,128,128,0.75);font-family:inherit">

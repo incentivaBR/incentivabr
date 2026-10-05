@@ -270,8 +270,13 @@ await teste('o campo do topo pede o IR DEVIDO, nao o retido', () => {
 await teste('quem nao sabe o IR devido tem para onde ir', () => {
   // Um campo que a pessoa nao consegue responder mata o topo da pagina — e o
   // topo e o que precisa atender quem nunca destinou.
+  //
+  // A saida era a calculadora. Passou a ser o guia (out/2026): "nao sei o meu"
+  // quase sempre quer dizer "onde eu acho isso?", e o numero exato esta na
+  // declaracao que a pessoa ja tem — o guia mostra onde, e leva a calculadora
+  // quem nao a tem em maos. Qualquer um dos dois serve; nenhum nao.
   const bloco = HOME.slice(HOME.indexOf('for="heroIr"'), HOME.indexOf('id="heroResultado"'));
-  if (!/calculadora\.html/.test(bloco)) {
+  if (!/(calculadora|guia-ir-servidor)\.html/.test(bloco)) {
     throw new Error('nao ha caminho para quem nao sabe o proprio IR devido');
   }
 });

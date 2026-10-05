@@ -419,6 +419,75 @@ await teste('o relógio do prazo chega ao topo da home, com a urgência', async 
   if (estado.fechadoVisivel) throw new Error('o aviso de encerrado apareceu com a janela aberta');
 });
 
+await teste('a mensagem para o contador sai pronta, com os termos do cliente', async pg => {
+  // Quem entrega os documentos ao contador não tem o IR devido e não vai
+  // procurá-lo: o que ela tem é o contador. A mensagem é o caminho dela.
+  //
+  // O que só o navegador prova: que o texto chega à tela com o vocabulário do
+  // MECANISMO (nome da lei, nome do recibo) no lugar da reserva do HTML, que o
+  // endereço é o deste site e não um escrito à mão, e que os links de envio
+  // levam o texto já preenchido. Nenhum teste estático alcança isso, porque
+  // tudo acontece depois de /api/config/brand responder.
+  await ir(pg, 'guia-ir-servidor.html?org=casa-azul');
+
+  await ate(pg, () => {
+    const el = document.getElementById('msg-contador-site');
+    return el && el.textContent.trim() !== 'este site';
+  }, 'o endereço não chegou à mensagem');
+
+  const msg = await pg.evaluate(() => {
+    const b = document.getElementById('msg-contador');
+    return {
+      texto: b?.innerText?.replace(/\s+/g, ' ') || '',
+      site:  document.getElementById('msg-contador-site')?.textContent?.trim() || '',
+      wa:    document.getElementById('msg-contador-wa')?.getAttribute('href') || '',
+      mail:  document.getElementById('msg-contador-email')?.getAttribute('href') || '',
+      // Formulário nenhum: a escolha foi mensagem copiável, e um campo de
+      // e-mail do contador aqui faria dele destinatário de dado pessoal.
+      campos: b ? b.closest('#com-contador').querySelectorAll('input, form').length : -1
+    };
+  });
+
+  for (const [nome, re] of [
+    ['imposto devido', /imposto devido/i],
+    ['modelo completo', /modelo completo/i],
+    ['a ficha da declaração', /Doa[çc][õo]es Efetuadas/i]
+  ]) {
+    if (!re.test(msg.texto)) throw new Error('a mensagem não pergunta/diz: ' + nome);
+  }
+
+  if (msg.campos !== 0) throw new Error('há formulário no bloco do contador');
+
+  // O endereço é o deste site. Um fixo mandaria o contador do cliente para a
+  // página da plataforma, onde o projeto do cliente não está.
+  const host = new URL(BASE).host.replace(/^www\./, '');
+  if (msg.site !== host) throw new Error(`o endereço da mensagem é "${msg.site}", não "${host}"`);
+  if (!msg.texto.includes(host)) throw new Error('o endereço não aparece no texto copiado');
+
+  // API × DOM: o nome do recibo e o da lei são os do mecanismo do cliente.
+  const daApi = await pg.evaluate(async () =>
+    (await (await fetch('/api/config/brand')).json()).mecanismo);
+  if (daApi?.vocabulario?.recibo && !msg.texto.includes(daApi.vocabulario.recibo)) {
+    throw new Error('a mensagem não usa o nome do recibo do mecanismo: ' + daApi.vocabulario.recibo);
+  }
+  if (daApi?.nome && !msg.texto.includes(daApi.nome)) {
+    throw new Error('a mensagem não nomeia a lei do cliente: ' + daApi.nome);
+  }
+
+  // Os links levam o texto, escapado.
+  // O escape não começa necessariamente com "%": "Olá" vira "Ol%C3%A1". O que
+  // se mede é que o link existe, leva texto e não tem espaço cru dentro.
+  for (const [nome, href, prefixo] of [
+    ['WhatsApp', msg.wa,   'https://wa.me/?text='],
+    ['e-mail',   msg.mail, 'mailto:?subject=']
+  ]) {
+    if (!href.startsWith(prefixo)) throw new Error(`o link de ${nome} não leva o texto: ` + href.slice(0, 60));
+    if (href.length < prefixo.length + 100) throw new Error(`o link de ${nome} saiu vazio`);
+    if (/[ \n"<>]/.test(href)) throw new Error(`o link de ${nome} tem caractere cru: ` + href.slice(0, 80));
+  }
+  if (!decodeURIComponent(msg.wa).includes(host))  throw new Error('o link do WhatsApp não carrega o endereço do site');
+});
+
 await teste('a prova de confiança está no topo, e não depende do convite', async pg => {
   // A pergunta que decide é "isso é real? eu perco dinheiro?", e a resposta
   // vivia no FAQ, no fim da página, dentro de um acordeão fechado.
