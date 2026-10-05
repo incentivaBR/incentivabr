@@ -360,13 +360,158 @@ await teste('o comprovante avanca a destinacao num Postgres de verdade', async (
     `INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido, fiscal_year, status)
      VALUES ($1,$2,100,2000,2026,'pending') RETURNING id`, [pessoa.id, org.id]);
 
-  await q(`UPDATE donations SET status = 'awaiting_confirmation' WHERE id = $1`, [d.id]);
+  try {
+    await q(`UPDATE donations SET status = 'awaiting_confirmation' WHERE id = $1`, [d.id]);
+    const [depois] = await q(`SELECT status FROM donations WHERE id = $1`, [d.id]);
+    igual(depois.status, 'awaiting_confirmation', 'status apos o comprovante');
+  } finally {
+    // Sem o finally, uma falha aqui deixava a pessoa no banco e o teste
+    // seguinte morria com "CPF ja esta em outra conta" — o defeito de verdade
+    // escondido atras de um 409 que nao era sobre ele.
+    await q(`DELETE FROM donations WHERE id = $1`, [d.id]);
+    await q(`DELETE FROM users WHERE id = $1`, [pessoa.id]);
+  }
+});
 
-  const [depois] = await q(`SELECT status FROM donations WHERE id = $1`, [d.id]);
-  igual(depois.status, 'awaiting_confirmation', 'status apos o comprovante');
+// ── O CAMINHO DO DINHEIRO, INTEIRO ──────────────────────────────────────────
+//
+// Por que isto existe: em out/2026 o primeiro elo deste caminho estava
+// QUEBRADO em producao e a suite inteira passava verde. `donations.status` era
+// VARCHAR(20) e o upload do comprovante escreve `awaiting_confirmation`, que
+// tem 21 — erro 22001 no Postgres, silencio no pg-mem.
+//
+// O defeito foi achado percorrendo o caminho a mao contra um Postgres de
+// verdade. Este teste e aquela caminhada, para que ninguem precise repeti-la:
+//
+//   registrar -> comprovante -> fila do gestor -> conferir -> recibo do
+//   proponente -> o destinador baixa o recibo dele
+//
+// Cada elo acontece DEPOIS de o dinheiro ter saido da conta de alguem. Um elo
+// quebrado aqui nao e tela feia: e uma pessoa que pagou e nao tem prova.
+await teste('o caminho do dinheiro vai de ponta a ponta num Postgres real', async () => {
+  const { default: tenantMiddleware } = await import('../src/middleware/tenant.js');
+  const { default: donationsRoutes } = await import('../src/routes/donations.js');
+  const { default: uploadsRoutes } = await import('../src/routes/uploads.js');
+  const { default: mecenatoRoutes } = await import('../src/routes/mecenato.js');
 
-  await q(`DELETE FROM donations WHERE id = $1`, [d.id]);
-  await q(`DELETE FROM users WHERE id = $1`, [pessoa.id]);
+  // Um cliente com projeto E conta de captacao: sem conta, a rota recusa fora
+  // da simulacao, e e justamente fora da simulacao que isto precisa valer.
+  const [org] = await q(
+    `INSERT INTO organizations (name, slug, incentive_group_code)
+     VALUES ('Casa de Teste','casa-de-teste','rouanet')
+     ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name RETURNING *`);
+  await q(
+    `INSERT INTO org_projects (organization_id, pronac, titulo, proponente_nome, uf,
+                               bank_name, bank_code, bank_agency, bank_account,
+                               is_active, is_featured)
+     VALUES ($1,'9999999','Projeto de Teste','Proponente de Teste','DF',
+             'Banco de Teste','001','0000-0','00000-0',true,true)
+     ON CONFLICT DO NOTHING`, [org.id]);
+
+  const app2 = express();
+  app2.use(express.json());
+  app2.use(tenantMiddleware);
+  app2.use('/api/auth', authRoutes);
+  app2.use('/api/donations', donationsRoutes);
+  app2.use('/api/uploads', uploadsRoutes);
+  app2.use('/api/mecenato', mecenatoRoutes);
+  const srv2 = http.createServer(app2);
+  await new Promise(r => srv2.listen(0, r));
+  const B2 = `http://127.0.0.1:${srv2.address().port}`;
+  const comOrg = (rota) => B2 + rota + (rota.includes('?') ? '&' : '?') + 'org=casa-de-teste';
+
+  const entra = async (email) => {
+    const r = await fetch(comOrg('/api/auth/login'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha: 'senha-bem-comprida' })
+    });
+    const corpo = await r.json();
+    if (!corpo.token) throw new Error(`login de ${email}: ${corpo.message || r.status}`);
+    return corpo.token;
+  };
+  const comJson = (rota, token, corpo) => fetch(comOrg(rota), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify(corpo || {})
+  }).then(async r => [r.status, await r.json().catch(() => ({}))]);
+  const comArquivo = (rota, token, campo, extras = {}) => {
+    const fd = new FormData();
+    // Os bytes decidem o tipo do arquivo, entao o PDF tem de comecar com %PDF.
+    fd.append(campo, new Blob([new TextEncoder().encode('%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n')],
+      { type: 'application/pdf' }), 'arquivo.pdf');
+    for (const [k, v] of Object.entries(extras)) fd.append(k, v);
+    return fetch(comOrg(rota), { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd })
+      .then(async r => [r.status, await r.json().catch(() => ({}))]);
+  };
+
+  try {
+    // Quem destina e quem confere.
+    const destinador = { nome: 'Servidor do Caminho', email: 'caminho@exemplo.invalido', senha: 'senha-bem-comprida', accepted_terms: true };
+    const gestora    = { nome: 'Gestora do Caminho', email: 'gestora-caminho@exemplo.invalido', senha: 'senha-bem-comprida', accepted_terms: true };
+    for (const conta of [destinador, gestora]) {
+      await fetch(comOrg('/api/auth/register'), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(conta)
+      });
+    }
+    const [gid] = await q(`SELECT id FROM users WHERE email = $1`, [gestora.email]);
+    await q(`INSERT INTO organization_users (organization_id, user_id, role, accepted_at, is_active)
+             VALUES ($1,$2,'org_admin',NOW(),true)
+             ON CONFLICT (organization_id, user_id) DO UPDATE SET role='org_admin', is_active=true`,
+            [org.id, gid.id]);
+    await q(`UPDATE users SET organization_id = $1 WHERE id = $2`, [org.id, gid.id]);
+
+    const tokenDestinador = await entra(destinador.email);
+    const tokenGestora    = await entra(gestora.email);
+
+    // 1. registrar
+    const [s1, r1] = await comJson('/api/donations/registrar', tokenDestinador, {
+      pronac: '9999999', donation_amount: 500, ir_devido: 20000,
+      cpf: '123.456.789-09', fiscal_year: 2026, modelo_completo: true
+    });
+    igual(s1, 201, 'registrar: ' + (r1.message || ''));
+    const id = r1.donation?.id;
+    if (!id) throw new Error('a destinacao nao voltou com id');
+
+    // 2. o comprovante — o elo que estava quebrado
+    const [s2, r2] = await comArquivo(`/api/uploads/receipt/${id}`, tokenDestinador, 'receipt',
+      { transferido_em: '2026-10-02' });
+    igual(s2, 200, 'comprovante: ' + (r2.message || ''));
+    const [d2] = await q(`SELECT status, transferido_em FROM donations WHERE id = $1`, [id]);
+    igual(d2.status, 'awaiting_confirmation', 'status apos o comprovante');
+    if (!d2.transferido_em) throw new Error('a data da transferencia nao foi guardada');
+
+    // 3. a fila do gestor — se a destinacao nao aparece aqui, ela sumiu
+    const fila = await fetch(comOrg('/api/donations/conferencia'), {
+      headers: { Authorization: 'Bearer ' + tokenGestora }
+    }).then(r => r.json());
+    if (!(fila.aguardando || []).some(d => d.id === id)) {
+      throw new Error('a destinacao nao apareceu na fila do gestor');
+    }
+
+    // 4. conferir
+    const [s4, r4] = await comJson(`/api/donations/${id}/confirmar`, tokenGestora);
+    igual(s4, 200, 'confirmar: ' + (r4.message || ''));
+    const [d4] = await q(`SELECT status, confirmed_at FROM donations WHERE id = $1`, [id]);
+    igual(d4.status, 'confirmed', 'status apos a conferencia');
+    if (!d4.confirmed_at) throw new Error('a conferencia nao marcou quando foi');
+
+    // 5. o recibo do proponente — o documento que vale na declaracao
+    const [s5, r5] = await comArquivo(`/api/mecenato/${id}`, tokenGestora, 'mecenato');
+    igual(s5, 200, 'recibo: ' + (r5.message || ''));
+    const [d5] = await q(`SELECT status, mecenato_filename FROM donations WHERE id = $1`, [id]);
+    igual(d5.status, 'mecenato_issued', 'status apos o recibo');
+    if (!d5.mecenato_filename) throw new Error('o recibo nao ficou registrado');
+
+    // 6. e o destinador consegue baixar o recibo DELE
+    const baixa = await fetch(comOrg(`/api/mecenato/${id}/arquivo`), {
+      headers: { Authorization: 'Bearer ' + tokenDestinador }
+    });
+    igual(baixa.status, 200, 'o destinador nao baixa o proprio recibo');
+    const bytes = (await baixa.arrayBuffer()).byteLength;
+    if (bytes < 10) throw new Error('o recibo baixado veio vazio');
+  } finally {
+    srv2.close();
+  }
 });
 
 servidor.close();
