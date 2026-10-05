@@ -227,8 +227,12 @@ teste('tenant.js troca a marca no titulo da aba', () => {
 });
 
 teste('tenant.js troca o alt junto com a logo do cliente', () => {
-  const trecho = TENANT.slice(TENANT.indexOf('brand-logo'));
-  if (!/el\.alt\s*=/.test(trecho.slice(0, 900))) {
+  // Ancorado na ATRIBUICAO do src, nao na primeira aparicao da classe: a
+  // classe passou a aparecer tambem no ramo que esconde a logo, e a guarda
+  // media a fatia errada.
+  const i = TENANT.indexOf('el.src = brand.logo_url');
+  if (i === -1) throw new Error('a troca da logo sumiu');
+  if (!/el\.alt\s*=/.test(TENANT.slice(i, i + 400))) {
     throw new Error('a logo do cliente com alt="IncentivaBR" volta a ser anunciada errado');
   }
 });
@@ -262,6 +266,58 @@ teste('o nome da lei vem do catalogo, nao escrito a mao', () => {
       throw new Error(`${nome} afirma a lei sem consultar o mecanismo do cliente`);
     }
   }
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// 4. A barra: a logo e os itens de menu
+// ───────────────────────────────────────────────────────────────────────────
+
+const LAYOUT = fs.readFileSync(path.join(FRONTEND, 'js/layout.js'), 'utf8');
+
+teste('sem logo do cliente, a barra mostra o NOME dele, nao a nossa marca', () => {
+  // Era o vazamento mais visivel que sobrava, e o primeiro que o publico do
+  // cliente via: `tenant.js` so trocava a imagem quando havia `logo_url`, e
+  // sem ela a barra do cliente ficava com a logo da IncentivaBR.
+  if (!/data-sem-logo/.test(LAYOUT)) throw new Error('a barra nao tem onde por o nome');
+  const trecho = TENANT.slice(TENANT.indexOf('const temLogoPropria'));
+  const corpo = trecho.slice(0, 900);
+  if (!/eh_plataforma === false && !temLogoPropria/.test(corpo)) {
+    throw new Error('a troca nao depende de ser cliente E nao ter logo propria');
+  }
+  if (!/\[data-sem-logo\]/.test(corpo)) throw new Error('o nome nao e revelado');
+  // E a logo da plataforma tem de SUMIR: deixar as duas seria pior.
+  if (!/brand-logo'\)\.forEach\(el => \{ el\.hidden = true/.test(corpo.replace(/\s+/g, ' '))
+      && !/el\.hidden = true; el\.style\.display = 'none'/.test(corpo.replace(/\s+/g, ' '))) {
+    throw new Error('a logo da plataforma continua visivel ao lado do nome');
+  }
+});
+
+teste('sem logo, a moldura branca sai junto', () => {
+  // A moldura existe para dar fundo a IMAGEM. Com o nome em texto branco, ela
+  // vira um retangulo branco com letra branca dentro — foi exatamente o que
+  // apareceu na primeira versao, e so a foto da tela pegou.
+  if (!/html\[data-sem-logo\][\s\S]{0,160}background:\s*none/.test(LAYOUT)) {
+    throw new Error('a moldura branca fica, e o nome some dentro dela');
+  }
+  if (!/documentElement\.dataset\.semLogo/.test(TENANT)) {
+    throw new Error('tenant.js nao avisa o documento de que nao ha logo');
+  }
+});
+
+teste('o item "Contadores" nao entra na barra do cliente', () => {
+  // E um canal que a IncentivaBR cultiva: no site do cliente o publico e o
+  // servidor que vai destinar, e o item vira funcao nossa na barra dele.
+  const item = /\{[^}]*id:\s*'contador'[^}]*\}/.exec(LAYOUT);
+  if (!item) throw new Error('o item sumiu da barra');
+  if (!/soPlataforma:\s*true/.test(item[0])) throw new Error('o item nao esta marcado');
+  if (!/l\.soPlataforma \? ' data-so-plataforma'/.test(LAYOUT)) {
+    throw new Error('a marca do item nao vira atributo no HTML');
+  }
+  // E no rodape tambem.
+  const rodape = LAYOUT.slice(LAYOUT.indexOf('_injectFooter'));
+  const link = /<a href="espaco-contador\.html"[^>]*>/.exec(rodape);
+  if (!link) throw new Error('o link do rodape sumiu');
+  if (!/data-so-plataforma/.test(link[0])) throw new Error('o rodape nao esconde o link no cliente');
 });
 
 console.log('\nA marca da plataforma nas páginas do cliente\n');

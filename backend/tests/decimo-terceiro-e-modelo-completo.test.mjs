@@ -226,6 +226,65 @@ await teste('a nota do 13o esta na tela, e so com valor informado', async () => 
   }
 });
 
+// ───────────────────────────────────────────────────────────────────────────
+// 4. Retido não é devido — e a conta do topo da home é sobre o devido
+// ───────────────────────────────────────────────────────────────────────────
+
+const HOME = fs.readFileSync(path.join(RAIZ, 'frontend/index.html'), 'utf8');
+
+/**
+ * Entidades resolvidas e comentarios fora.
+ *
+ * Duas armadilhas que este repositorio ja pisou: "N&atilde;o &eacute;" e a
+ * mesma frase que "Não é", e o COMENTARIO que explica por que o percentual
+ * nao se escreve a mao cita o percentual. Guarda que nao trata as duas acusa
+ * justamente o texto escrito para sustenta-la.
+ */
+const legivel = (x) => x
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/\/\/.*$/gm, '')
+  .replace(/&(a|e|i|o|u)(acute|grave|circ|tilde|uml);/gi, (_, v) => v)
+  .replace(/&ccedil;/gi, 'c')
+  .replace(/&ldquo;|&rdquo;|&nbsp;/gi, ' ')
+  .replace(/&rarr;/gi, '->');
+
+await teste('o campo do topo pede o IR DEVIDO, nao o retido', () => {
+  // A conta do topo multiplica o que a pessoa digita pelo teto, entao o numero
+  // tem de ser o imposto DEVIDO. O campo pedia "quanto foi RETIDO do seu
+  // salario": retido na fonte e o que o empregador recolheu mes a mes; devido
+  // e o que sobra depois das deducoes do ajuste anual. Para quem tem saude,
+  // educacao ou previdencia privada o retido e MAIOR — e a home prometia
+  // limite maior que o da lei, o lado da malha fina.
+  const limpo = legivel(HOME.slice(HOME.indexOf('for="heroIr"'), HOME.indexOf('id="heroResultado"')));
+  if (!/deveu|devido/i.test(limpo)) throw new Error('o campo nao pede o imposto devido');
+  // "retido" so pode aparecer para DIZER que nao e ele.
+  const m = /retid[oa]/i.exec(limpo);
+  if (m) {
+    const volta = limpo.slice(Math.max(0, m.index - 60), m.index + 20);
+    if (!/n[aã]o\s+[eé]/i.test(volta)) {
+      throw new Error('o campo volta a pedir o retido: …' + volta.replace(/\s+/g, ' ') + '…');
+    }
+  }
+});
+
+await teste('quem nao sabe o IR devido tem para onde ir', () => {
+  // Um campo que a pessoa nao consegue responder mata o topo da pagina — e o
+  // topo e o que precisa atender quem nunca destinou.
+  const bloco = HOME.slice(HOME.indexOf('for="heroIr"'), HOME.indexOf('id="heroResultado"'));
+  if (!/calculadora\.html/.test(bloco)) {
+    throw new Error('nao ha caminho para quem nao sabe o proprio IR devido');
+  }
+});
+
+await teste('a conta do topo nao escreve o percentual a mao', () => {
+  // O teto vem de `tetos_deducao` pelo tenant.js; uma fracao escrita aqui
+  // seria a copia que nao acompanha o banco.
+  const script = HOME.slice(HOME.indexOf('const campo = document.getElementById(\'heroIr\')'));
+  const corpo = legivel(script.slice(0, 2400));
+  if (/0\.06|\* 6 \/ 100/.test(corpo)) throw new Error('o percentual voltou a ser escrito a mao');
+  if (!/TETO_FRACAO/.test(corpo)) throw new Error('a conta nao le o teto do servidor');
+});
+
 console.log('\nO 13º fora da base, e o modelo completo como condição\n');
 ok.forEach(n => console.log('  ok   ' + n));
 falhas.forEach(([n, m]) => console.log('  FALHA ' + n + '\n         ' + m));

@@ -31,7 +31,12 @@ const Layout = {
     { id: 'calculadora', href: 'calculadora.html',      label: 'Calculadora' },
     { id: 'projetos',    href: 'projetos-rouanet.html', label: 'Projetos' },
     { id: 'como',        href: 'como-funciona.html',    label: 'Como funciona' },
-    { id: 'contador',    href: 'espaco-contador.html',  label: 'Contadores' },
+    // "Contadores" é um canal que a IncentivaBR cultiva: no site de um
+    // cliente, o público é o servidor que vai destinar, e um item de menu
+    // chamando contadores é função nossa na barra dele. `soPlataforma` vira
+    // `data-so-plataforma`, que tenant.js já esconde no site do cliente —
+    // mesmo mecanismo do cartão de white-label na home, já testado.
+    { id: 'contador',    href: 'espaco-contador.html',  label: 'Contadores', soPlataforma: true },
     { id: 'faq',         href: 'faq.html',              label: 'FAQ' }
   ],
 
@@ -58,6 +63,17 @@ const Layout = {
     s.id = 'dai-layout-styles';
     s.textContent = `
       :root { --dai-navy: #0F1E3D; --dai-acento: var(--secondary-color, #EE985C); }
+
+      /* O nome do cliente no lugar da logo, quando ele não tem uma. */
+      .dai-nav__nome { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 17px;
+                       color: #fff; letter-spacing: -0.3px; white-space: nowrap; }
+      .dai-footer__nome { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 14px;
+                          color: rgba(255,255,255,0.75); }
+      /* Sem logo, a moldura branca sai junto: ela existe para dar fundo à
+         IMAGEM, e com o nome em texto branco viraria letra branca sobre
+         branco. tenant.js só marca o documento; a aparência é decidida aqui. */
+      html[data-sem-logo] .dai-nav__logo,
+      html[data-sem-logo] .dai-footer__logo { background: none; padding-left: 0; padding-right: 0; }
 
       /* Sem backdrop-filter de propósito: filtro no <nav> faria a gaveta do
          celular (position: fixed, filha dele) se posicionar em relação à
@@ -125,7 +141,8 @@ const Layout = {
   _injectNav(activePage) {
     const linksHtml = this._links.map(l => {
       const active = l.id === activePage ? ' dai-nav__link--active' : '';
-      return `<a href="${l.href}" class="dai-nav__link${active}">${l.label}</a>`;
+      const soDaPlataforma = l.soPlataforma ? ' data-so-plataforma' : '';
+      return `<a href="${l.href}" class="dai-nav__link${active}"${soDaPlataforma}>${l.label}</a>`;
     }).join('');
 
     const nav = document.createElement('nav');
@@ -134,8 +151,14 @@ const Layout = {
     nav.setAttribute('aria-label', 'Principal');
     nav.innerHTML = `
       <div class="dai-nav__inner">
+        <!-- A logo do cliente, ou o NOME dele.
+             Até out/2026 a barra ficava com a nossa logo quando o cliente não
+             tinha logo_url cadastrada — e era a primeira coisa que o
+             público dele via no site dele. tenant.js troca a imagem quando há
+             logo; sem logo, esconde a imagem e mostra o nome. -->
         <a href="index.html" class="dai-nav__logo" aria-label="Início">
           <img class="brand-logo" src="assets/logo-incentivabr-compact.png" alt="IncentivaBR">
+          <span class="brand-name dai-nav__nome" data-sem-logo hidden></span>
         </a>
         <button type="button" class="dai-nav__burger" id="daiNavBurger" aria-label="Abrir menu"
                 aria-controls="daiNavLinks" aria-expanded="false"><span></span><span></span><span></span></button>
@@ -180,11 +203,11 @@ const Layout = {
     footer.className = 'dai-footer';
     footer.innerHTML = `
       <div class="dai-footer__inner">
-        <span class="dai-footer__logo"><img class="brand-logo" src="assets/logo-incentivabr-compact.png" alt="IncentivaBR"></span>
+        <span class="dai-footer__logo"><img class="brand-logo" src="assets/logo-incentivabr-compact.png" alt="IncentivaBR"><span class="brand-name dai-footer__nome" data-sem-logo hidden></span></span>
         <div class="dai-footer__links">
           <a href="como-funciona.html" class="dai-footer__link">Como funciona</a>
           <a href="faq.html" class="dai-footer__link">Perguntas frequentes</a>
-          <a href="espaco-contador.html" class="dai-footer__link">Contadores</a>
+          <a href="espaco-contador.html" class="dai-footer__link" data-so-plataforma>Contadores</a>
           <a href="cadastro-avisos.html" class="dai-footer__link">Receber avisos</a>
           <a href="politica-privacidade.html" class="dai-footer__link">Política de Privacidade</a>
           <a href="termos-uso.html" class="dai-footer__link">Termos de Uso</a>
