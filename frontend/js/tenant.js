@@ -360,7 +360,15 @@ const tenant = {
     // de convite e de senha). Trocar pela logo_url do banco punha a versão
     // quadrada na barra de 36px de altura: a logo abria grande e "encolhia"
     // um instante depois, assim que esta resposta chegava.
-    if (brand.logo_url && !ehLogoDaPlataforma(brand.logo_url)) {
+    // A logo do cliente, ou o NOME dele — nunca a nossa marca no site dele.
+    //
+    // Até out/2026 só havia o primeiro caso: com `logo_url` cadastrada, a
+    // imagem era trocada; SEM ela, a barra do cliente ficava com a logo da
+    // IncentivaBR. Era o vazamento mais visível que sobrava, e o primeiro que
+    // qualquer visitante dele via. Agora, sem logo, a imagem some e entra o
+    // nome em texto — que `.brand-name` já preenche logo acima.
+    const temLogoPropria = brand.logo_url && !ehLogoDaPlataforma(brand.logo_url);
+    if (temLogoPropria) {
       document.querySelectorAll('.brand-logo').forEach(el => {
         if (el.tagName === 'IMG') {
           el.src = brand.logo_url;
@@ -369,6 +377,15 @@ const tenant = {
           el.alt = brand.name || el.alt;
         }
       });
+    }
+    if (brand.eh_plataforma === false && !temLogoPropria) {
+      document.querySelectorAll('.brand-logo').forEach(el => { el.hidden = true; el.style.display = 'none'; });
+      document.querySelectorAll('[data-sem-logo]').forEach(el => { el.hidden = false; el.style.display = ''; });
+      // O fato vai para o documento; a aparência é do layout.js. A moldura
+      // branca da logo existe para dar fundo à imagem — com o nome em texto
+      // ela vira um retângulo branco com letra branca dentro, que foi
+      // exatamente o que apareceu na primeira versão disto.
+      document.documentElement.dataset.semLogo = '1';
     }
 
     // Textos da página inicial do cliente (migration 039). A página marca o

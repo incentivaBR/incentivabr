@@ -155,16 +155,29 @@
            É estimativa, e a tela diz isso. O valor que vale é o que o
            servidor confere no registro da destinação. -->
       <div class="mx-auto max-w-md mb-8 fade-up">
+        <!-- RETIDO NÃO É DEVIDO, E A CONTA É SOBRE O DEVIDO.
+             Este campo pedia "quanto foi RETIDO do seu salário" e multiplicava
+             o valor pelo teto. São coisas diferentes: retido na fonte é o que
+             o empregador recolheu mês a mês; devido é o que sobra depois das
+             deduções do ajuste anual. Para quem tem saúde, educação ou
+             previdência privada, o retido é MAIOR — e o site prometia um
+             limite maior que o da lei, que é o lado da malha fina.
+             O caminho de quem não sabe o número está logo abaixo, porque um
+             campo que a pessoa não consegue responder mata o topo da página. -->
         <label for="heroIr" class="block text-white/55 text-sm mb-2">
-          Quanto de Imposto de Renda foi retido do seu salário no ano passado?
+          Quanto de Imposto de Renda você <strong class="text-white/80">deveu</strong> no ano passado?
         </label>
         <div class="flex gap-2">
           <input id="heroIr" type="text" inputmode="numeric" autocomplete="off"
-                 placeholder="R$ 0,00" aria-describedby="heroResultado"
+                 placeholder="R$ 0,00" aria-describedby="heroIrAjuda"
                  class="flex-1 rounded-2xl px-5 py-4 text-lg font-bold text-white text-center"
                  style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);outline:none">
         </div>
-        <p class="text-white/30 text-xs mt-2">Está no seu informe de rendimentos ou no contracheque de dezembro.</p>
+        <p id="heroIrAjuda" class="text-white/30 text-xs mt-2 leading-relaxed">
+          É o <strong class="text-white/50">Imposto Devido</strong> da sua declaração &mdash; ficha
+          &ldquo;C&aacute;lculo do Imposto&rdquo;. N&atilde;o &eacute; o que foi retido no contracheque.
+          <a href="calculadora.html" class="underline hover:text-white/60" style="color:#EE985C">N&atilde;o sei o meu &rarr;</a>
+        </p>
 
         <div id="heroResultado" hidden aria-live="polite"
              class="mt-4 rounded-2xl p-5 text-left"
