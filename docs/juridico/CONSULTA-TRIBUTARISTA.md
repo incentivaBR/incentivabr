@@ -1,7 +1,16 @@
 # Consulta ao tributarista — o que continua aberto
 
-Documento para enviar ao tributarista. Cada pergunta existe porque o **código da
-plataforma decide algo com base na resposta** — não são dúvidas acadêmicas.
+> **Deixou de ser pré-requisito da virada em 5 de outubro de 2026.** Conferido no
+> código: `confirmado_por_parecer` é lido em um lugar só (`lib/textosFiscais.js`),
+> para acrescentar "Parecer do tributarista: pendente" no resumo da TINA. Não
+> entra em cálculo, não gateia rota, e `SIMULATION_MODE` não o consulta. O teto de
+> 6% vem de `tetos_deducao` e é a leitura conservadora. Este documento continua
+> valendo como **pauta** — o que ele destrava é mecanismo novo e espaço acima dos
+> 6%, não o funcionamento do que já existe. Ver `VIRADA-PRODUCAO.md`, item 3.
+
+Documento para enviar ao tributarista. As perguntas não são acadêmicas: cada uma
+corresponde a algo que hoje está marcado como não confirmado no catálogo ou nos
+textos da plataforma.
 
 O parecer deve vir **por escrito e com a base legal citada**: é ele que um
 contador vai querer ver antes de recomendar a destinação ao cliente dele, e é
