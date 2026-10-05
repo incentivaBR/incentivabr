@@ -419,6 +419,62 @@ await teste('o relógio do prazo chega ao topo da home, com a urgência', async 
   if (estado.fechadoVisivel) throw new Error('o aviso de encerrado apareceu com a janela aberta');
 });
 
+await teste('a prova de confiança está no topo, e não depende do convite', async pg => {
+  // A pergunta que decide é "isso é real? eu perco dinheiro?", e a resposta
+  // vivia no FAQ, no fim da página, dentro de um acordeão fechado.
+  //
+  // O que só o navegador prova: que os três fatos estão NA TELA (não apenas
+  // no HTML), que o percentual é o que a API manda — e que a prova não está
+  // dentro de `[data-prazo-convite]`. Se estivesse, sumiria junto com o
+  // convite num projeto de janela encerrada, deixando sem resposta justamente
+  // quem chegou e não pode destinar hoje. O fixture tem janela aberta, então
+  // é a contenção no DOM que se mede aqui, não o efeito.
+  await ir(pg, 'index.html');
+
+  await ate(pg, () => {
+    const el = document.querySelector('[data-fiscal="art18_pct"]');
+    return el && /%/.test(el.textContent || '');
+  }, 'o percentual do art. 18 não chegou à prova');
+
+  const prova = await pg.evaluate(() => {
+    const bloco = document.querySelector('[data-prova]');
+    const visivel = (el) => !!(el && el.getClientRects().length);
+    return {
+      existe:    !!bloco,
+      naTela:    visivel(bloco),
+      texto:     bloco?.innerText?.replace(/\s+/g, ' ') || '',
+      pct:       document.querySelector('[data-fiscal="art18_pct"]')?.textContent?.trim() || '',
+      dentroDoConvite: !!document.querySelector('[data-prazo-convite] [data-prova]'),
+      marcaDoLimite:   !!bloco?.querySelector('[data-prova-marca="limite"]')
+    };
+  });
+
+  if (!prova.existe) throw new Error('a home não tem o bloco da prova');
+  if (!prova.naTela) throw new Error('a prova existe no HTML mas não aparece na tela');
+
+  for (const [nome, re] of [
+    ['custo líquido zero', /[Cc]usto l[íi]quido zero/],
+    ['transfere direto',   /transfere direto/i],
+    ['modelo completo',    /modelo completo/i],
+    ['simplificado',       /simplificado/i]
+  ]) {
+    if (!re.test(prova.texto)) throw new Error('a prova não diz: ' + nome);
+  }
+
+  if (prova.dentroDoConvite) {
+    throw new Error('a prova está dentro do convite e sumiria com a janela encerrada');
+  }
+  if (!prova.marcaDoLimite) throw new Error('o terceiro fato não está marcado como limite');
+
+  // API × DOM: o percentual da tela é o do catálogo, não um número digitado.
+  const daApi = await pg.evaluate(async () =>
+    (await (await fetch('/api/config/brand')).json()).fiscal?.rouanet?.art18_dedutivel_pct);
+  const esperado = String(Math.round(Number(daApi) * 100) / 100).replace('.', ',') + '%';
+  if (prova.pct !== esperado) {
+    throw new Error(`o percentual da tela (${prova.pct}) não é o da API (${esperado})`);
+  }
+});
+
 await teste('o validador chega pronto quando vem com os números na URL', async pg => {
   // O validador era a melhor pagina do site e a mais escondida: so se chegava
   // a ela pela Biblioteca Juridica. Agora o assistente e o painel trazem a
