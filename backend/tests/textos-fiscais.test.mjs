@@ -184,6 +184,57 @@ await teste('"7%" so aparece como teto CONJUNTO, nunca como teto proprio do espo
   }
 });
 
+// A guarda do "6%" existe desde set/2026 e cobria UM número. Os outros três
+// que o objeto fiscal já serve continuavam escritos à mão, espalhados:
+//
+//   - o prazo de guarda ("5 anos") em quatro páginas;
+//   - o código da ficha DIRPF ("41", "40") em quatro páginas — e esses estão
+//     marcados como NÃO CONFIRMADOS em fonte primária, então são justamente os
+//     que vão mudar;
+//   - o percentual do art. 18 ("100% dedutível") em duas.
+//
+// Mudar qualquer um deles em `lib/textosFiscais.js` mudava o site pela metade:
+// o gancho obedecia e o literal ao lado continuava dizendo o número velho.
+//
+// A varredura é do repositório inteiro, pela mesma razão de sempre: foi cada
+// página guardar a própria cópia que fez as cópias divergirem.
+await teste('nenhuma pagina escreve a mao um numero que o [data-fiscal] ja serve', () => {
+  // Fora do gancho, fora de <script>, <style>, <meta> e comentário, e fora de
+  // data-keywords (busca do FAQ: "guardar documentos comprovantes 5 anos" é
+  // termo de pesquisa, não afirmação na tela).
+  const limpa = (h) => h
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<meta\b[^>]*>/gi, '')
+    .replace(/data-keywords="[^"]*"/gi, '')
+    // O conteúdo do próprio gancho é reserva: some antes da busca. Não é só
+    // <span>: a primeira versão desta limpeza só tirava span e acusou um
+    // <strong data-fiscal="dirpf_eca">40</strong> que estava certo.
+    .replace(/<(span|strong|b|em|td|div)[^>]*\bdata-fiscal="[^"]*"[^>]*>[\s\S]*?<\/\1>/gi, '');
+
+  const CLASSES = [
+    ['prazo de guarda (data-fiscal="guarda_anos")',
+     /\b\d+\s*anos?\b(?=[^.<]{0,40}(guard|comprova|document|solicitar))/i],
+    ['codigo da ficha DIRPF (data-fiscal="dirpf_*")',
+     /c[óo]digo\s*(?:<[^>]+>\s*)?4[0-4]\b/i],
+    ['percentual do art. 18 (data-fiscal="art18_pct")',
+     /\b100\s*%\s*dedut/i],
+    ['fracao do teto escrita como numero',
+     /(?:×|\bx\b|\*)\s*0,0\d/]
+  ];
+
+  const achados = [];
+  for (const p of paginas) {
+    const texto = limpa(fs.readFileSync(path.join(FRONTEND, p), 'utf8'));
+    for (const [nome, re] of CLASSES) {
+      const m = re.exec(texto);
+      if (m) achados.push(`${p}: ${nome} — "${m[0].trim()}"`);
+    }
+  }
+  if (achados.length) throw new Error('numero fiscal a mao:\n         ' + achados.join('\n         '));
+});
+
 await teste('toda pagina com [data-fiscal] carrega o tenant.js que o preenche', () => {
   const sem = paginas.filter(p => {
     const h = fs.readFileSync(path.join(FRONTEND, p), 'utf8');
