@@ -5,9 +5,21 @@ Autor: Adacto Artur Dornas de Oliveira. Setembro de 2026.
 ## O que existe
 
 `.github/workflows/ci.yml` roda a suíte do backend (`cd backend && npm ci && npm test`)
-a cada push, em qualquer branch, e a cada pull request. A suíte usa pg-mem e não
+a cada pull request e a cada push em `main`. A suíte usa pg-mem e não
 depende de Postgres, chave de API ou segredo. O resultado aparece como o check
 **Testes do backend** no commit e no PR.
+
+Até out/2026 rodava também a cada push em qualquer branch, o que disparava
+**dois runs do mesmo commit** em todo branch com PR aberto — um do evento
+`push`, outro do `pull_request`, com quatro jobs cada. Os dois ficam em grupos
+de concorrência diferentes, então nenhum cancela o outro. Com a fila de
+runners apertada, o job que espera demais é cancelado, e o cancelamento cai em
+job aleatório: em 5 de outubro um PR precisou de quatro tentativas, com os
+mesmos testes passando em todas.
+
+A consequência de ter mudado: **push em branch de trabalho sem PR aberto não
+roda CI**. Abrir o PR (mesmo como rascunho) é o que liga a verificação, e o
+primeiro run dele cobre todos os commits anteriores do branch.
 
 A Railway continua fazendo deploy do branch `main` a cada push. O CI não
 substitui isso; ele diz se o commit está são antes de a Railway publicá-lo.
