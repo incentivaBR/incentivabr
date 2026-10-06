@@ -87,7 +87,10 @@ db.public.none(`
     user_id UUID, organization_id UUID, official_fund_id UUID,
     donation_amount NUMERIC, ir_devido NUMERIC, fiscal_year INT,
     pronac TEXT, projeto_titulo TEXT, status TEXT DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
   );
 `);
 

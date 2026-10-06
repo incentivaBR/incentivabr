@@ -9,6 +9,8 @@ import { codigoDoMecanismo, mecanismoDaOrg } from '../lib/mecanismos.js';
 import { limpaCPF, cpfValido } from '../lib/cpf.js';
 import { prazoDoComprovante, frasePrazo } from '../lib/prazos.js';
 import { identificaDestinacao, fundoDaDestinacao, tituloPadrao, vocabulario } from '../lib/jornada.js';
+import { situacaoDaCaptacao } from '../lib/captacao.js';
+import { montaResultado, CONFIRMADAS, NA_FILA, SO_PROMESSA } from '../lib/resultadoDoCliente.js';
 
 const router = express.Router();
 
@@ -386,11 +388,18 @@ async function registraDestinacao(req, res) {
                 || await tituloPadrao(org?.id, client)
                 || (pronac ? `Projeto ${mecanismo?.termo_identificador || 'PRONAC'} ${pronac}` : 'Destinação');
 
+    // `simulada` é o modo em que a linha NASCEU (migration 055), não um estado
+    // que vira depois. Destinação de ensaio não passa a ser real porque a
+    // plataforma saiu da simulação — e o painel do cliente soma dinheiro, não
+    // ensaio. Lido aqui, no INSERT, e não na hora de exibir: o modo muda, a
+    // linha não.
+    const nasceuEmSimulacao = process.env.SIMULATION_MODE === 'true';
+
     const result = await client.query(`
-      INSERT INTO donations (user_id, pronac, projeto_titulo, official_fund_id, organization_id, ir_devido, donation_amount, fiscal_year, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
+      INSERT INTO donations (user_id, pronac, projeto_titulo, official_fund_id, organization_id, ir_devido, donation_amount, fiscal_year, status, simulada)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', $9)
       RETURNING id, created_at
-    `, [userId, pronac, titulo, fundoId, org?.id || null, irBase, valor, fiscal_year]);
+    `, [userId, pronac, titulo, fundoId, org?.id || null, irBase, valor, fiscal_year, nasceuEmSimulacao]);
 
     const donation = result.rows[0];
 
@@ -537,6 +546,107 @@ router.get('/conferencia', authenticateToken, async (req, res) => {
   } catch (erro) {
     console.error('Erro na fila de conferência:', erro.message);
     res.status(500).json({ status: 'error', message: 'Erro ao listar destinações a conferir.' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// GET /api/donations/resultado — o que entrou pela plataforma
+//
+// A pergunta que decide a renovação do contrato: "o investimento valeu a
+// pena?". Até out/2026 não havia onde respondê-la — o gestor via a FILA do que
+// falta conferir, que é trabalho pendente, não resultado.
+//
+// As regras do que cada número pode afirmar estão em `lib/resultadoDoCliente`.
+// Aqui ficam só duas decisões de consulta:
+//
+// 1. SOMA CONDICIONAL É `SUM(CASE WHEN ...)`, nunca `FILTER`. O pg-mem ignora
+//    o FILTER sem reclamar e devolve a soma inteira — foi assim que o
+//    sublimite nasceu errado em set/2026. A mesma armadilha derrubaria este
+//    painel de um jeito pior: ensaio contado como dinheiro.
+//
+// 2. QUANTAS PESSOAS vai em consulta separada. `COUNT(DISTINCT CASE WHEN ...)`
+//    é mais uma construção que o pg-mem pode aceitar e calcular diferente, e
+//    não vale arriscar o número que o cliente mais olha para economizar uma
+//    ida ao banco.
+//
+// Esta rota vem ANTES das que usam /:id.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** `$2, $3, $4` a partir de uma lista — IN portátil, sem depender de ANY(). */
+function marcadores(lista, inicio) {
+  return lista.map((_, i) => `$${inicio + i}`).join(', ');
+}
+
+router.get('/resultado', authenticateToken, async (req, res) => {
+  try {
+    const orgId = req.organization?.id || req.user?.orgId;
+    if (!orgId) {
+      return res.status(400).json({ status: 'error', message: 'Organização não identificada.' });
+    }
+    if (!(await podeGerirOrganizacao(req.user.userId, orgId, req.user))) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Sem permissão para ver o resultado desta organização.'
+      });
+    }
+
+    const params = [orgId, ...CONFIRMADAS, ...NA_FILA, ...SO_PROMESSA];
+    let i = 2;
+    const inConfirmadas = marcadores(CONFIRMADAS, i); i += CONFIRMADAS.length;
+    const inFila        = marcadores(NA_FILA, i);     i += NA_FILA.length;
+    const inPromessa    = marcadores(SO_PROMESSA, i);
+
+    const { rows } = await pool.query(
+      `SELECT
+         SUM(CASE WHEN simulada = false AND status IN (${inConfirmadas})
+                  THEN donation_amount ELSE 0 END) AS confirmado_valor,
+         SUM(CASE WHEN simulada = false AND status IN (${inConfirmadas})
+                  THEN 1 ELSE 0 END)               AS confirmado_qtd,
+         SUM(CASE WHEN simulada = false AND status IN (${inFila})
+                  THEN donation_amount ELSE 0 END) AS fila_valor,
+         SUM(CASE WHEN simulada = false AND status IN (${inFila})
+                  THEN 1 ELSE 0 END)               AS fila_qtd,
+         SUM(CASE WHEN simulada = false AND status IN (${inPromessa})
+                  THEN donation_amount ELSE 0 END) AS promessa_valor,
+         SUM(CASE WHEN simulada = false AND status IN (${inPromessa})
+                  THEN 1 ELSE 0 END)               AS promessa_qtd,
+         SUM(CASE WHEN simulada = true AND status <> 'cancelled'
+                  THEN donation_amount ELSE 0 END) AS simulado_valor,
+         SUM(CASE WHEN simulada = true AND status <> 'cancelled'
+                  THEN 1 ELSE 0 END)               AS simulado_qtd
+       FROM donations
+       WHERE organization_id = $1`,
+      params
+    );
+
+    const pessoas = await pool.query(
+      `SELECT COUNT(DISTINCT user_id) AS pessoas
+         FROM donations
+        WHERE organization_id = $1 AND simulada = false
+          AND status IN (${marcadores(CONFIRMADAS, 2)})`,
+      [orgId, ...CONFIRMADAS]
+    );
+
+    const projeto = await pool.query(
+      `SELECT valor_autorizado, valor_captado, captacao_inicio, captacao_fim, valores_em
+         FROM org_projects
+        WHERE organization_id = $1 AND is_active = true
+        ORDER BY is_featured DESC, created_at DESC LIMIT 1`,
+      [orgId]
+    );
+
+    const resultado = montaResultado(
+      { ...rows[0], confirmado_pessoas: pessoas.rows[0]?.pessoas },
+      {
+        captacaoDoProjeto: situacaoDaCaptacao(projeto.rows[0] || null),
+        modoSimulacao: process.env.SIMULATION_MODE === 'true'
+      }
+    );
+
+    res.json({ status: 'success', resultado });
+  } catch (erro) {
+    console.error('Erro ao montar o resultado da organização:', erro.message);
+    res.status(500).json({ status: 'error', message: 'Erro ao montar o resultado.' });
   }
 });
 
@@ -743,8 +853,13 @@ router.post('/:id/simulate', authenticateToken, async (req, res) => {
 
   try {
     const result = await pool.query(
+      // `simulada = true` junto com o status, e não só no INSERT: esta rota
+      // grava o MESMO `confirmed` que o gestor escreve depois de abrir o
+      // extrato do banco. Sem a marca, a linha de ensaio fica indistinguível
+      // de dinheiro conferido — para sempre, inclusive depois da virada.
+      // A rota já recusa fora da simulação; a marca é o registro do fato.
       `UPDATE donations
-       SET status = 'confirmed', confirmed_at = NOW()
+       SET status = 'confirmed', confirmed_at = NOW(), simulada = true
        WHERE id = $1 AND user_id = $2 AND status = 'pending'
        RETURNING id, donation_amount, projeto_titulo`,
       [id, userId]

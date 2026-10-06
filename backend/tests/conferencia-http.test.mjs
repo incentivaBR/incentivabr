@@ -103,7 +103,12 @@ db.public.none(`
     ADD COLUMN rejected_by UUID,
     ADD COLUMN rejection_reason TEXT,
     -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.
-    ADD COLUMN transferido_em DATE;
+    ADD COLUMN transferido_em DATE,
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500, que foi o que este teste
+    -- pegou. É a mesma lição da coluna que o código lê sem existir, do outro
+    -- lado: o schema escrito à mão tem de acompanhar o que o código escreve.
+    ADD COLUMN simulada BOOLEAN DEFAULT false;
 `);
 
 const pgMem = db.adapters.createPg();

@@ -87,6 +87,49 @@
     .marca-caixa .marca-nome { color:#fff; font-weight:800; font-size:17px; }
     html[data-sem-logo] .marca-caixa { background:none; padding-left:0; padding-right:0; }
 
+    /*
+      ── O resultado do cliente ──────────────────────────────────────────
+      O JavaScript só constata os fatos (`data-modo`, `data-vazio`); daqui para
+      baixo quem decide a aparência é o CSS. Era o que faltava quando o alarme
+      de prazo discordava do número de dias ao lado dele.
+    */
+    .resultado { background:#fff; border:1px solid #E9ECEF; border-radius:16px;
+                 padding:22px 24px; margin:0 0 18px; box-shadow:0 4px 16px rgba(13,27,62,.06); }
+    .resultado h2 { margin:0 0 2px; font-size:13px; font-weight:800; letter-spacing:.08em;
+                    text-transform:uppercase; color:#64748B; }
+    .resultado .frase { margin:0 0 18px; font-size:13px; color:#475569; line-height:1.5; }
+    .resultado .destaque { font-size:34px; font-weight:900; color:var(--primary-color,#0F1E3D);
+                           line-height:1.1; margin:6px 0 2px; }
+    .resultado .destaque-rotulo { font-size:12px; color:#64748B; }
+    .resultado .caixas { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+                         gap:12px; margin-top:18px; }
+    .resultado .caixa { background:#F8FAFF; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; }
+    .resultado .caixa .n { font-size:17px; font-weight:800; color:#0F1E3D; }
+    .resultado .caixa .r { font-size:11px; color:#64748B; margin-top:2px; line-height:1.4; }
+    .resultado .caixa a { color:#C2410C; font-weight:700; text-decoration:none; }
+
+    /* O ensaio NUNCA usa a cor do dinheiro. Âmbar, e dizendo que está fora. */
+    .resultado .caixa.ensaio { background:#FFFBEB; border-color:#FDE68A; }
+    .resultado .caixa.ensaio .n,
+    .resultado .caixa.ensaio .r { color:#92400E; }
+
+    /* Em simulação, o aviso lidera. Quem lê um número de dinheiro decide em
+       cima dele antes de chegar a qualquer rodapé. */
+    .resultado .aviso-modo { display:none; }
+    .resultado[data-modo="simulacao"] { border-color:#FDE68A; background:#FFFDF7; }
+    .resultado[data-modo="simulacao"] .aviso-modo {
+      display:flex; gap:10px; align-items:flex-start; background:#FFFBEB; border:1px solid #FDE68A;
+      border-radius:10px; padding:11px 14px; margin:0 0 16px; font-size:12.5px; color:#92400E; line-height:1.5; }
+    .resultado[data-modo="simulacao"] .destaque { color:#92400E; }
+    /* Em simulação o aviso já diz o que a frase diria, com mais destaque. Duas
+       vezes a mesma informação faz o leitor parar de ler as duas. */
+    .resultado[data-modo="simulacao"] .frase { display:none; }
+
+    .resultado .projeto { margin-top:18px; padding-top:16px; border-top:1px solid #EEF2F7;
+                          font-size:12.5px; color:#475569; line-height:1.7; }
+    .resultado .projeto b { color:#0F1E3D; }
+    .resultado .projeto .defasado { color:#92400E; }
+
     /* ── Layout ── */
     .page { max-width: 720px; margin: 0 auto; padding: 80px 24px 60px; }
 
@@ -408,6 +451,19 @@
         Reenviar
       </button>
     </div>
+
+    <!--
+      ── O resultado do cliente ──────────────────────────────────────────
+      A pergunta que decide a renovação do contrato: "o investimento valeu a
+      pena?". Até out/2026 não havia onde respondê-la — quem administra a
+      organização via a FILA de conferência, que é trabalho pendente, e a
+      lista abaixo é das destinações DE QUEM ESTÁ LOGADO.
+
+      Só aparece para quem administra: a rota responde 403 aos demais, e é essa
+      resposta que acende o bloco. Mesma mecânica dos atalhos da barra — a
+      regra de permissão não ganha uma segunda cópia aqui, livre para divergir.
+    -->
+    <section id="resultadoCliente" hidden aria-labelledby="resultadoTitulo"></section>
 
     <!-- Banner de confirmação / vazio -->
     <div class="confirm-banner" id="confirmBanner" style="display:none">
@@ -861,6 +917,93 @@
           r.total ? `Conferência (${r.total})` : 'Conferência';
       } catch (_) { /* silencioso: é um atalho, não uma funcionalidade */ }
     }
+
+    /**
+     * O resultado do cliente: o que entrou pela plataforma.
+     *
+     * Quem decide se o bloco aparece é a própria rota — ela responde 403 a
+     * quem não administra a organização. Mesma mecânica dos atalhos da barra:
+     * sem segunda cópia da regra de permissão aqui.
+     *
+     * Dinheiro na tela só por `BRL()` (js/moeda.js). Nada de `Intl` nem de
+     * `'R$ ' +`, e nada de `BRL.inteiro()`: ele arredondaria R$ 635.728,50
+     * para R$ 635.729 — num número que o cliente vai conferir contra o
+     * extrato, centavo faz diferença.
+     */
+    async function mostraResultadoDoCliente() {
+      const token = localStorage.getItem('incentivabr_token');
+      if (!token) return;
+      let r;
+      try {
+        const resp = await fetch('/api/donations/resultado',
+          { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!resp.ok) return;              // 403 para quem só destina
+        r = (await resp.json()).resultado;
+      } catch (_) { return; }              // atalho, não funcionalidade
+      if (!r) return;
+
+      const bloco = document.getElementById('resultadoCliente');
+      bloco.className = 'resultado';
+      // O JavaScript constata; o CSS decide a cor e o aviso.
+      if (r.modo_simulacao) bloco.dataset.modo = 'simulacao';
+
+      // "Aguardando conferência" leva à fila: é o passo que destrava o resto.
+      const fila = r.na_fila.quantidade
+        ? `<a href="conferencia.html">Conferir agora →</a>`
+        : 'Nada a conferir';
+
+      const ensaio = r.tem_simulacao ? `
+        <div class="caixa ensaio">
+          <div class="n">${esc(BRL(r.simulado.valor))}</div>
+          <div class="r">${r.simulado.quantidade} de ensaio (simulação).<br><b>Fora</b> dos valores acima.</div>
+        </div>` : '';
+
+      // O projeto e a plataforma são DOIS números. Somar um no outro inflaria
+      // o que a plataforma entregou — a afirmação de que o contrato depende.
+      const p = r.projeto;
+      const projeto = p ? `
+        <div class="projeto">
+          ${p.autorizado != null ? `Autorizado pelo Ministério da Cultura: <b>${esc(BRL(p.autorizado))}</b>.` : ''}
+          ${p.captado_conhecido
+            ? `Captado pelo projeto, somando todas as fontes: <b>${esc(BRL(p.captado))}</b>` +
+              (p.conferido_em
+                ? ` <span class="${p.defasado ? 'defasado' : ''}">(conferido em ${esc(p.conferido_em.split('-').reverse().join('/'))}${p.defasado ? ', retrato antigo' : ''})</span>.`
+                : '.')
+            : 'O valor captado pelo projeto ainda não foi conferido na fonte oficial.'}
+          ${r.percentual_do_autorizado != null
+            ? `<br>Do autorizado, <b>${esc(String(r.percentual_do_autorizado).replace('.', ','))}%</b> entrou por esta plataforma.`
+            : ''}
+        </div>` : '';
+
+      bloco.innerHTML = `
+        <h2 id="resultadoTitulo">O que entrou pela plataforma</h2>
+        <div class="aviso-modo">
+          <i class="fas fa-flask" style="margin-top:2px"></i>
+          <span><b>Modo simulação.</b> Nenhum valor desta tela saiu ou entrou em conta alguma.
+                Os números existem para ensaiar o processo.</span>
+        </div>
+        <div class="destaque">${esc(BRL(r.confirmado.valor))}</div>
+        <div class="destaque-rotulo">conferido — comprovante aberto e confirmado por um gestor</div>
+        <p class="frase">${esc(r.frase)}</p>
+        <div class="caixas">
+          <div class="caixa">
+            <div class="n">${r.confirmado.pessoas}</div>
+            <div class="r">${r.confirmado.pessoas === 1 ? 'contribuinte destinou' : 'contribuintes destinaram'}</div>
+          </div>
+          <div class="caixa">
+            <div class="n">${esc(BRL(r.na_fila.valor))}</div>
+            <div class="r">${r.na_fila.quantidade} ${r.na_fila.quantidade === 1 ? 'comprovante aguarda' : 'comprovantes aguardam'} conferência.<br>${fila}</div>
+          </div>
+          <div class="caixa">
+            <div class="n">${esc(BRL(r.prometido.valor))}</div>
+            <div class="r">${r.prometido.quantidade} ${r.prometido.quantidade === 1 ? 'registrada' : 'registradas'} sem comprovante.<br>Ainda não é dinheiro.</div>
+          </div>
+          ${ensaio}
+        </div>
+        ${projeto}`;
+      bloco.hidden = false;
+    }
+    mostraResultadoDoCliente();
 
     /**
      * Mostra "Clientes" a quem é superadmin.

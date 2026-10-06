@@ -59,7 +59,10 @@ db.public.none(`
     status TEXT, pronac TEXT, projeto_titulo TEXT,
     confirmed_at TIMESTAMP, rejected_at TIMESTAMP, rejection_reason TEXT,
     receipt_filename TEXT, mecenato_filename TEXT, mecenato_issued_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
   );
   CREATE TABLE audit_log (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID, user_id UUID,
     action TEXT, entity_type TEXT, entity_id UUID, details TEXT, ip_address TEXT, user_agent TEXT,

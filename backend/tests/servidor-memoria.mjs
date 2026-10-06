@@ -136,7 +136,10 @@ db.public.none(`
     rejected_at TIMESTAMP, rejected_by UUID, rejection_reason TEXT,
     -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.
     transferido_em DATE,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
   );
   -- A lista de avisos (migration 027), para a tela de interessados.
   CREATE TABLE subscribers (
@@ -195,6 +198,28 @@ await q(`INSERT INTO organization_users (organization_id, user_id, role, is_acti
          VALUES ($1,$2,'org_admin', true)`, [orgId, gestorId]);
 await q(`INSERT INTO organization_users (organization_id, user_id, role, is_active)
          VALUES ($1,$2,'member', true)`, [orgId, destinadorId]);
+
+// Uma segunda contribuinte, só para o painel do cliente ter o que somar: uma
+// destinação CONFERIDA e uma de ENSAIO. Ela não é a Maria de propósito — a
+// exportação da LGPD e a lista do painel dela contam as três destinações
+// originais, e pendurar mais duas no mesmo CPF quebraria as duas contagens.
+const [{ id: outraId }] = await q(`
+  INSERT INTO users (nome, cpf, email, senha_hash, organization_id, email_verified)
+  VALUES ($3,'98765432109','joana@exemplo.gov.br',$1,$2,true) RETURNING id`,
+  [senhaHash, orgId, 'Joana Ribeiro ' + VENENO]);
+await q(`INSERT INTO organization_users (organization_id, user_id, role, is_active)
+         VALUES ($1,$2,'member', true)`, [orgId, outraId]);
+
+// A conferida entra no captado do painel; a de ensaio NÃO (migration 055), e é
+// essa separação que o fluxo do E2E confere na tela.
+await q(`INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido,
+           fiscal_year, pronac, projeto_titulo, status, confirmed_at, simulada)
+         VALUES ($1,$2,4820.00,208342,2026,'2511274',$3,'confirmed',NOW(),false)`,
+  [outraId, orgId, 'Mostra Casa Azul de Teatro Inclusivo ' + VENENO]);
+await q(`INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido,
+           fiscal_year, pronac, projeto_titulo, status, confirmed_at, simulada)
+         VALUES ($1,$2,99999.00,208342,2026,'2511274',$3,'confirmed',NOW(),true)`,
+  [outraId, orgId, 'Mostra Casa Azul de Teatro Inclusivo ' + VENENO]);
 
 for (const [valor, status] of [[3200,'awaiting_confirmation'], [12500.50,'awaiting_confirmation'],
                                [800,'awaiting_confirmation']]) {

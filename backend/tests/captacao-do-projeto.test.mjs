@@ -193,13 +193,50 @@ teste('nenhuma pagina escreve o valor do projeto a mao', () => {
   // "R$ 635.728,50" escrito numa pagina seria a copia que nao acompanha o
   // cadastro — e o valor de um cliente aparecendo no site de outro, que e o
   // erro que a foto do piloto ja cometeu em imagem.
+  //
+  // A guarda le a pagina SEM COMENTARIOS. O comentario que explica uma regra
+  // quase sempre cita o numero que a regra proibe: este valor e o exemplo
+  // historico de por que a tela usa BRL() e nao BRL.inteiro() (que arredondava
+  // os centavos), entao quem documenta a decisao escreve o numero. Sem a
+  // limpeza, a guarda acusa a propria explicacao — e ja acusou. E' a sexta vez
+  // nesta casa, e a regra esta escrita no CLAUDE.md desde outubro.
+  const semComentario = (html) => html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    // `//` de comentario, nunca o de "https://": so conta quando nao vem
+    // depois de dois-pontos.
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+
   const dir = path.join(RAIZ, 'frontend');
   const culpadas = [];
   for (const nome of fs.readdirSync(dir).filter(f => f.endsWith('.html'))) {
-    const html = fs.readFileSync(path.join(dir, nome), 'utf8');
+    const html = semComentario(fs.readFileSync(path.join(dir, nome), 'utf8'));
     if (/635[.\s]?728/.test(html)) culpadas.push(nome);
   }
   if (culpadas.length) throw new Error('valor do projeto escrito a mao em: ' + culpadas.join(', '));
+});
+
+teste('a limpeza de comentarios nao cega a guarda', () => {
+  // Uma limpeza larga demais deixaria passar o valor escrito de verdade. Esta
+  // conferencia existe porque o conserto acima e, ele proprio, um risco.
+  const semComentario = (html) => html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  const visivel = '<p>Meta: R$ 635.728,50 para o projeto</p>';
+  if (!/635[.\s]?728/.test(semComentario(visivel))) {
+    throw new Error('a limpeza apagou o valor que esta VISIVEL na pagina');
+  }
+  const emComentario = '<!-- o caso historico: R$ 635.728,50 -->\n<p>nada aqui</p>';
+  if (/635[.\s]?728/.test(semComentario(emComentario))) {
+    throw new Error('o comentario continua sendo lido');
+  }
+  // E o `//` de uma URL nao pode levar o resto da linha embora.
+  const comUrl = '<a href="https://exemplo.gov.br">x</a> R$ 635.728,50';
+  if (!/635[.\s]?728/.test(semComentario(comUrl))) {
+    throw new Error('a limpeza comeu o que vinha depois de uma URL');
+  }
 });
 
 teste('a migration 053 nao reaproveita a coluna do certificado', () => {

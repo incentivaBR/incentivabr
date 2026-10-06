@@ -82,7 +82,11 @@ db.public.none(`
   CREATE TABLE donations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID, organization_id UUID, official_fund_id UUID, pronac TEXT, projeto_titulo TEXT,
     ir_devido NUMERIC, donation_amount NUMERIC, fiscal_year INT, status TEXT DEFAULT 'pending',
-    transferido_em DATE, created_at TIMESTAMP DEFAULT NOW());
+    transferido_em DATE, created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
+  );
 `);
 const pgMem = db.adapters.createPg();
 const pool = new pgMem.Pool();

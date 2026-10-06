@@ -30,7 +30,11 @@ db.public.none(`
     mecenato_issued_at TIMESTAMP, mecenato_issued_by UUID, proponente_notified_at TIMESTAMP,
     -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.
     transferido_em DATE,
-    created_at TIMESTAMP DEFAULT NOW());
+    created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
+  );
   -- A rota do comprovante passa por estas duas para descobrir o prazo do
   -- fundo. Vazias aqui: o tenant destes testes é Rouanet, que não tem prazo.
   CREATE TABLE org_projects (
