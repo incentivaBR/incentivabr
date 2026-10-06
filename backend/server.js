@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { origemPermitida } from './src/lib/origensPermitidas.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
@@ -41,21 +42,6 @@ const PORT = process.env.PORT || 3000;
 // Necessário para rate-limit funcionar corretamente atrás do proxy do Railway
 app.set('trust proxy', 1);
 
-// Domínios permitidos (IncentivaBR + white-labels)
-const ALLOWED_ORIGINS = [
-  // DestineAI — plataforma do usuário final
-  'https://destineai.com.br',
-  'https://www.destineai.com.br',
-  'https://rouanet-production-4df2.up.railway.app',
-  // IncentivaBR — institucional + admin (domínio mãe)
-  'https://incentivabr.com.br',
-  'https://www.incentivabr.com.br',
-  // Desenvolvimento local
-  'http://localhost:3000',
-  'http://localhost:5500',
-  'http://127.0.0.1:5500',
-  'http://127.0.0.1:3000'
-];
 
 // Segurança HTTP — headers de proteção (Raio-X, risco 05)
 //
@@ -91,20 +77,46 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// CORS restrito aos domínios conhecidos
+// CORS restrito aos domínios conhecidos.
+//
+// A lista vivia aqui, escrita à mão, e cobria os domínios da plataforma mais um
+// regex de `*.incentivabr.com.br`. Cliente com DOMÍNIO PRÓPRIO não passava — e
+// `organizations.custom_domain` existe justamente para isso: o middleware de
+// tenant resolve a organização por ele. O sistema aceitava o domínio do cliente
+// na entrada e o recusava na saída, com 500 genérico.
+//
+// Agora a lista vem de `lib/origensPermitidas.js`: fixas + subdomínio nosso +
+// os domínios CADASTRADOS de organizações ativas, com cache curto. Cadastrar um
+// cliente deixa de exigir deploy.
 app.use(cors({
   origin: (origin, callback) => {
-    // Permite sem origin (mobile, Postman, Railway health checks)
-    if (!origin) return callback(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    // Permite subdomínios *.incentivabr.com.br (white-labels)
-    if (/^https:\/\/[a-z0-9-]+\.incentivabr\.com\.br$/.test(origin)) return callback(null, true);
-    callback(new Error(`CORS bloqueado: ${origin}`));
+    origemPermitida(origin)
+      .then(r => callback(null, r.ok))
+      .catch(() => callback(null, false));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Origem recusada responde 403 dizendo o que houve — não 500 "Erro interno".
+//
+// O 500 genérico enganou até a auditoria que achou este defeito: o login de um
+// cliente respondia "Erro interno do servidor", que não diz nada a quem está
+// com o site no ar e não entende por quê.
+app.use(async (req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin) return next();
+  const r = await origemPermitida(origin).catch(() => ({ ok: false, motivo: 'falha ao conferir a origem' }));
+  if (r.ok) return next();
+  console.warn('[cors]', r.motivo);
+  return res.status(403).json({
+    status: 'error',
+    codigo: 'origem_nao_cadastrada',
+    message: 'Este endereço não está cadastrado para falar com a plataforma. ' +
+             'Se é o domínio de um cliente, cadastre-o na tela de clientes.'
+  });
+});
 
 app.use(express.json());
 
