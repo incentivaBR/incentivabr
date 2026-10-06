@@ -78,7 +78,12 @@ const PAGINAS = [
   'passo-a-passo.html',
   'cadastro-avisos.html',
   'login.html',
-  'minha-conta.html'
+  'minha-conta.html',
+  // Telas de bastidor, alcançadas DE DENTRO do site do cliente: a gestora
+  // confere destinações por elas, e o destinador exerce a LGPD em
+  // minha-conta. Ficavam de fora da lista, e a logo delas era escrita à mão.
+  'conferencia.html',
+  'interessados.html'
 ];
 
 /** Tudo a partir do marcador do rodapé legal sai fora. */
@@ -145,7 +150,16 @@ function textoVisivelNoCliente(html) {
   t = removeElementos(t, porAtributo('data-aviso-legal'));
   for (const gancho of GANCHOS_DE_RESERVA) t = removeElementos(t, porAtributo(gancho));
   t = removeElementos(t, porClasse('brand-name'));
-  return t.replace(/<[^>]*>/g, ' ');
+  // DUAS LEITURAS, e a segunda é a que pega a marca partida.
+  //
+  // Tirar as tags inserindo espaço transforma `Incentiva<span>BR</span>` em
+  // "Incentiva BR", que não casa com /IncentivaBR/ — e foi assim que a logo
+  // escrita à mão de três telas passou por esta guarda. A leitura colada junta
+  // o que o navegador junta: o visitante lê "IncentivaBR", sem espaço nenhum.
+  return {
+    separado: t.replace(/<[^>]*>/g, ' '),
+    colado:   t.replace(/<[^>]*>/g, '')
+  };
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -156,13 +170,14 @@ for (const nome of PAGINAS) {
   teste(`${nome} nao nomeia a plataforma no corpo`, () => {
     const arquivo = path.join(FRONTEND, nome);
     if (!fs.existsSync(arquivo)) throw new Error('pagina nao existe');
-    const texto = textoVisivelNoCliente(fs.readFileSync(arquivo, 'utf8'));
-    const achados = texto.match(/IncentivaBR/gi);
-    if (achados) {
+    const leituras = textoVisivelNoCliente(fs.readFileSync(arquivo, 'utf8'));
+    for (const [modo, texto] of Object.entries(leituras)) {
+      const achados = texto.match(/IncentivaBR/gi);
+      if (!achados) continue;
       // Mostra o trecho, senão a falha manda procurar num arquivo de 2 mil linhas.
       const i = texto.search(/IncentivaBR/i);
       const volta = texto.slice(Math.max(0, i - 90), i + 90).replace(/\s+/g, ' ').trim();
-      throw new Error(`${achados.length}x, a primeira em: …${volta}…`);
+      throw new Error(`${achados.length}x (leitura ${modo}), a primeira em: …${volta}…`);
     }
   });
 }
@@ -172,7 +187,8 @@ for (const nome of PAGINAS) {
 // ───────────────────────────────────────────────────────────────────────────
 
 teste('a guarda pega a frase, e nao se engana com o que e legitimo', () => {
-  const pega = (html) => /IncentivaBR/i.test(textoVisivelNoCliente(html));
+  const pega = (html) =>
+    Object.values(textoVisivelNoCliente(html)).some(t => /IncentivaBR/i.test(t));
 
   if (!pega('<body><p>A IncentivaBR confere o limite.</p></body>')) {
     throw new Error('deixou passar a frase no corpo');

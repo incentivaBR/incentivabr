@@ -98,7 +98,17 @@
 <body>
   <nav class="nav">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo">Incentiva<span>BR</span></a>
+      <!-- A BARRA DESTA TELA TAMBÉM É DO CLIENTE.
+           A logo estava escrita à mão, partida em dois elementos
+           (`Incentiva<span>BR</span>`), sem gancho nenhum: o tenant.js nunca
+           a trocava. A gestora da Casa Azul conferia destinações sob a marca
+           da IncentivaBR, e o destinador via o mesmo em "minha conta" — a
+           tela onde ele exerce os direitos da LGPD, que são do CLIENTE,
+           controlador dos dados.
+           Os dois nascem visíveis e o tenant.js esconde o que não serve:
+           sem JavaScript, a barra mostra a marca da plataforma, que é o
+           menos errado dos dois. -->
+      <a href="index.html" class="nav-logo"><span data-so-plataforma>Incentiva<span>BR</span></span><span class="brand-name" data-so-cliente>esta instituição</span></a>
       <div class="nav-right">
         <span id="quem"></span>
         <button class="btn-sair" onclick="sair()">Sair</button>
