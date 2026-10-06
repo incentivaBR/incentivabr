@@ -17,6 +17,9 @@
     .card { background:#fff; border-radius:16px; padding:36px 32px; box-shadow:var(--shadow-md); }
     .marca-topo { text-align:center; margin-bottom:22px; }
     .marca-topo img { height:52px; width:auto; }
+    /* Cliente sem logo cadastrada: entra o NOME dele. Sem esta reserva o topo
+       fica vazio — a imagem é escondida pelo tenant.js e nada ocupa o lugar. */
+    .marca-topo .marca-nome { font-weight:800; font-size:22px; color:var(--primary-color); }
     h1 { font-size:22px; font-weight:800; color:#1a1a2e; margin:0 0 8px; text-align:center; }
     .sub { color:#5A6784; font-size:14.5px; line-height:1.65; text-align:center; margin:0 0 24px; }
     .selo { font-size:44px; text-align:center; line-height:1; margin-bottom:14px; }
@@ -30,7 +33,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="marca-topo"><img class="brand-logo" src="assets/logo-incentivabr.png" alt=""></div>
+    <div class="marca-topo"><img class="brand-logo" src="assets/logo-incentivabr.png" alt=""><span class="brand-name marca-nome" data-sem-logo hidden></span></div>
 
     <div class="card">
       <div id="conferindo">
