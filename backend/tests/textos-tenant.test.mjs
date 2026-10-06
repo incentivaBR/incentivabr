@@ -39,7 +39,11 @@ db.public.none(`
     incentive_group_code TEXT, mecenato_prazo_dias INT
   );
   CREATE TABLE users (encerrada_em TIMESTAMP, anonimizada_em TIMESTAMP, id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID);
-  CREATE TABLE donations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, donation_amount NUMERIC, status TEXT);
+  CREATE TABLE donations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, donation_amount NUMERIC, status TEXT,
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
+  );
   CREATE TABLE audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID, user_id UUID,
     action TEXT, entity_type TEXT, entity_id UUID, details TEXT, created_at TIMESTAMPTZ DEFAULT NOW()

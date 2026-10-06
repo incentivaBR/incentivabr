@@ -69,7 +69,11 @@ db.public.none(`
   CREATE TABLE users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), nome TEXT,
     organization_id UUID, is_superadmin BOOLEAN DEFAULT false, cpf TEXT, encerrada_em TIMESTAMP);
   CREATE TABLE donations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID,
-    donation_amount NUMERIC, fiscal_year INT, status TEXT, official_fund_id UUID);
+    donation_amount NUMERIC, fiscal_year INT, status TEXT, official_fund_id UUID,
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
+  );
   CREATE TABLE official_funds (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), incentive_group_id UUID);
   CREATE TABLE audit_log (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID,
     user_id UUID, action TEXT, entity_type TEXT, entity_id UUID, details TEXT,

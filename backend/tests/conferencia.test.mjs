@@ -40,7 +40,10 @@ db.public.none(`
     receipt_url TEXT,
     receipt_filename TEXT,
     confirmed_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
   );
 `);
 

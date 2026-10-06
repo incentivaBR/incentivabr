@@ -509,6 +509,38 @@ await teste('o caminho do dinheiro vai de ponta a ponta num Postgres real', asyn
     igual(baixa.status, 200, 'o destinador nao baixa o proprio recibo');
     const bytes = (await baixa.arrayBuffer()).byteLength;
     if (bytes < 10) throw new Error('o recibo baixado veio vazio');
+
+    // 7. e o CLIENTE ve o que entrou — num Postgres de verdade.
+    //
+    // O painel do cliente soma com SUM(CASE WHEN ...), e a suite normal roda
+    // no pg-mem, que ja ignorou FILTER calado nesta casa e devolveu a soma
+    // inteira. Aqui a conta e conferida contra o Postgres: a destinacao que
+    // acabou de percorrer o caminho inteiro tem de aparecer no captado, e o
+    // ENSAIO tem de ficar de fora dele.
+    const resultado = async () => (await fetch(comOrg('/api/donations/resultado'), {
+      headers: { Authorization: 'Bearer ' + tokenGestora }
+    }).then(r => r.json())).resultado;
+
+    const r7 = await resultado();
+    if (!r7) throw new Error('a rota do resultado nao respondeu');
+    if (Number(r7.confirmado.valor) < 500) {
+      throw new Error(`a destinacao conferida nao entrou no captado: ${r7.confirmado.valor}`);
+    }
+    if (Number(r7.confirmado.pessoas) < 1) throw new Error('nenhuma pessoa contada');
+
+    const captadoAntes = Number(r7.confirmado.valor);
+    const [dest] = await q(`SELECT user_id FROM donations WHERE id = $1`, [id]);
+    await q(
+      `INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido,
+                              fiscal_year, pronac, projeto_titulo, status, simulada)
+       VALUES ($1,$2,99999,1000000,2026,'9999999','Projeto de Teste','confirmed',true)`,
+      [dest.user_id, org.id]);
+
+    const r7b = await resultado();
+    igual(Number(r7b.confirmado.valor), captadoAntes,
+      'o ensaio entrou no captado num Postgres de verdade');
+    igual(Number(r7b.simulado.valor), 99999, 'o ensaio nao foi para a caixa dele');
+    if (!r7b.tem_simulacao) throw new Error('o painel nao avisa que ha ensaio dentro');
   } finally {
     srv2.close();
   }

@@ -247,10 +247,14 @@ async function filaDeExemplo(cliente, orgId) {
   const valores = [3200, 12500.5, 800];
   for (let i = 0; i < pessoas.length; i++) {
     await cliente.query(`
+      -- A coluna simulada (migration 055): estas linhas são de exemplo, para a
+      -- fila do gestor ter o que mostrar numa demonstração. Nenhum real
+      -- existiu, e o painel do cliente não pode somá-las ao captado.
       INSERT INTO donations (user_id, organization_id, donation_amount, ir_devido, fiscal_year,
-                             pronac, projeto_titulo, status, receipt_url, receipt_filename)
+                             pronac, projeto_titulo, status, receipt_url, receipt_filename,
+                             simulada)
       VALUES ($1,$2,$3,$4,2026,$5,$6,'awaiting_confirmation',
-              '/uploads/receipts/exemplo.pdf',$7)`,
+              '/uploads/receipts/exemplo.pdf',$7,true)`,
       [pessoas[i].id, orgId, valores[i], valores[i] / 0.06, PRONAC,
        'Casa Azul Celebra: Ritmos que Transformam', `comprovante-exemplo-${i + 1}.pdf`]);
   }

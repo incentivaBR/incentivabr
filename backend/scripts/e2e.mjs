@@ -698,6 +698,57 @@ await teste('gestora entra e o painel acende Conferência (3) e Interessados', a
             'o atalho de interessados não acendeu');
 });
 
+await teste('o painel diz ao cliente quanto entrou — e deixa o ensaio de fora', async pg => {
+  // A pergunta que decide a renovação do contrato. Até out/2026 nenhuma tela
+  // respondia: o gestor via a FILA (trabalho pendente) e a lista abaixo é das
+  // destinações de quem está logado.
+  //
+  // O fixture tem R$ 4.820,00 conferidos e R$ 99.999,00 de ENSAIO, marcados
+  // (migration 055). Os dois números têm de aparecer em caixas diferentes: a
+  // rota de pagamento fictício grava o MESMO `confirmed` que o gestor escreve
+  // com o extrato na mão, e sem a marca o ensaio viraria dinheiro na tela.
+  await entrar(pg, 'gestor@casazul.org.br');
+  await ate(pg, () => {
+    const el = document.getElementById('resultadoCliente');
+    return el && !el.hidden && /4\.820,00/.test(el.querySelector('.destaque')?.textContent || '');
+  }, 'o destaque do painel: ' + await texto(pg, '#resultadoCliente .destaque'));
+
+  const visto = await pg.evaluate(() => {
+    const el = document.getElementById('resultadoCliente');
+    const caixa = [...el.querySelectorAll('.caixa')].find(c => c.classList.contains('ensaio'));
+    return {
+      destaque: el.querySelector('.destaque').textContent.trim(),
+      ensaio:   caixa ? caixa.querySelector('.n').textContent.trim() : '(sem caixa de ensaio)',
+      modo:     el.dataset.modo || ''
+    };
+  });
+  if (/99\.999/.test(visto.destaque)) {
+    throw new Error('o ensaio entrou no número que o cliente lê como dinheiro: ' + visto.destaque);
+  }
+  if (!/99\.999,00/.test(visto.ensaio)) {
+    throw new Error('o ensaio não foi para a caixa dele: ' + visto.ensaio);
+  }
+  // Aqui NÃO cabe `chegouComoTexto`: o bloco não escreve nada que venha de
+  // gente ou do SALIC — só números somados e frases nossas. Sem texto
+  // envenenado para conferir, a prova que resta é a direta: nenhum elemento
+  // nasceu dentro dele.
+  const injetado = await pg.evaluate(() =>
+    document.querySelectorAll('#resultadoCliente [data-veneno]').length);
+  if (injetado) throw new Error('o painel deixou nascer ' + injetado + ' elemento(s) de dado de fora');
+});
+
+await teste('quem só destina não vê o painel do cliente', async pg => {
+  // Quem decide é a rota, que responde 403. Se o bloco aparecesse para a
+  // destinadora, ela veria o quanto os colegas destinaram.
+  await entrar(pg, 'maria@exemplo.gov.br');
+  await pg.waitForTimeout(1200);
+  const apareceu = await pg.evaluate(() => {
+    const el = document.getElementById('resultadoCliente');
+    return !!el && !el.hidden;
+  });
+  if (apareceu) throw new Error('o painel do cliente apareceu para quem só destina');
+});
+
 await teste('conferência: as três destinações aguardam, com comprovante', async pg => {
   await entrar(pg, 'gestor@casazul.org.br');
   await ir(pg, 'conferencia.html');

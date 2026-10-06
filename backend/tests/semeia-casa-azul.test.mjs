@@ -60,7 +60,11 @@ db.public.none(`
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID, organization_id UUID, donation_amount NUMERIC, ir_devido NUMERIC,
     fiscal_year INT, pronac TEXT, projeto_titulo TEXT, status TEXT DEFAULT 'pending',
-    receipt_url TEXT, receipt_filename TEXT, created_at TIMESTAMP DEFAULT NOW()
+    receipt_url TEXT, receipt_filename TEXT, created_at TIMESTAMP DEFAULT NOW(),
+    -- migration 055: as destinações de exemplo são ensaio, e o painel do
+    -- cliente não as soma ao captado. Sem esta coluna aqui, o INSERT do
+    -- semeador falha e a fila aparece vazia — foi o que este teste pegou.
+    simulada BOOLEAN DEFAULT false
   );
 `);
 
@@ -223,6 +227,19 @@ await teste('a fila de conferencia nao esta vazia', async () => {
     WHERE o.slug = 'casa-azul' AND d.status = 'awaiting_confirmation'`);
   if (linhas.length < 3) throw new Error('so ' + linhas.length + ' — tela vazia nao demonstra nada');
   if (linhas.some(l => !l.receipt_url)) throw new Error('destinacao sem comprovante para conferir');
+});
+
+await teste('a destinacao de exemplo esta marcada como ensaio', async () => {
+  // Elas existem para a fila do gestor ter o que mostrar numa demonstracao.
+  // Nenhum real existiu — e o painel do cliente soma dinheiro (migration 055).
+  // Sem esta conferencia, tirar a marca do semeador passaria: o INSERT
+  // continuaria funcionando e R$ 16.500,50 de ensaio entrariam no captado.
+  const naoMarcadas = await q(`
+    SELECT d.id FROM donations d JOIN organizations o ON o.id = d.organization_id
+    WHERE o.slug = 'casa-azul' AND d.simulada = false`);
+  if (naoMarcadas.length) {
+    throw new Error(`${naoMarcadas.length} destinacao de exemplo contaria como dinheiro de verdade`);
+  }
 });
 
 await teste('corrige uma marca que ficou errada num deploy anterior', async () => {

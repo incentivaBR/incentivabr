@@ -64,7 +64,10 @@ db.public.none(`
   );
   CREATE TABLE donations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID, fiscal_year INT, amount NUMERIC
+    user_id UUID, fiscal_year INT, amount NUMERIC,
+    -- migration 055: nasceu em modo simulação. A rota de registro GRAVA esta
+    -- coluna; sem ela aqui o INSERT responde 500.
+    simulada BOOLEAN DEFAULT false
   );
   CREATE TABLE subscribers (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     anonymized_at TIMESTAMP, last_interaction_at TIMESTAMP);
