@@ -336,6 +336,168 @@ teste('o item "Contadores" nao entra na barra do cliente', () => {
   if (!/data-so-plataforma/.test(link[0])) throw new Error('o rodape nao esconde o link no cliente');
 });
 
+// ───────────────────────────────────────────────────────────────────────────
+// 5. As páginas que montam a PRÓPRIA barra
+//
+// O `layout.js` resolve a barra de 30 páginas. Seis montam a sua à mão, e são
+// justamente as do caminho autenticado: login, painel, assistente, convite,
+// redefinição de senha e verificação de e-mail. Nenhuma tinha a reserva do
+// nome — num cliente sem `logo_url` cadastrada, o tenant.js escondia a imagem
+// e NADA ocupava o lugar. A marca desaparecia da primeira tela que o servidor
+// da Casa Azul vê, e da única que ele usa para destinar.
+//
+// A segunda metade é a lição que já custou uma correção: a moldura branca
+// estava escrita INLINE no elemento. Estilo inline o CSS não alcança, então a
+// regra de `html[data-sem-logo]` não teria como apagá-la — ficaria um
+// retângulo branco vazio no meio da barra. Moldura mora em classe.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** As páginas que trazem a logo no próprio HTML, fora do layout.js. */
+function paginasComLogoPropria() {
+  return fs.readdirSync(FRONTEND)
+    .filter(n => n.endsWith('.html'))
+    .map(n => ({ nome: n, html: fs.readFileSync(path.join(FRONTEND, n), 'utf8') }))
+    .filter(p => /class="[^"]*\bbrand-logo\b/.test(p.html.replace(/<!--[\s\S]*?-->/g, '')));
+}
+
+teste('a varredura ainda acha as paginas que montam a propria barra', () => {
+  // Sem esta conferencia, um `brand-logo` renomeado faria a secao inteira
+  // passar por vacuidade.
+  const quantas = paginasComLogoPropria().length;
+  if (quantas < 5) throw new Error(`so ${quantas} paginas com logo propria; a varredura mudou de forma?`);
+});
+
+teste('toda pagina com logo propria tem onde por o NOME do cliente', () => {
+  // O que se exige e um ELEMENTO `.brand-name` no corpo. Sem logo cadastrada o
+  // tenant.js esconde a imagem, e e esse elemento que fica no lugar; sem ele a
+  // marca desaparece. Cinco das seis paginas do caminho autenticado nao tinham
+  // nenhum — a sexta, o assistente, sempre mostrou o nome ao lado da logo e e
+  // por isso que passa sem reserva.
+  //
+  // A exigencia NAO e `data-sem-logo`: sao duas formas validas de resolver o
+  // mesmo problema, e amarrar a guarda a uma delas reprovaria a que ja estava
+  // certa. A primeira versao desta guarda procurava `data-sem-logo` em
+  // qualquer lugar do arquivo e casava com o SELETOR do proprio CSS: apagar o
+  // <span> nao a fazia falhar. Sexta vez que uma guarda desta casa se satisfaz
+  // com o texto que FALA da marca em vez da marca.
+  const sem = [];
+  for (const { nome, html } of paginasComLogoPropria()) {
+    const corpo = html.replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    if (!/<[a-z][^>]*class="[^"]*\bbrand-name\b/i.test(corpo)) sem.push(nome);
+  }
+  if (sem.length) {
+    throw new Error('a marca some de vez no cliente sem logo: ' + sem.join(', '));
+  }
+});
+
+teste('a moldura branca da logo nao fica escrita inline', () => {
+  // Inline, a regra de [data-sem-logo] nao consegue apaga-la, e sobra um
+  // retangulo branco vazio.
+  const inline = [];
+  for (const { nome, html } of paginasComLogoPropria()) {
+    const corpo = html.replace(/<!--[\s\S]*?-->/g, '');
+    for (const m of corpo.matchAll(/class="[^"]*\bbrand-logo\b/g)) {
+      const antes = corpo.slice(Math.max(0, m.index - 240), m.index);
+      if (/style="[^"]*background\s*:\s*(#fff\b|#ffffff\b|white\b)/i.test(antes)) {
+        inline.push(nome);
+        break;
+      }
+    }
+  }
+  if (inline.length) {
+    throw new Error('moldura branca inline, fora do alcance do CSS: ' + [...new Set(inline)].join(', '));
+  }
+});
+
+teste('onde ha moldura, [data-sem-logo] a apaga', () => {
+  const sem = [];
+  for (const { nome, html } of paginasComLogoPropria()) {
+    if (!/\bmarca-caixa\b/.test(html)) continue;      // pagina sem moldura: nada a apagar
+    const regra = /html\[data-sem-logo\][^{]*\.marca-caixa[^{]*\{[^}]*\}|html\[data-sem-logo\]\s*\.marca-caixa[\s\S]{0,120}?\{[^}]*\}/;
+    if (!regra.test(html)) sem.push(nome);
+  }
+  if (sem.length) throw new Error('a moldura fica no cliente sem logo: ' + sem.join(', '));
+});
+
+teste('nenhuma cor removida deixou buraco no estilo', () => {
+  // Seis no `destinar-rouanet.html`, nascidas vazias em ago/2026 e nunca
+  // preenchidas. Três formas do mesmo descuido, e as três são silenciosas:
+  //
+  //   background:;              valor vazio — a declaracao inteira e descartada
+  //   border:1px solid ;        falta a COR; o navegador descarta igual
+  //   this.style.borderColor='' atribuicao de string vazia: nao faz nada
+  //
+  // O efeito: o selo "Simulação" sem borda na tela que existe para avisar que
+  // nada ali é dinheiro de verdade, e o campo do IR Devido sem reacao ao foco
+  // — no celular, nada dizia onde a pessoa esta digitando.
+  //
+  // A primeira versao desta guarda pegava so a forma 1, porque em
+  // "border:1px solid ;" o valor ate existe: "2px solid". Foi o que deixou
+  // cinco passarem.
+  const ESTILOS_DE_BORDA = /\b(solid|dashed|dotted|double|groove|ridge|inset|outset)\s*$/;
+  // `el.style.display = ''` e idioma legitimo: significa "volta ao que o
+  // stylesheet manda", e e assim que o tenant.js revela um elemento escondido.
+  // So entra aqui o que e COR — e quando a cor volta a nada, nao ha nada no
+  // stylesheet para voltar.
+  const COR = /(^|[a-z])(color|Color|background|Background)$/;
+  const quebradas = [];
+
+  /**
+   * Varre um texto de declaracoes CSS (bloco <style> ou atributo style).
+   *
+   * As chaves viram `;` ANTES de partir. Sem isso, partir um stylesheet por
+   * `;` cola o seletor na PRIMEIRA propriedade de cada regra — e a primeira
+   * propriedade era justamente onde estavam `border: 2px dashed ;` e
+   * `background: ;` da area de upload. A guarda passou a sabotagem de
+   * propósito que eu fiz para conferi-la, e foi assim que o furo apareceu.
+   */
+  const varreDeclaracoes = (css, onde) => {
+    for (const decl of css.replace(/[{}]/g, ';').split(';')) {
+      if (!decl.includes(':')) continue;
+      const [prop, ...resto] = decl.split(':');
+      const nomeProp = prop.trim();
+      // Nome de propriedade e um identificador so. Seletor (".x", "a:hover",
+      // "@media") nao passa por aqui.
+      if (!/^-{0,2}[a-zA-Z][a-zA-Z0-9-]*$/.test(nomeProp)) continue;
+      const valor = resto.join(':').trim();
+      if (!valor) { quebradas.push(`${onde}: "${decl.trim().replace(/\s+/g, ' ')};" (sem valor)`); continue; }
+      // `border-style: solid` é declaracao completa: o valor E o estilo.
+      if (ESTILOS_DE_BORDA.test(valor) && !/-style$/.test(nomeProp)) {
+        quebradas.push(`${onde}: "${decl.trim().replace(/\s+/g, ' ')};" (sem a cor)`);
+      }
+      // Parada de degrade sem cor: "var(--x) 0%,  100%" invalida o gradiente
+      // inteiro, e a linha de acento some sem nenhum aviso.
+      if (/gradient\(/.test(valor) && /,\s*,|,\s*\d+%\s*\)/.test(valor)) {
+        quebradas.push(`${onde}: "${nomeProp}" (parada de degrade sem cor)`);
+      }
+    }
+  };
+
+  for (const nome of fs.readdirSync(FRONTEND).filter(n => n.endsWith('.html'))) {
+    const corpo = fs.readFileSync(path.join(FRONTEND, nome), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '');
+
+    // Dentro de style="..." — e dentro dos blocos <style>, que foi onde duas
+    // das dez se esconderam da primeira versao desta guarda.
+    for (const m of corpo.matchAll(/style="([^"]*)"/g)) varreDeclaracoes(m[1], nome);
+    for (const m of corpo.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) {
+      varreDeclaracoes(m[1].replace(/\/\*[\s\S]*?\*\//g, ''), nome);
+    }
+    // E a atribuicao vazia por JavaScript, so para propriedade de cor. Os
+    // comentarios de CSS saem antes: o comentario que EXPLICA este defeito
+    // cita o defeito, e sem isto a guarda acusaria a propria explicacao — a
+    // quinta vez que isso acontece aqui.
+    const semComentarioCss = corpo.replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const m of semComentarioCss.matchAll(/\bstyle\.([A-Za-z]+)\s*=\s*(''|"")/g)) {
+      if (COR.test(m[1])) quebradas.push(`${nome}: style.${m[1]}='' (cor atribuida vazia)`);
+    }
+  }
+  if (quebradas.length) {
+    throw new Error('cor removida sem substituto: ' + quebradas.join(' | '));
+  }
+});
+
 console.log('\nA marca da plataforma nas páginas do cliente\n');
 ok.forEach(n => console.log('  ok   ' + n));
 falhas.forEach(([n, m]) => console.log('  FALHA ' + n + '\n         ' + m));

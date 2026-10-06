@@ -63,6 +63,12 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     #alert.alert-error { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 10px; }
     #alert.alert-success { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; border-radius: 10px; }
+    /* Cliente sem logo cadastrada: entra o NOME dele, em branco sobre o navy
+       do cabeçalho. A moldura branca existe para dar fundo à IMAGEM; com
+       texto dentro ela viraria um retângulo branco com letra branca. O
+       JavaScript só marca o fato (html[data-sem-logo]); a aparência é daqui. */
+    .marca-caixa .marca-nome { color:#fff; font-weight:800; font-size:20px; letter-spacing:-0.2px; }
+    html[data-sem-logo] .marca-caixa { background:none; padding-left:0; padding-right:0; }
   </style>
   <script src="js/tenant.js"></script>
 </head>
@@ -73,8 +79,9 @@
     <!-- Header -->
     <div class="bg-[#0F1E3D] px-8 py-8 text-center">
       <a href="index.html" class="inline-flex justify-center mb-4">
-        <span class="bg-white rounded-xl px-3 py-2 inline-flex items-center">
+        <span class="marca-caixa bg-white rounded-xl px-3 py-2 inline-flex items-center">
           <img class="brand-logo" src="assets/logo-incentivabr-compact.png" alt="IncentivaBR" style="height:32px;width:auto">
+          <span class="brand-name marca-nome" data-sem-logo hidden></span>
         </span>
       </a>
       <p class="text-white/70 text-sm">Não é favor. É lei.</p>

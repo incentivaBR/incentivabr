@@ -73,6 +73,20 @@
     }
     .btn-conferencia:hover { background: rgba(238,152,92,0.26); }
 
+    /*
+      A marca da barra. A moldura branca estava escrita inline no <a>, e estilo
+      inline o CSS não alcança: a regra de [data-sem-logo] abaixo não teria como
+      apagá-la. Por isso ela mora aqui.
+
+      Sem logo cadastrada, o tenant.js esconde a imagem e mostra o nome; a
+      moldura sai junto, porque ela existe para dar fundo à IMAGEM — com texto
+      dentro viraria um retângulo branco com letra branca.
+    */
+    .marca-caixa { display:inline-flex; align-items:center; background:#fff;
+                   border-radius:10px; padding:4px 8px; text-decoration:none; }
+    .marca-caixa .marca-nome { color:#fff; font-weight:800; font-size:17px; }
+    html[data-sem-logo] .marca-caixa { background:none; padding-left:0; padding-right:0; }
+
     /* ── Layout ── */
     .page { max-width: 720px; margin: 0 auto; padding: 80px 24px 60px; }
 
@@ -337,8 +351,9 @@
 
   <nav class="nav">
     <div class="nav-inner">
-      <a href="index.html" style="display:inline-flex;align-items:center;background:#fff;border-radius:10px;padding:4px 8px;text-decoration:none">
+      <a href="index.html" class="marca-caixa">
         <img class="brand-logo" src="assets/logo-incentivabr-compact.png" alt="IncentivaBR" style="height:24px;width:auto">
+        <span class="brand-name marca-nome" data-sem-logo hidden></span>
       </a>
       <div class="nav-right">
         <!--
