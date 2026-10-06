@@ -1,4 +1,16 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; url=index.html"><meta name="robots" content="noindex"><title>IncentivaBR</title></head><body><script>window.location.replace("index.html");</script>
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; url=index.html"><meta name="robots" content="noindex"><title>IncentivaBR</title></head><body><!-- O REDIRECIONAMENTO TEM DE LEVAR O CLIENTE JUNTO.
+     Este atalho existe para endereços antigos continuarem valendo. Ele trocava
+     de página perdendo a query — e no site de um cliente alcançado por `?org=`,
+     isso jogava o visitante na versão da PLATAFORMA da página, fora do site de
+     quem contratou.
+     `location.search` carrega o `?org=`; o hash vai junto porque âncora também
+     é endereço. O `<meta refresh>` fica como reserva para quem está sem
+     JavaScript: ele não sabe carregar a query, e perder o tenant é menos ruim
+     que não redirecionar. -->
+<script>
+  // Mantém a organização (e a âncora) ao trocar de endereço.
+  location.replace('index.html' + location.search + location.hash);
+</script>
 <p>Esta página foi incorporada à <a href="index.html">página inicial</a>.</p>
 
 <!-- incentivabr-legal -->
