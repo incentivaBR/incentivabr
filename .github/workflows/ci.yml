@@ -112,7 +112,12 @@ jobs:
   # CDN novo fora dela) de quebrar uma tela em produção sem ninguém ver.
   paginas:
     name: Páginas no Chromium (CSP)
-    runs-on: ubuntu-latest
+    # ubuntu-latest virou Ubuntu 26.04 em out/2026, e o Playwright 1.55.0 não o
+    # suporta: `npx playwright install` morre com "Cannot install dependencies
+    # for ubuntu26.04-x64" ANTES de qualquer teste rodar. Fixar a versão do
+    # runner é o conserto que o próprio erro nomeia. Os outros dois jobs
+    # (backend e Postgres) não usam navegador e seguem em ubuntu-latest.
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
@@ -140,7 +145,12 @@ jobs:
   # peças encaixam, não só que cada uma existe.
   e2e:
     name: Fluxos no Chromium (E2E)
-    runs-on: ubuntu-latest
+    # ubuntu-latest virou Ubuntu 26.04 em out/2026, e o Playwright 1.55.0 não o
+    # suporta: `npx playwright install` morre com "Cannot install dependencies
+    # for ubuntu26.04-x64" ANTES de qualquer teste rodar. Fixar a versão do
+    # runner é o conserto que o próprio erro nomeia. Os outros dois jobs
+    # (backend e Postgres) não usam navegador e seguem em ubuntu-latest.
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
