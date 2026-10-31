@@ -414,6 +414,12 @@
         <a href="interessados.html" id="linkInteressados" class="btn-conferencia" style="display:none">
           <i class="fas fa-envelope-open-text"></i> <span id="qtdInteressados">Interessados</span>
         </a>
+        <!-- Os documentos da organização, para quem vai prestar contas.
+             Mesma mecânica: a rota responde 403 a quem não administra, e é
+             essa resposta que acende o atalho. -->
+        <a href="documentos.html" id="linkDocumentos" class="btn-conferencia" style="display:none">
+          <i class="fas fa-folder-open"></i> Documentos
+        </a>
         <!-- A conferência dos limites, para quem volta depois de destinar.
              O validador é a página mais técnica do site e era alcançável só
              pela Biblioteca Jurídica, por um link sobre a base legal das
@@ -1049,6 +1055,25 @@
       } catch (_) { /* atalho, não funcionalidade */ }
     }
     verificaAcessoInteressados();
+
+    /**
+     * Mostra "Documentos" a quem administra a organização.
+     *
+     * Toda rota de documento é por destinação: para baixar um comprovante era
+     * preciso já saber o id dele. Quem vai prestar contas não tinha caminho.
+     * Mesma mecânica dos outros atalhos — quem decide é a rota.
+     */
+    async function verificaAcessoDocumentos() {
+      const token = localStorage.getItem('incentivabr_token');
+      if (!token) return;
+      try {
+        const resp = await fetch('/api/donations/documentos',
+          { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!resp.ok) return;
+        document.getElementById('linkDocumentos').style.display = 'inline-flex';
+      } catch (_) { /* atalho, não funcionalidade */ }
+    }
+    verificaAcessoDocumentos();
 
     /**
      * Liga os links [data-destinar] que nascem depois do carregamento.

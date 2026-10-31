@@ -650,6 +650,179 @@ router.get('/resultado', authenticateToken, async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ACHAR OS DOCUMENTOS
+//
+// Toda rota de documento é POR DESTINAÇÃO (`/:id/arquivo`): para baixar um
+// comprovante é preciso já saber o id dele. Quem destina chega pelo painel,
+// que lista as destinações dele. Quem administra a organização não tinha
+// caminho nenhum — `/conferencia` mostra só o que aguarda conferência e
+// `/resultado` dá totais, não a lista.
+//
+// O efeito aparece na hora em que o contador pede os documentos do ano: não
+// havia onde encontrá-los. A plataforma **não faz** a prestação de contas, e
+// esta rota não a faz; ela entrega a lista e os links para quem vai fazer.
+//
+// O que NÃO entra aqui, de propósito:
+//   - o conteúdo dos arquivos. Comprovante e recibo saem pelas rotas que já
+//     existem, autenticadas e uma a uma. Esta é a lista, não a entrega.
+//   - destinação cancelada. Não é documento de nada.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Situações que o filtro aceita, além de 'todas'. */
+const SITUACOES_DO_FILTRO = ['pending', 'awaiting_confirmation', 'confirmed',
+                             'awaiting_mecenato', 'mecenato_issued'];
+
+/**
+ * A lista de documentos da organização, com os filtros do pedido.
+ * Devolve { erro } ou { rows }.
+ */
+async function documentosDaOrganizacao(req) {
+  const orgId = req.organization?.id || req.user?.orgId;
+  if (!orgId) return { erro: { codigo: 400, mensagem: 'Organização não identificada.' } };
+  if (!(await podeGerirOrganizacao(req.user.userId, orgId, req.user))) {
+    return { erro: { codigo: 403, mensagem: 'Sem permissão para ver os documentos desta organização.' } };
+  }
+
+  const condicoes = ['d.organization_id = $1', "d.status <> 'cancelled'"];
+  const params = [orgId];
+
+  const ano = parseInt(req.query.ano, 10);
+  if (Number.isInteger(ano)) {
+    params.push(ano);
+    condicoes.push(`d.fiscal_year = $${params.length}`);
+  }
+
+  // Situação: só da lista conhecida. Texto livre aqui viraria consulta por
+  // valor que ninguém escreveu.
+  const situacao = String(req.query.situacao || '').trim();
+  if (situacao && SITUACOES_DO_FILTRO.includes(situacao)) {
+    params.push(situacao);
+    condicoes.push(`d.status = $${params.length}`);
+  }
+
+  // "Só as que já têm documento" — o filtro que o contador usa.
+  if (String(req.query.com_documento || '') === 'sim') {
+    condicoes.push('(d.receipt_url IS NOT NULL OR d.mecenato_url IS NOT NULL)');
+  }
+
+  const { rows } = await pool.query(
+    `SELECT d.id, d.donation_amount, d.fiscal_year, d.status, d.simulada,
+            d.created_at, d.transferido_em, d.confirmed_at,
+            d.receipt_url, d.receipt_filename, d.receipt_sha256,
+            d.mecenato_url, d.mecenato_filename, d.mecenato_sha256, d.mecenato_issued_at,
+            d.pronac, d.projeto_titulo,
+            u.nome, u.cpf, u.email
+       FROM donations d
+       JOIN users u ON u.id = d.user_id
+      WHERE ${condicoes.join(' AND ')}
+      ORDER BY d.fiscal_year DESC, d.created_at DESC`,
+    params
+  );
+  return { rows };
+}
+
+/** 'AAAA-MM-DD' de um DATE ou TIMESTAMP, que o driver devolve como Date. */
+const soData = (v) => (v ? new Date(v).toISOString().slice(0, 10) : null);
+
+// ───────────────────────────────────────────────────────────────────────────
+// GET /api/donations/documentos — a lista, para a tela
+// ───────────────────────────────────────────────────────────────────────────
+router.get('/documentos', authenticateToken, async (req, res) => {
+  try {
+    const { erro, rows } = await documentosDaOrganizacao(req);
+    if (erro) return res.status(erro.codigo).json({ status: 'error', message: erro.mensagem });
+
+    const anos = [...new Set(rows.map(r => r.fiscal_year))].sort((a, b) => b - a);
+
+    res.json({
+      status: 'success',
+      total: rows.length,
+      anos,
+      // Quantos documentos existem, para a tela dizer o que falta sem contar
+      // de novo no navegador.
+      resumo: {
+        com_comprovante: rows.filter(r => r.receipt_url).length,
+        com_recibo:      rows.filter(r => r.mecenato_url).length,
+        sem_documento:   rows.filter(r => !r.receipt_url && !r.mecenato_url).length
+      },
+      destinacoes: rows.map(r => ({
+        id: r.id,
+        pessoa: { nome: r.nome, cpf: r.cpf, email: r.email },
+        valor: parseFloat(r.donation_amount),
+        ano: r.fiscal_year,
+        situacao: r.status,
+        simulada: r.simulada === true,
+        projeto: { pronac: r.pronac, titulo: r.projeto_titulo },
+        registrada_em:  soData(r.created_at),
+        transferida_em: soData(r.transferido_em),
+        conferida_em:   soData(r.confirmed_at),
+        documentos: {
+          comprovante: r.receipt_url ? {
+            nome: r.receipt_filename, sha256: r.receipt_sha256,
+            url: `/api/uploads/receipt/${r.id}/arquivo`
+          } : null,
+          recibo: r.mecenato_url ? {
+            nome: r.mecenato_filename, sha256: r.mecenato_sha256,
+            emitido_em: soData(r.mecenato_issued_at),
+            url: `/api/mecenato/${r.id}/arquivo`
+          } : null
+        }
+      }))
+    });
+  } catch (erro) {
+    console.error('Erro ao listar documentos:', erro.message);
+    res.status(500).json({ status: 'error', message: 'Erro ao listar documentos.' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// GET /api/donations/documentos.csv — o índice, para o contador
+//
+// Declarada ANTES de `/documentos`? Não precisa: o Express casa a rota exata,
+// e `.csv` faz parte do caminho. Mas as duas vêm antes de `/:id`, senão o
+// Express entende "documentos" como um identificador.
+// ───────────────────────────────────────────────────────────────────────────
+router.get('/documentos.csv', authenticateToken, async (req, res) => {
+  try {
+    const { erro, rows } = await documentosDaOrganizacao(req);
+    if (erro) return res.status(erro.codigo).json({ status: 'error', message: erro.mensagem });
+
+    // Campo que começa com = + - @ é lido como fórmula pelo Excel e pelo
+    // Sheets. Mesmo cuidado da lista de interessados: nome digitado por
+    // alguém de fora não pode virar fórmula na máquina de quem abre.
+    const campo = v => {
+      if (v == null) return '';
+      const texto = String(v);
+      const seguro = /^[=+\-@\t\r]/.test(texto) ? "'" + texto : texto;
+      return '"' + seguro.replace(/"/g, '""') + '"';
+    };
+
+    const cabecalho = ['ano', 'nome', 'cpf', 'valor', 'situacao', 'ensaio',
+                       'transferida_em', 'conferida_em',
+                       'comprovante', 'comprovante_sha256',
+                       'recibo', 'recibo_emitido_em', 'recibo_sha256'];
+
+    const linhas = rows.map(r => [
+      r.fiscal_year, r.nome, r.cpf,
+      // Número com vírgula decimal, que é como a planilha brasileira lê.
+      Number(r.donation_amount).toFixed(2).replace('.', ','),
+      r.status, r.simulada === true ? 'sim' : 'não',
+      soData(r.transferido_em) || '', soData(r.confirmed_at) || '',
+      r.receipt_filename || '', r.receipt_sha256 || '',
+      r.mecenato_filename || '', soData(r.mecenato_issued_at) || '', r.mecenato_sha256 || ''
+    ].map(campo).join(','));
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="documentos.csv"');
+    // BOM: sem ele o Excel abre o acento errado.
+    res.send('﻿' + [cabecalho.map(campo).join(','), ...linhas].join('\r\n') + '\r\n');
+  } catch (erro) {
+    console.error('Erro ao exportar documentos:', erro.message);
+    res.status(500).json({ status: 'error', message: 'Erro ao exportar documentos.' });
+  }
+});
+
 /**
  * Carrega a destinação e confere a permissão de quem está agindo.
  * Devolve { erro, destinacao } — quem chama só precisa repassar o erro.

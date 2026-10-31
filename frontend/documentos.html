@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentos · IncentivaBR</title>
+<link rel="icon" href="assets/logo-incentivabr-icon.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --primary-color:#0F1E3D; --secondary-color:#EE985C; --shadow-md:0 4px 16px rgba(13,27,62,.14); }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#F6F8FC; font-family:'Montserrat',system-ui,sans-serif; color:#0F1E3D; }
+
+  .nav { background: var(--primary-color); padding: 0 24px; height:60px; display:flex; align-items:center; }
+  .nav-inner { max-width:1240px; margin:0 auto; width:100%; display:flex; align-items:center; justify-content:space-between; }
+  .nav-logo { color:#fff; font-weight:900; font-size:19px; text-decoration:none; }
+  .nav-logo span { color: var(--secondary-color); }
+  .nav-right { display:flex; align-items:center; gap:14px; color:rgba(255,255,255,.75); font-size:13px; }
+  .btn-sair { background:none; border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:8px;
+              padding:7px 14px; font-size:13px; font-family:inherit; cursor:pointer; }
+
+  .page { max-width:1240px; margin:0 auto; padding:32px 24px 60px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { font-size:14px; color:#4A5568; margin:0 0 24px; line-height:1.6; max-width:760px; }
+
+  .resumo { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:24px; }
+  .cartao { background:#fff; border:1px solid #E3E6EA; border-radius:14px; padding:16px 18px; }
+  .cartao .n { font-size:24px; font-weight:800; }
+  .cartao .r { font-size:12px; color:#64748B; margin-top:2px; line-height:1.4; }
+  .cartao.falta .n { color:#92400E; }
+  .cartao.falta { background:#FFFBEB; border-color:#FDE68A; }
+
+  .filtros { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;
+             background:#fff; border:1px solid #E3E6EA; border-radius:14px; padding:16px 18px; }
+  .campo { display:flex; flex-direction:column; gap:5px; }
+  .campo label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#64748B; }
+  .campo select, .campo input { font-family:inherit; font-size:14px; padding:8px 10px;
+                                border:1px solid #CBD5E1; border-radius:9px; background:#fff; color:#0F1E3D; }
+  .btn-csv { margin-left:auto; display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+             background:var(--primary-color); color:#fff; border-radius:10px; padding:10px 18px;
+             font-size:14px; font-weight:700; }
+
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #E3E6EA;
+          border-radius:14px; overflow:hidden; font-size:14px; }
+  th { background:#F1F4F9; text-align:left; padding:12px 14px; font-size:12px; text-transform:uppercase;
+       letter-spacing:.05em; color:#475569; font-weight:700; }
+  td { padding:12px 14px; border-top:1px solid #EEF2F7; vertical-align:top; }
+  td .pessoa { font-weight:600; }
+  td .cpf { font-size:12px; color:#64748B; }
+  .valor { font-variant-numeric: tabular-nums; white-space:nowrap; }
+
+  .doc { display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:#C2410C;
+         font-weight:700; font-size:13px; }
+  .doc-falta { font-size:13px; color:#94A3B8; }
+  .hash { font-size:11px; color:#94A3B8; font-family:ui-monospace,monospace; display:block; margin-top:2px; }
+
+  .selo { display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; }
+  .selo-ensaio { background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; }
+
+  .vazio { background:#fff; border:1px dashed #CBD5E1; border-radius:14px; padding:40px 24px;
+           text-align:center; color:#64748B; font-size:14px; line-height:1.6; }
+  @media (max-width:760px) { .btn-csv { margin-left:0; width:100%; justify-content:center; } }
+</style>
+<script src="js/tenant.js"></script>
+<script src="js/moeda.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <!-- A marca é do cliente: a plataforma só se nomeia no site dela.
+         Os dois nascem visíveis e o tenant.js esconde o que não serve —
+         sem JavaScript sobra a marca da plataforma, que é o menos errado. -->
+    <a href="dashboard.html" class="nav-logo"><span data-so-plataforma>Incentiva<span>BR</span></span><span class="brand-name" data-so-cliente>esta instituição</span></a>
+    <div class="nav-right">
+      <span id="quem"></span>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <h1>Documentos das destinações</h1>
+  <p class="sub">
+    Tudo o que a plataforma guardou sobre cada destinação: o comprovante da transferência
+    e o recibo emitido, com o código de verificação de cada arquivo.
+    <b>A prestação de contas não é feita aqui</b> — esta tela existe para que quem a faz
+    encontre os documentos sem procurar um por um.
+  </p>
+
+  <div class="resumo" id="resumo" hidden></div>
+
+  <div class="filtros" id="filtros" hidden>
+    <div class="campo">
+      <label for="fAno">Ano</label>
+      <select id="fAno"><option value="">Todos</option></select>
+    </div>
+    <div class="campo">
+      <label for="fSituacao">Situação</label>
+      <select id="fSituacao">
+        <option value="">Todas</option>
+        <option value="pending">Registrada, sem comprovante</option>
+        <option value="awaiting_confirmation">Aguardando conferência</option>
+        <option value="confirmed">Conferida</option>
+        <option value="awaiting_mecenato">Aguardando recibo</option>
+        <option value="mecenato_issued">Recibo emitido</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="fDoc">Documentos</label>
+      <select id="fDoc">
+        <option value="">Com ou sem</option>
+        <option value="sim">Só quem já tem</option>
+      </select>
+    </div>
+    <a class="btn-csv" id="btnCsv" href="#"><i class="fas fa-file-csv"></i> Baixar planilha</a>
+  </div>
+
+  <div id="lista"></div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  const token = () => localStorage.getItem('incentivabr_token');
+  function sair() { localStorage.removeItem('incentivabr_token'); location.href = 'login.html'; }
+
+  // O que cada situação quer dizer para quem administra. Em um lugar só.
+  const SITUACAO = {
+    pending:               'Registrada, sem comprovante',
+    awaiting_confirmation: 'Aguardando conferência',
+    confirmed:             'Conferida',
+    awaiting_mecenato:     'Aguardando recibo',
+    mecenato_issued:       'Recibo emitido'
+  };
+
+  const dataBR = iso => (iso ? iso.split('-').reverse().join('/') : '—');
+
+  /** Os filtros da tela viram a query da rota — e a query do CSV. */
+  function consulta() {
+    const p = new URLSearchParams();
+    const ano = document.getElementById('fAno').value;
+    const sit = document.getElementById('fSituacao').value;
+    const doc = document.getElementById('fDoc').value;
+    if (ano) p.set('ano', ano);
+    if (sit) p.set('situacao', sit);
+    if (doc) p.set('com_documento', doc);
+    // O tenant viaja junto: sem ele, o endereço cai no site da plataforma.
+    const org = new URLSearchParams(location.search).get('org');
+    if (org) p.set('org', org);
+    return p.toString();
+  }
+
+  function umDocumento(d, rotulo) {
+    if (!d) return `<span class="doc-falta">— sem ${esc(rotulo)}</span>`;
+    return `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">`
+         + `<i class="fas fa-file-arrow-down"></i> ${esc(d.nome || rotulo)}</a>`
+         + (d.sha256 ? `<span class="hash">${esc(String(d.sha256).slice(0, 16))}…</span>` : '');
+  }
+
+  function desenha(r) {
+    document.getElementById('filtros').hidden = false;
+
+    const res = document.getElementById('resumo');
+    res.hidden = false;
+    // Número vindo do banco também passa por esc(). A regra da casa não abre
+    // exceção para "é só um número": é a exceção que um dia vira texto.
+    res.innerHTML = `
+      <div class="cartao"><div class="n">${esc(r.total)}</div><div class="r">destinações na lista</div></div>
+      <div class="cartao"><div class="n">${esc(r.resumo.com_comprovante)}</div><div class="r">com comprovante da transferência</div></div>
+      <div class="cartao"><div class="n">${esc(r.resumo.com_recibo)}</div><div class="r">com recibo emitido</div></div>
+      <div class="cartao ${r.resumo.sem_documento ? 'falta' : ''}">
+        <div class="n">${esc(r.resumo.sem_documento)}</div><div class="r">ainda sem documento nenhum</div></div>`;
+
+    const alvo = document.getElementById('lista');
+    if (!r.destinacoes.length) {
+      alvo.innerHTML = `<div class="vazio">Nenhuma destinação encontrada com estes filtros.<br>
+        Quando alguém destinar e enviar o comprovante, ele aparece aqui.</div>`;
+      return;
+    }
+
+    alvo.innerHTML = `<table>
+      <thead><tr>
+        <th>Contribuinte</th><th>Valor</th><th>Ano</th><th>Situação</th>
+        <th>Transferida em</th><th>Comprovante</th><th>Recibo</th>
+      </tr></thead>
+      <tbody>${r.destinacoes.map(d => `
+        <tr>
+          <td>
+            <div class="pessoa">${esc(d.pessoa.nome)}</div>
+            <div class="cpf">${esc(d.pessoa.cpf || 'CPF não informado')}</div>
+            ${d.simulada ? '<span class="selo selo-ensaio">Ensaio</span>' : ''}
+          </td>
+          <td class="valor">${esc(BRL(d.valor))}</td>
+          <td>${esc(String(d.ano))}</td>
+          <td>${esc(SITUACAO[d.situacao] || d.situacao)}</td>
+          <td>${esc(dataBR(d.transferida_em))}</td>
+          <td>${umDocumento(d.documentos.comprovante, 'comprovante')}</td>
+          <td>${umDocumento(d.documentos.recibo, 'recibo')}</td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }
+
+  async function carrega() {
+    const t = token();
+    if (!t) { location.href = 'login.html'; return; }
+    const q = consulta();
+    document.getElementById('btnCsv').href = '/api/donations/documentos.csv' + (q ? '?' + q : '');
+    try {
+      const resp = await fetch('/api/donations/documentos' + (q ? '?' + q : ''),
+        { headers: { 'Authorization': 'Bearer ' + t } });
+      if (resp.status === 403) {
+        document.getElementById('lista').innerHTML =
+          `<div class="vazio">Esta tela é de quem administra a organização.</div>`;
+        return;
+      }
+      if (!resp.ok) throw new Error('resposta ' + resp.status);
+      const r = (await resp.json());
+
+      // Os anos vêm do que existe, nunca de uma lista escrita à mão.
+      const sel = document.getElementById('fAno');
+      if (sel.options.length === 1 && r.anos?.length) {
+        r.anos.forEach(a => {
+          const o = document.createElement('option');
+          o.value = String(a); o.textContent = String(a);
+          sel.appendChild(o);
+        });
+      }
+      desenha(r);
+    } catch (e) {
+      document.getElementById('lista').innerHTML =
+        `<div class="vazio">Não foi possível carregar os documentos agora.</div>`;
+    }
+  }
+
+  ['fAno', 'fSituacao', 'fDoc'].forEach(id =>
+    document.getElementById(id).addEventListener('change', carrega));
+
+  carrega();
+</script>
+</body>
+</html>
