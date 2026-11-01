@@ -4,11 +4,14 @@
 > tributarista e sem responsabilidade técnica. Não fundamenta proposta
 > comercial, não fixa preço e não autoriza cláusula de contrato.
 >
-> E há uma limitação mais dura que a da nota de setembro: o ambiente onde esta
-> pesquisa foi feita **não alcança nenhuma fonte primária** — `gov.br`,
-> `planalto.gov.br`, `legisweb.com.br` e os portais de consultoria falham todos
-> na resolução de nome. Nenhum texto normativo foi lido. O que há de firme aqui
-> veio de outro lugar, e está dito no fim.
+> **Atualizada em 1/nov/2026.** A primeira versão desta nota dizia que nenhuma
+> fonte primária havia sido alcançada — o ambiente não resolve `gov.br`,
+> `planalto.gov.br` nem `legisweb.com.br`. Isso deixou de valer para a Rouanet:
+> Adacto forneceu os dois **Manuais do Proponente da IN 29/2026** (Módulo 1 —
+> Apresentação de Propostas; Módulo 2 — Monitoramento e Execução), publicados
+> pela Secretaria de Fomento e Incentivo à Cultura, e eles **transcrevem os
+> artigos da Instrução Normativa**. O que foi lido ali está marcado como
+> conferido, com página. O FDCA continua inteiramente em fonte secundária.
 
 ## A pergunta
 
@@ -39,14 +42,48 @@ seja: o percentual do custo vinculado é **dado por proposta**, guardado no
 banco do SALIC — não constante. É a mesma lição que o nosso `tetos_deducao` já
 carrega.
 
-Os limites, estes sim de fonte secundária:
+Os limites, **conferidos no Manual do Proponente Módulo 1, p. 43-44**, que
+transcreve os artigos da IN:
 
-| Rubrica | Limite |
-|---|---|
-| Custos de administração | ≤ 15% |
-| Divulgação | ≤ 20% |
-| Uma única despesa dentro da administração | ≤ 50% do grupo |
-| Remuneração pela captação de recursos | 10% do valor do projeto, **teto R$ 150.000** |
+| Rubrica | Limite | Base |
+|---|---|---|
+| Remuneração para captação de recursos | 10% do valor do projeto, **teto R$ 150.000** | art. 19 |
+| Custos de administração | ≤ 15% do valor do projeto | art. 22 |
+| Custos de acessibilidade, comunicação e divulgação acessíveis | ≤ 20% do valor do projeto | art. 20 |
+
+A divergência entre R$ 150.000 e R$ 100.000 **está resolvida**: o art. 19 diz
+R$ 150.000, e a própria tela do SALIC mostra "Limite: R$ 150.000,00" ao lado do
+campo. A regra de que uma única despesa não passaria de 50% do grupo de
+administração **não foi encontrada** no Módulo 1 — segue como não confirmada.
+
+Os três são pagos "proporcionalmente às parcelas já captadas": não é condição
+só da captação, os arts. 20 e 22 a repetem.
+
+### Art. 19, § 3º — o dispositivo que mais importa para esta plataforma
+
+> "Os valores destinados à remuneração para captação de recursos são exclusivos
+> para prestação de serviço **ao proponente**, sendo caracterizado como
+> **vantagem indevida** financeira ou material o uso dessa rubrica, **ou de
+> quaisquer outras aprovadas no projeto**, para pagamento de serviços prestados
+> diretamente **ao incentivador**."
+
+Quem usa a tela da IncentivaBR é o servidor, que é o incentivador. A vedação
+alcança **qualquer** rubrica do projeto, não só a de captação. O que torna a
+operação defensável é que o contrato é com a proponente, a entrega é a ela, e o
+que o servidor vê é a proponente comunicando o próprio projeto ao público dela
+— e isso precisa estar escrito no contrato nesses termos.
+
+### Os tetos do projeto são da tipicidade, e a aritmética fecha
+
+O Manual (p. 17-20) limita o valor do projeto pela tipicidade: "Projeto Normal",
+Arte Religiosa, Arte Urbana, Cultura Afro-brasileira e Povos e Comunidades
+Tradicionais vão até **R$ 1.500.000**; "Projetos Específicos" até R$ 6.000.000;
+"Projetos Especiais" até R$ 15.000.000; patrimônio, museus e equipamento
+cultural não têm limite.
+
+10% de R$ 1.500.000 são exatamente R$ 150.000. Quer dizer que **para um projeto
+normal o teto em reais nunca morde** — ele coincide com o limite da tipicidade.
+O teto só passa a valer em projeto específico ou especial.
 
 O teto em reais é absoluto, e é ele que decide na faixa em que os projetos
 estão:
@@ -145,14 +182,25 @@ resistência de setor, não de norma.
 
 ## 4. O que não foi confirmado
 
-1. **O texto da IN 29/2026**, que revogou a IN 23/2025 e está em vigor desde
-   30/01/2026. Tudo sobre ela aqui é secundário, e as fontes divergem sobre o
-   teto em reais da captação: R$ 150 mil nas mais recentes, R$ 100 mil em
-   material sobre normas anteriores.
-2. **Os nomes dos 6.587 itens do catálogo do SALIC** — se há item para site,
-   sistema ou serviços de informática. O catálogo é dado, não está em
-   repositório nenhum e **nenhuma API o expõe**. Vê-se dentro do SALIC, na
-   própria tela da planilha, onde é pesquisável por palavra-chave.
+1. **O texto integral da IN 29/2026.** Os Manuais transcrevem os artigos que
+   importam ao orçamento (19, 20 e 22) e citam outros (12, 13, 14, 16, 31, 37),
+   mas não são a norma. O que está marcado como conferido acima veio do Manual,
+   não do Diário Oficial.
+2. ~~Os nomes dos 6.587 itens do catálogo~~ — **deixou de ser pendência, e a
+   razão é melhor que a resposta.** O Manual (p. 49) determina: *"Não é
+   necessário inserir itens orçamentários referentes aos CUSTOS DE
+   ACESSIBILIDADE, COMUNICAÇÃO E DIVULGAÇÃO ACESSÍVEIS e aos CUSTOS
+   ADMINISTRATIVOS, devendo o proponente definir apenas a porcentagem dos
+   recursos que serão destinados e essas despesas nos CUSTOS VINCULADOS e
+   comprovar os gastos na prestação de contas."* Nas três rubricas em que a
+   plataforma entra **não se cadastra item nenhum** — define-se um percentual e
+   comprova-se depois, com nota fiscal. O catálogo serve aos *custos por
+   produto*, que são outra parte do orçamento. Quando for preciso consultá-lo,
+   há endereço público que não exige proposta aberta:
+   `aplicacoes.cultura.gov.br/comparar` → menu das três linhas → Projeto →
+   Itens orçamentários → Menu de produtos culturais → selecionar o produto →
+   Pesquisa. E, se nada servir, o SALIC tem "Itens orçamentários → Solicitar
+   inclusão de itens", com justificativa: item inexistente não é um beco.
 3. **Rio Grande do Sul e Paraná.** Do PR, apenas que o CEDCA mantém o Banco de
    Projetos sob a Lei Estadual 19.173/2017. Do RS, nada. As regras estão nos
    editais vigentes.
@@ -171,10 +219,24 @@ captação como sendo "realizada pela instituição proponente"?*
 É pergunta de uma página ao conselho. A resposta decide se, no FDCA, a
 cobrança é do projeto ou da OSC fora do projeto.
 
+Para o **tributarista**, a leitura dos Manuais deixou outras três, todas sobre
+a Rouanet: se o art. 22, IX ("consultorias especializadas em gestão para a
+execução de projetos culturais" e "serviço de elaboração de prestação de
+contas") sustenta a operação mensal da plataforma; como redigir o contrato para
+não cair no art. 19, § 3º; e onde orçar a campanha junto aos servidores, já que
+o art. 20 é de acessibilidade e lista profissionais, não ferramentas.
+
 ## Como as afirmações foram conferidas
 
-**O que é firme nesta nota** não veio de resumo de consultoria: veio de código
-e de documentação de dados lidos diretamente.
+**A fonte mais forte, acrescentada em 1/nov/2026**, são os dois **Manuais do
+Proponente da IN 29/2026** da Secretaria de Fomento e Incentivo à Cultura,
+fornecidos por Adacto. Eles transcrevem os artigos da Instrução Normativa e
+mostram as telas do SALIC. Tudo que esta nota marca com página (p. 17-20,
+p. 43-44, p. 47-49) veio de lá. Não são a norma publicada, mas são documento
+oficial do órgão que a aplica — um degrau acima de qualquer consultoria.
+
+**O que já era firme** não veio de resumo de consultoria: veio de código e de
+documentação de dados lidos diretamente.
 
 - **A estrutura do orçamento** (as dez etapas, os quatro custos vinculados com
   `pccalculo`, as 25 unidades de medida, os 6.587 itens, a `vwMediana`, a
