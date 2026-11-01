@@ -262,8 +262,14 @@ await q(`INSERT INTO org_projects
 // mexeu.
 const HOJE_ISO = new Date().toISOString().slice(0, 10);
 const FIM_DA_JANELA = `${new Date().getUTCFullYear()}-12-31`;
+// E o captado e DIFERENTE DE ZERO de proposito. Com zero, errar o nome do
+// campo que a pagina le (`cp.percentual` virar `cp.percentil`) produz o MESMO
+// resultado na tela — o fluxo do navegador passava com o defeito dentro. Com
+// R$ 148.000 de R$ 635.728,50 cada numero fica distinguivel: 23,3% na barra e
+// R$ 487.728,50 faltando. O caso do zero CONFERIDO continua coberto, no lugar
+// certo: o teste de unidade de situacaoDaCaptacao().
 await q(`UPDATE org_projects
-            SET valor_autorizado = 635728.50, valor_captado = 0,
+            SET valor_autorizado = 635728.50, valor_captado = 148000.00,
                 captacao_inicio = $2::date, captacao_fim = $3::date, valores_em = $4::date
           WHERE organization_id = $1`,
   [orgId, `${new Date().getUTCFullYear()}-01-01`, FIM_DA_JANELA, HOJE_ISO]);

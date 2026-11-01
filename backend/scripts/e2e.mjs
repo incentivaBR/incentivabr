@@ -340,6 +340,52 @@ await teste('assistente de destinação: o projeto do cliente já vem preenchido
   if (prazo.fechadoVisivel) throw new Error('a porta fechada apareceu com a janela aberta');
 });
 
+await teste('a captação sai do objeto certo no assistente e na página do projeto', async pg => {
+  // O defeito que isto vigia nasceu de um CAMPO COM O NOME TROCADO: as duas
+  // telas desenhavam a barra de captação com `valores.captado`, que a API do
+  // SALIC rotula sobre o CUSTO do projeto. Com o custo no lugar do captado a
+  // barra encosta em 100% e diz que o projeto já está financiado — na tela
+  // imediatamente anterior à transferência.
+  //
+  // A guarda estática impede o campo de voltar. Só o navegador prova que os
+  // nomes do objeto novo chegam ao DOM: `captado_conhecido`, `percentual`,
+  // `falta` e `conferido_em`. Errar um deles mostra "—" calado, e nenhum teste
+  // de unidade acusa.
+  await entrar(pg, 'maria@exemplo.gov.br');
+  await ir(pg, 'destinar-rouanet.html');
+  await ate(pg, () => /635\.728,50/.test(document.querySelector('#valAprovado')?.textContent || ''),
+            'o autorizado não chegou ao assistente: ' + await texto(pg, '#valAprovado'));
+
+  const ass = await pg.evaluate(() => ({
+    captado:  document.querySelector('#valCaptado')?.textContent || '',
+    restante: document.querySelector('#valRestante')?.textContent || '',
+    barra:    document.querySelector('#captacaoFill')?.style.width || '',
+    pct:      document.querySelector('#captacaoPct')?.textContent || ''
+  }));
+
+  // O fixture tem R$ 635.728,50 autorizados e R$ 148.000 captados, conferidos.
+  // Os três números são distinguíveis de propósito: com zero captado, errar o
+  // nome de qualquer campo do objeto dá o mesmo resultado na tela, e o fluxo
+  // passava com o defeito dentro — foi o que aconteceu na primeira versão
+  // disto.
+  if (ass.captado === '—') throw new Error('o captado CONFERIDO virou "não sei" no assistente');
+  if (!/148\.000,00/.test(ass.captado)) throw new Error('captado no assistente: ' + ass.captado);
+  if (!/487\.728,50/.test(ass.restante)) throw new Error('o que falta captar: ' + ass.restante);
+  if (ass.barra !== '23.3%') throw new Error('a barra não veio do percentual: ' + ass.barra);
+  if (!/23,3% captado/.test(ass.pct)) throw new Error('o percentual no assistente: ' + ass.pct);
+
+  await ir(pg, 'projetos-rouanet.html');
+  await ate(pg, () => /Já captado/.test(document.querySelector('#projectsContainer')?.textContent || ''),
+            'o cartão de captação não apareceu na página do projeto');
+
+  const proj = await texto(pg, '#projectsContainer');
+  // Valor exato: BRL.inteiro() arredondaria R$ 635.728,50 para R$ 635.729.
+  if (!/635\.728,50/.test(proj)) throw new Error('o valor saiu arredondado na página do projeto');
+  if (!/148\.000,00/.test(proj)) throw new Error('o captado não chegou à página do projeto');
+  if (!/23,3% captado/.test(proj)) throw new Error('o percentual não chegou: ' + proj.slice(0, 220));
+  if (!/[Cc]onferido em/.test(proj)) throw new Error('o número apareceu sem a data do retrato ao lado');
+});
+
 await teste('a captação do projeto aparece na home, com a data do retrato', async pg => {
   // É o bloco que dá urgência ao projeto e que faz o proponente ver a
   // operação dele na tela. O que se mede aqui é o que um teste de unidade não
