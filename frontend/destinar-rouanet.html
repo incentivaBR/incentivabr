@@ -1295,10 +1295,11 @@
     };
 
     // ── Formatadores ── BRL vem de js/moeda.js ──────────────────
-    function pct(captado, aprovado) {
-      if (!captado || !aprovado) return 0;
-      return Math.min(Math.round((captado / aprovado) * 100), 100);
-    }
+    //
+    // A conta do percentual de captação saiu daqui: ela é feita uma vez no
+    // backend, em situacaoDaCaptacao(), e chega pronta em `captacao.percentual`.
+    // Uma segunda cópia na página voltaria a precisar de um "captado" para
+    // multiplicar — e foi um captado errado que desenhou a barra em 100%.
 
     // ── Toast ───────────────────────────────────────────────────
     function toast(msg, type = '') {
@@ -1883,20 +1884,32 @@
           || `Projeto cultural aprovado pelo Ministério da Cultura, enquadrado como ${p.mecanismo || 'Art. 18 — 100% dedutível'}. Sua destinação fortalece a cultura brasileira sem custo adicional para você.`;
         document.getElementById('s0Desc').textContent = desc;
 
-        if (p.valores?.aprovado != null) {
-          const rest   = Math.max(0, (p.valores.aprovado||0) - (p.valores.captado||0));
-          const pctCap = p.valores.aprovado > 0 ? Math.round((p.valores.captado / p.valores.aprovado) * 100) : 0;
-          const s0VA = document.getElementById('s0ValAprovado');
-          const s0VC = document.getElementById('s0ValCaptado');
-          const s0VR = document.getElementById('s0ValRestante');
-          const s0CB = document.getElementById('s0CapBar');
-          const s0VW = document.getElementById('s0ValoresWrap');
-          if (s0VA) s0VA.textContent = BRL(p.valores.aprovado);
-          if (s0VC) s0VC.textContent = BRL(p.valores.captado);
-          if (s0VR) s0VR.textContent = BRL(rest);
-          if (s0CB) s0CB.style.width = `${pctCap}%`;
-          if (s0VW) s0VW.style.display = '';
-        }
+        // A captação vem do objeto `captacao`, nunca de `valores.captado`.
+        //
+        // Estas duas barras eram desenhadas com `valores.captado`, que a API
+        // do SALIC rotula sobre o custo do projeto: no assistente, a tela
+        // imediatamente anterior à transferência dizia que o projeto já estava
+        // financiado. Agora, captado que ninguém conferiu aparece como "—" e a
+        // barra não é desenhada — não saber não é zero.
+        const cp        = p.captacao || null;
+        const autoriz   = cp?.autorizado ?? p.valores?.aprovado ?? null;
+        const sabeCap   = !!cp?.captado_conhecido;
+        const pctCap    = sabeCap ? (cp.percentual ?? 0) : 0;
+        // O percentual tem uma casa decimal, e 23.3 em JavaScript vira texto
+        // com PONTO. A largura da barra precisa do ponto, porque é CSS; o
+        // texto que a pessoa lê precisa da vírgula. São usos diferentes do
+        // mesmo número, não duas formatações concorrentes.
+        const pctTexto  = String(pctCap).replace('.', ',');
+
+        // Aqui havia um segundo bloco de captação, do passo 0, escrevendo em
+        // cinco elementos que NÃO EXISTEM nesta página: s0ValAprovado,
+        // s0ValCaptado, s0ValRestante, s0CapBar e s0ValoresWrap. Cada escrita
+        // estava protegida por `if (elemento)`, então o código rodava inteiro
+        // sem efeito e sem erro — e foi por isso que o captado errado nunca
+        // apareceu no passo 0. Apagado em vez de corrigido: código que escreve
+        // no vazio é o que um dia alguém religa a elementos de verdade,
+        // trazendo de volta a fonte que acabou de ser consertada. O bloco da
+        // captação que a página tem de fato é o de baixo.
         // ─────────────────────────────────────────────────────
 
         // Dados do SALIC ou do cadastro do projeto: texto de fora, escapado
@@ -1910,20 +1923,22 @@
         if (p.mecanismo) chips.push(`<span class="info-chip"><i class="fas fa-gavel"></i>${esc(p.mecanismo)}</span>`);
         document.getElementById('infoRow').innerHTML = chips.join('');
 
-        if (p.valores?.aprovado != null) {
-          document.getElementById('valAprovado').textContent = BRL(p.valores.aprovado);
-          document.getElementById('valCaptado').textContent  = BRL(p.valores.captado);
-          const restante = (p.valores.aprovado || 0) - (p.valores.captado || 0);
-          document.getElementById('valRestante').textContent = BRL(restante > 0 ? restante : 0);
+        if (autoriz != null) {
+          document.getElementById('valAprovado').textContent = BRL(autoriz);
+          document.getElementById('valCaptado').textContent  = sabeCap ? BRL(cp.captado) : '—';
+          document.getElementById('valRestante').textContent = sabeCap ? BRL(cp.falta) : '—';
           document.getElementById('valoresRow').style.display = '';
           const vNote = document.getElementById('valoresNote');
           if (vNote) vNote.style.display = '';
 
-          const pctCap = pct(p.valores.captado, p.valores.aprovado);
-          document.getElementById('captacaoFill').style.width  = `${pctCap}%`;
-          document.getElementById('captacaoPct').textContent   = `${pctCap}% captado`;
-          document.getElementById('captacaoMeta').textContent  = `Meta: ${BRL(p.valores.aprovado)}`;
-          document.getElementById('captacaoBar').style.display = '';
+          // Sem captado conferido não há barra: uma barra em 0% afirma que
+          // ninguém doou, que é a mesma mentira na direção oposta.
+          if (sabeCap) {
+            document.getElementById('captacaoFill').style.width  = `${pctCap}%`;
+            document.getElementById('captacaoPct').textContent   = `${pctTexto}% captado`;
+            document.getElementById('captacaoMeta').textContent  = `Meta: ${BRL(autoriz)}`;
+            document.getElementById('captacaoBar').style.display = '';
+          }
         }
 
         if (p.situacao) {

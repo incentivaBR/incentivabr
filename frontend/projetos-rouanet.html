@@ -381,10 +381,8 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
     }
-    function pct(captado, aprovado) {
-      if (!captado || !aprovado || aprovado === 0) return 0;
-      return Math.min(Math.round((captado / aprovado) * 100), 100);
-    }
+    // O percentual de captação vem pronto em `captacao.percentual`, calculado
+    // uma vez em situacaoDaCaptacao(). A conta local saiu daqui de propósito.
     function situacaoStyle(s) {
       if (!s) return 'bg-gray-50 text-gray-500 border-gray-200';
       const sl = s.toLowerCase();
@@ -410,7 +408,19 @@
         if (data.status !== 'success') throw new Error(data.message || 'Projeto não configurado');
 
         const p   = data.projeto;
-        const cap = pct(p.valores?.captado, p.valores?.aprovado);
+
+        // A captação vem do objeto `captacao`, nunca de `valores.captado`.
+        // Esta página desenhava a barra com `valores.captado`, que a API
+        // rotula sobre o custo do projeto: a barra encostava em 100% e dizia
+        // que o projeto já estava financiado. Aqui, "não conferido" aparece
+        // como "—", porque não saber não é zero.
+        const c          = p.captacao || null;
+        const autorizado = c?.autorizado ?? p.valores?.aprovado ?? null;
+        const sabeCap    = !!c?.captado_conhecido;
+        const cap        = sabeCap ? (c.percentual ?? 0) : 0;
+        // A largura da barra é CSS e precisa do ponto decimal; o texto que a
+        // pessoa lê é em português e precisa da vírgula.
+        const capTexto   = String(cap).replace('.', ',');
         const destinarUrl = `destinar-rouanet.html?pronac=${encodeURIComponent(p.pronac)}&titulo=${encodeURIComponent(p.nome)}${valorParam ? '&valor=' + encodeURIComponent(valorParam) : ''}`;
 
         document.getElementById('btnDestinar').href = destinarUrl;
@@ -445,30 +455,33 @@
               </blockquote>` : ''}
 
               <!-- Valores -->
-              ${p.valores?.aprovado ? `
+              ${autorizado != null ? `
               <div class="grid grid-cols-3 gap-3 mb-5">
                 <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 text-center">
                   <p class="text-xs text-gray-400 mb-1">Valor aprovado</p>
-                  <p class="text-base font-bold text-[#0F1E3D]">${BRL.inteiro(p.valores.aprovado)}</p>
+                  <p class="text-base font-bold text-[#0F1E3D]">${BRL(autorizado)}</p>
                 </div>
                 <div class="rounded-xl bg-green-50 border border-green-100 p-4 text-center">
                   <p class="text-xs text-gray-400 mb-1">Já captado</p>
-                  <p class="text-base font-bold text-green-700">${BRL.inteiro(p.valores.captado)}</p>
+                  <p class="text-base font-bold text-green-700">${sabeCap ? BRL(c.captado) : '—'}</p>
                 </div>
                 <div class="rounded-xl bg-[var(--secondary-10)] border border-[var(--secondary-20)] p-4 text-center">
                   <p class="text-xs text-gray-400 mb-1">Progresso</p>
-                  <p class="text-base font-bold text-[#0F1E3D]">${cap}%</p>
+                  <p class="text-base font-bold text-[#0F1E3D]">${sabeCap ? capTexto + '%' : '—'}</p>
                 </div>
               </div>
+              ${sabeCap ? `
               <div class="mb-6">
                 <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div class="h-full bg-gradient-to-r from-[var(--secondary-solid)] to-[#0F1E3D] rounded-full transition-all duration-700" style="width:${cap}%"></div>
                 </div>
                 <div class="flex justify-between text-xs text-gray-400 mt-1.5">
-                  <span>${cap}% captado</span>
-                  <span>Meta: ${BRL.inteiro(p.valores.aprovado)}</span>
+                  <span>${capTexto}% captado</span>
+                  <span>Meta: ${BRL(autorizado)}</span>
                 </div>
-              </div>` : ''}
+                ${c.conferido_em ? `<p class="text-xs text-gray-400 mt-1.5">${c.defasado ? 'Valor conferido em' : 'Conferido em'} ${escapeHtml(c.conferido_em)}${c.ultimo_recibo ? ' · último recibo em ' + escapeHtml(c.ultimo_recibo) : ''}</p>` : ''}
+              </div>` : `
+              <p class="text-xs text-gray-400 mb-6">O valor já captado por este projeto ainda não foi conferido na fonte oficial.</p>`}` : ''}
 
               <!-- Situação -->
               ${p.situacao ? `

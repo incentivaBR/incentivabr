@@ -14,6 +14,7 @@ import express from 'express';
 import pool from '../../config/database.js';
 import { fotoParaATela, fotoPublicavel } from '../lib/fotoDoProjeto.js';
 import { situacaoDaCaptacao, fraseDaCaptacao } from '../lib/captacao.js';
+import { resumoDaResposta, zeroConferido } from '../lib/captacaoDoSalic.js';
 import { prazoQueManda } from '../lib/prazoDaDecisao.js';
 import { entregaImagem } from '../lib/entregaArquivo.js';
 
@@ -68,6 +69,12 @@ async function salicFetch(path, params = {}, timeoutMs = 15000) {
   if (!response.ok) {
     const err = new Error(`SALIC API error: ${response.status} ${response.statusText}`);
     err.status = response.status;
+    // O CORPO do erro é informação, não ruído: a rota de captações responde 404
+    // com message_code 11 para "este projeto não tem captação", que é um zero
+    // conferido, e 404 sem corpo quando o endereço não existe. Sem o corpo os
+    // dois casos são o mesmo, e tratar o segundo como zero afirmaria que
+    // ninguém doou numa página que pede transferência.
+    try { err.corpo = await response.json(); } catch { /* resposta sem corpo */ }
     throw err;
   }
 
@@ -266,10 +273,23 @@ function normalizarProjeto(p) {
       nome:  p.proponente,
       cgccpf: p.cgccpf
     },
+    // `captado` NÃO entra aqui, e a ausência é o conserto.
+    //
+    // O campo `valor_captado` que a API devolve é rotulado, no código dela,
+    // sobre a função `fnCustoProjeto` — o custo do projeto. Três telas
+    // desenhavam a barra de captação com ele: o assistente (duas vezes) e a
+    // página do projeto. Com o custo no lugar do captado, a barra encosta em
+    // 100% e diz a quem chegou que o projeto já está financiado, na tela em
+    // que a pessoa ia transferir. Em simulação nunca apareceu porque esta
+    // rota não monta `valores` nesse modo.
+    //
+    // A captação agora tem uma fonte só, a soma dos recibos, e chega às
+    // páginas pelo objeto `captacao`. Ver lib/captacaoDoSalic.js. Devolver o
+    // custo com um nome honesto seria convidar a próxima tela a usá-lo como
+    // captação de novo — se algum dia ele for preciso, que entre de propósito.
     valores: {
       solicitado:  parseValor(p.valor_solicitado),
       aprovado:    parseValor(p.valor_aprovado),
-      captado:     parseValor(p.valor_captado),
       desembolsado: parseValor(p.valor_desembolsado)
     },
     ano_projeto:       p.ano_projeto,
@@ -344,12 +364,46 @@ const PROJETOS_DEMO = [
  * dentro faria o relógio sumir justamente no cliente que ainda não preencheu
  * os valores do projeto — que é quem mais precisa dele na tela.
  */
-function captacaoEPrazo(projeto) {
+function captacaoEPrazo(projeto, ultimoRecibo = null) {
   const c = situacaoDaCaptacao(projeto);
   return {
-    captacao: c ? { ...c, frase: fraseDaCaptacao(c) } : null,
+    captacao: c ? { ...c, frase: fraseDaCaptacao(c), ultimo_recibo: ultimoRecibo } : null,
     prazo:    prazoQueManda(c)
   };
+}
+
+/**
+ * A captação de um projeto, pela SOMA DOS RECIBOS que o SALIC registrou.
+ *
+ * Existe porque o campo `valor_captado` do detalhe do projeto não é a
+ * captação — é o custo, por um rótulo trocado no código da própria API. A
+ * explicação inteira está em lib/captacaoDoSalic.js, e é lá que mora a regra;
+ * aqui fica só a consulta, o cache e os três desfechos.
+ *
+ * Devolve o resumo, ou null quando não há como afirmar o total — e aí quem
+ * governa é o retrato do cadastro, que é o comportamento de antes e é honesto.
+ * Nunca derruba a rota: a captação é informação a mais na página, e perdê-la
+ * não pode custar o projeto, a conta de captação e o prazo.
+ */
+async function captacaoDoProjeto(pronac) {
+  const chave = `salic:captacoes:${pronac}`;
+  const guardado = cacheGet(chave);
+  if (guardado) return guardado;
+
+  try {
+    const bruto = await salicFetch(`/projetos/${pronac}/captacoes`, {}, 8000);
+    const resumo = resumoDaResposta(bruto);
+    if (resumo) cacheSet(chave, resumo, TTL_LIST);
+    return resumo;
+  } catch (erro) {
+    if (erro.status === 404) {
+      const zero = zeroConferido(erro.corpo);
+      if (zero) cacheSet(chave, zero, TTL_LIST);
+      return zero;
+    }
+    console.warn('[SALIC] captações indisponíveis para', pronac, '—', erro.message);
+    return null;
+  }
 }
 
 router.get('/org-project/foto', async (req, res) => {
@@ -470,23 +524,34 @@ router.get('/org-project', async (req, res) => {
     // Aqui o SALIC respondeu, então os valores dele são de agora e vencem o
     // retrato do cadastro — que existe para o caso contrário. As DATAS da
     // janela continuam vindo do cadastro: a consulta de detalhe não as traz.
+    // A captação vem da SOMA DOS RECIBOS, nunca do campo `valor_captado` do
+    // detalhe — que é o custo do projeto com o nome trocado (ver
+    // lib/captacaoDoSalic.js). Uma consulta, cacheada, serve os dois caminhos
+    // abaixo: o do cache do detalhe e o da consulta nova.
+    const recibos = await captacaoDoProjeto(pronac);
+
     const comFoto = (r) => {
       const v = r.projeto?.valores || {};
-      const aoVivo = (v.aprovado != null || v.captado != null)
-        ? {
-            valor_autorizado: v.aprovado ?? orgProject?.valor_autorizado ?? null,
-            valor_captado:    v.captado  ?? null,
-            captacao_inicio:  orgProject?.captacao_inicio ?? null,
-            captacao_fim:     orgProject?.captacao_fim ?? null,
-            // Veio do Ministério nesta requisição: o retrato é de hoje.
-            valores_em:       new Date().toISOString().slice(0, 10)
-          }
-        : orgProject;
+
+      // Cada número com a sua procedência e a sua data. O autorizado vem do
+      // Ministério quando ele responde; o captado só vem dos recibos. Quando
+      // não há recibos, o captado e a DATA DELE vêm juntos do cadastro — se a
+      // data virasse "hoje" aqui, um retrato de setembro apareceria em
+      // dezembro como se tivesse sido conferido agora.
+      const aoVivo = {
+        valor_autorizado: v.aprovado ?? orgProject?.valor_autorizado ?? null,
+        valor_captado:    recibos ? recibos.captado : (orgProject?.valor_captado ?? null),
+        captacao_inicio:  orgProject?.captacao_inicio ?? null,
+        captacao_fim:     orgProject?.captacao_fim ?? null,
+        valores_em:       recibos
+          ? new Date().toISOString().slice(0, 10)
+          : (orgProject?.valores_em ?? null)
+      };
 
       return { ...r, projeto: {
         ...r.projeto,
         foto: fotoParaATela(orgProject),
-        ...captacaoEPrazo(aoVivo)
+        ...captacaoEPrazo(aoVivo, recibos?.ultimo_recibo ?? null)
       } };
     };
 
