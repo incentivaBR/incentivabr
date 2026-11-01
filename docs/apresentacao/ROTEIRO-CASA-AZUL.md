@@ -58,8 +58,14 @@ e é fácil de acompanhar de cabeça.
 azul-marinho `#1E346B`, o título da janela e o texto do topo falando do projeto
 deles — não da IncentivaBR.
 
-**Não explique nada ainda. Digite.** No campo do topo, digite o IR retido.
-O valor aparece embaixo, na hora, sem carregar página e sem cadastro.
+**Não explique nada ainda. Digite.** No campo do topo, digite o **Imposto
+Devido**. O valor aparece embaixo, na hora, sem carregar página e sem cadastro.
+
+> Em out/2026 o campo passou a pedir o imposto **devido**, não o retido — o
+> retido na fonte é o que o empregador recolheu mês a mês, e para quem tem
+> saúde, educação ou previdência privada ele é **maior** que o devido. Pedir o
+> retido prometia limite acima do que a lei dá. Dizer "retido" na demonstração
+> contradiz o que está escrito na tela, na frente do cliente.
 
 > "Um servidor que abre isto no celular descobre em cinco segundos quanto é
 > dele. Não pedi cadastro, não pedi CPF, não mandei para outra página. É essa
