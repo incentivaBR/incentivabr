@@ -132,6 +132,10 @@ db.public.none(`
     receipt_url TEXT, receipt_filename TEXT, receipt_file_path TEXT,
     confirmed_at TIMESTAMP, proponente_notified_at TIMESTAMP,
     mecenato_url TEXT, mecenato_filename TEXT, mecenato_issued_at TIMESTAMP,
+    -- migration 037: o SHA-256 de cada documento. A tela de documentos os LÊ
+    -- para mostrar o código de verificação; sem as colunas aqui a consulta
+    -- falha e a tela aparece vazia, sem dizer por quê.
+    receipt_sha256 TEXT, mecenato_sha256 TEXT,
     confirmed_by UUID, confirmation_note TEXT,
     rejected_at TIMESTAMP, rejected_by UUID, rejection_reason TEXT,
     -- migration 048: a data em que o dinheiro saiu, de onde correm os prazos.

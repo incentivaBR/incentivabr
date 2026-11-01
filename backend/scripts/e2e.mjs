@@ -768,6 +768,53 @@ await teste('interessados: a lista da organização, com a situação de cada pe
   await chegouComoTexto(pg, 'tbody tr');
 });
 
+await teste('documentos: o gestor acha os arquivos sem saber o id de ninguém', async pg => {
+  // Toda rota de documento é por destinação (`/:id/arquivo`): sem esta tela,
+  // achar um comprovante exigia já saber o id dele. É a tela que entrega os
+  // documentos a quem vai prestar contas — sem prestar contas por ele.
+  await entrar(pg, 'gestor@casazul.org.br');
+  await ir(pg, 'documentos.html');
+  await ate(pg, () => document.querySelectorAll('tbody tr').length > 0,
+            'a tabela não carregou: ' + await texto(pg, '#lista'));
+
+  const visto = await pg.evaluate(() => {
+    const linhas = [...document.querySelectorAll('tbody tr')];
+    return {
+      quantas: linhas.length,
+      // Os links de documento têm de apontar para as rotas autenticadas
+      // que já existem, nunca carregar o arquivo na própria lista.
+      links: [...document.querySelectorAll('a.doc')].map(a => a.getAttribute('href')),
+      ensaios: document.querySelectorAll('.selo-ensaio').length,
+      csv: document.getElementById('btnCsv')?.getAttribute('href') || ''
+    };
+  });
+
+  if (!visto.links.length) throw new Error('nenhum link de documento na tela');
+  const forma = /^\/api\/(uploads\/receipt|mecenato)\/[0-9a-f-]+\/arquivo$/;
+  const torto = visto.links.find(h => !forma.test(h));
+  if (torto) throw new Error('link de documento fora da rota autenticada: ' + torto);
+
+  // O fixture tem uma destinação de ENSAIO (migration 055). Ela aparece na
+  // lista — esconder documento seria pior —, mas marcada.
+  if (!visto.ensaios) throw new Error('a destinação de ensaio não está marcada na tela');
+  if (!/documentos\.csv/.test(visto.csv)) throw new Error('o botão da planilha não aponta para o CSV: ' + visto.csv);
+
+  await chegouComoTexto(pg, 'tbody tr');
+});
+
+await teste('quem só destina não vê os documentos da organização', async pg => {
+  await entrar(pg, 'maria@exemplo.gov.br');
+  await ir(pg, 'documentos.html');
+  await pg.waitForTimeout(1200);
+  const conteudo = await texto(pg, '#lista');
+  if (/tbody|<tr/i.test(await pg.evaluate(() => document.getElementById('lista').innerHTML))) {
+    throw new Error('a destinadora viu a lista de documentos da organização');
+  }
+  if (!/administra a organiza/i.test(conteudo)) {
+    throw new Error('a recusa não explica por quê: ' + conteudo);
+  }
+});
+
 await teste('a tela de clientes recusa quem não é da plataforma', async pg => {
   await entrar(pg, 'gestor@casazul.org.br');
   await ir(pg, 'admin-clientes.html');
