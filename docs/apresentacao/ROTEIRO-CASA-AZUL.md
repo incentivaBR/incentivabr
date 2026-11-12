@@ -216,8 +216,10 @@ O que pedir antes de sair, em ordem de importância:
 
 1. **A Conta de Captação do PRONAC 2511274** — banco, agência e conta. É o que
    destrava a virada. Reforce: a conta **de captação** do projeto, não a
-   institucional. *(A consulta do SALIC traz agência 2895-9 e conta 97.365-3;
-   peça confirmação mesmo assim — depósito na conta errada não gera recibo.)*
+   institucional. *(A consulta do SALIC traz agência e conta do projeto — confira
+   lá na hora, e peça confirmação à proponente mesmo assim: depósito na conta
+   errada não gera recibo. Os números não ficam escritos aqui; este repositório
+   é público, e a conta de um cliente não é nossa para publicar.)*
 2. **Uma foto boa do projeto, e os termos de autorização de imagem.**
    Horizontal, pelo menos 1600px. Sem a declaração de autorização, a foto não
    é publicada.

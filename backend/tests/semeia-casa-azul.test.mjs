@@ -159,14 +159,14 @@ await teste('convergir NAO apaga o que so a Casa Azul informa', async () => {
   // existir. Um seed que os tocasse apagaria esse dado a cada deploy — e
   // deposito na conta errada nao gera recibo.
   await q(`UPDATE org_projects
-              SET bank_name = 'Banco do Brasil', bank_agency = '2895-9',
+              SET bank_name = 'Banco do Brasil', bank_agency = 'agencia-informada-pela-tela',
                   bank_account = 'conta-informada-pela-tela', pix_key = 'chave-do-cliente'
             WHERE pronac = '2511274'`);
   await semeiaCasaAzul(poolReal);
 
   const [p] = await q(`SELECT * FROM org_projects WHERE pronac = '2511274'`);
   if (p.bank_account !== 'conta-informada-pela-tela') throw new Error('o seed apagou a conta de captacao');
-  if (p.bank_agency !== '2895-9') throw new Error('o seed apagou a agencia');
+  if (p.bank_agency !== 'agencia-informada-pela-tela') throw new Error('o seed apagou a agencia');
   if (p.pix_key !== 'chave-do-cliente') throw new Error('o seed apagou a chave PIX');
 
   // Devolve ao estado limpo para as guardas seguintes.

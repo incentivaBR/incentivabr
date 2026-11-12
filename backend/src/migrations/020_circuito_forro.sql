@@ -1,7 +1,7 @@
 -- Migration 020: Atualizar PRONAC para Circuito do Forró (PRONAC 252026)
 -- Data: 2026-04-28
--- Proponente: BR Projects LTDA (CNPJ 00.383.111/0001-24)
--- Banco: BB Ag. 1419-2, Conta Captação 36.068-6
+-- Proponente: BR Projects LTDA (CNPJ 00.000.000/0001-00)
+-- Banco: BB Ag. 0000-0, Conta Captação 00000-0
 
 -- 1. Atualizar organização
 UPDATE organizations SET
@@ -11,8 +11,8 @@ UPDATE organizations SET
   pronac_proponente = 'BR Projects LTDA',
   bank_name         = 'Banco do Brasil',
   bank_code         = '001',
-  bank_agency       = '1419-2',
-  bank_account      = '36.068-6',
+  bank_agency       = '0000-0',
+  bank_account      = '00000-0',
   pix_key           = NULL,
   pix_key_type      = NULL
 WHERE slug = 'www';
@@ -25,8 +25,8 @@ UPDATE org_projects SET
   proponente_nome = 'BR Projects LTDA',
   bank_name       = 'Banco do Brasil',
   bank_code       = '001',
-  bank_agency     = '1419-2',
-  bank_account    = '36.068-6',
+  bank_agency     = '0000-0',
+  bank_account    = '00000-0',
   pix_key         = NULL,
   pix_key_type    = NULL
 WHERE organization_id = (SELECT id FROM organizations WHERE slug = 'www');

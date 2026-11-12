@@ -1,5 +1,5 @@
 -- Migration 021: Adicionar CNPJ do proponente ao org_projects (Circuito do Forró)
--- CNPJ: BR Projects LTDA — 00.383.111/0001-24
+-- CNPJ: BR Projects LTDA — 00.000.000/0001-00
 
 UPDATE org_projects SET
   proponente_cnpj = '00383111000124'
