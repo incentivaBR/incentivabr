@@ -273,7 +273,7 @@ const projetoComJanela = async (fim) => {
   await q(`DELETE FROM org_projects`);
   await q(`INSERT INTO org_projects
              (organization_id, pronac, titulo, bank_agency, bank_account, captacao_fim, is_active)
-           VALUES ('${orgId}', '2511274', 'Mostra', '2895-9', '97.365-3',
+           VALUES ('${orgId}', '2511274', 'Mostra', '0000-0', '00000-0',
                    ${fim === null ? 'NULL' : `'${fim}'`}, true)`);
 };
 
@@ -325,6 +325,104 @@ await teste('o ultimo dia da janela ainda registra', async () => {
   await projetoComJanela(hoje);
   const r = await registrar();
   igual(r.status, 201, 'status');
+});
+
+await teste('nenhum arquivo do repositorio tem conta bancaria de verdade', async () => {
+  // CLAUDE.md, primeira regra que nunca deve ser quebrada: "Nunca hardcodar
+  // dados bancarios no codigo ou em pagina. Conta de captacao vem do banco,
+  // por tenant." Ela existia e foi quebrada assim mesmo: a agencia e a conta
+  // reais da conta de captacao de um CLIENTE ficaram em dois testes e num
+  // roteiro, desde outubro de 2026 — e este repositorio e PUBLICO.
+  //
+  // A guarda procura o FORMATO de agencia e conta brasileiras, nunca os
+  // numeros reais: uma guarda que contivesse o valor que quer esconder
+  // publicaria aquilo que veio impedir. Valor ficticio entra na lista abaixo.
+  const fs = await import('fs');
+  const path = await import('path');
+  const { fileURLToPath } = await import('url');
+  const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
+
+  // Cada valor aqui esta liberado por um motivo escrito. Acrescentar um sem
+  // motivo e como desligar a guarda.
+  const FICTICIOS = new Set([
+    '0000-0', '00000-0', '1234-5', '12345-6', '0001-0',  // neutros, sem dono
+    '98.765-4',                                          // sequencia obvia, fixture
+    '9999-9',                                            // sentinela da conferencia
+                                                         // logo abaixo, que precisa de
+                                                         // um valor em codigo VIVO para
+                                                         // provar que a limpeza de
+                                                         // comentarios nao cegou nada
+    '3217-4', '48.291-5',                                // inventados: a propria 034
+                                                         // diz "o projeto nunca existiu
+                                                         // no SALIC e a conta nunca
+                                                         // recebeu nada"
+    '3902-5'                                             // FNC — Fundo Nacional de
+                                                         // Cultura. Conta PUBLICA do
+                                                         // Ministerio, divulgada para
+                                                         // receber deposito, e mora em
+                                                         // official_funds, que e o lugar
+                                                         // certo dela
+  ]);
+  const FORMATO = /\b\d{4}-\d\b|\b\d{2}\.\d{3}-\d\b/g;
+  const IGNORA  = new Set(['node_modules', '.git', 'archive', 'coverage']);
+
+  // A guarda le o arquivo SEM COMENTARIOS, e esta e a setima vez que esta casa
+  // aprende a licao: o comentario que explica por que um valor foi REMOVIDO
+  // cita o valor removido. A primeira versao desta guarda acusou exatamente
+  // isso — o comentario do projetos-rouanet.html que documenta a retirada da
+  // conta antiga.
+  const semComentario = (t) => t
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1')
+    .replace(/^\s*--.*$/gm, '');
+
+  const achados = [];
+  const ande = (dir) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (IGNORA.has(e.name)) continue;
+      const cheio = path.join(dir, e.name);
+      if (e.isDirectory()) { ande(cheio); continue; }
+      if (!/\.(mjs|js|sql|html|md|json|yml|yaml)$/.test(e.name)) continue;
+      const texto = semComentario(fs.readFileSync(cheio, 'utf8'));
+      for (const achado of texto.match(FORMATO) || []) {
+        if (!FICTICIOS.has(achado)) {
+          achados.push(path.relative(RAIZ, cheio) + ': ' + achado);
+        }
+      }
+    }
+  };
+  ande(RAIZ);
+
+  if (achados.length) {
+    throw new Error('dado bancario com cara de real no repositorio publico:\n    '
+      + achados.slice(0, 10).join('\n    '));
+  }
+});
+
+await teste('a limpeza de comentarios nao cega a guarda bancaria', async () => {
+  // O conserto acima e, ele proprio, um risco: uma limpeza larga demais
+  // deixaria passar a conta escrita de verdade, em codigo vivo.
+  const semComentario = (t) => t
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1')
+    .replace(/^\s*--.*$/gm, '');
+  const FORMATO = /\b\d{4}-\d\b|\b\d{2}\.\d{3}-\d\b/;
+
+  const vivo = "bank_agency = '9999-9',";
+  if (!FORMATO.test(semComentario(vivo))) throw new Error('a limpeza comeu codigo VIVO');
+
+  for (const comentado of ['<!-- antes era 9999-9 -->', '// antes era 9999-9',
+                           '-- antes era 9999-9', '/* antes era 9999-9 */']) {
+    if (FORMATO.test(semComentario(comentado))) {
+      throw new Error('comentario continua sendo lido: ' + comentado);
+    }
+  }
+
+  // E uma URL nao pode levar o resto da linha embora junto com o `//`.
+  const comUrl = "fetch('https://x.gov.br'); const ag = '9999-9';";
+  if (!FORMATO.test(semComentario(comUrl))) throw new Error('a limpeza comeu o que vinha apos uma URL');
 });
 
 servidor.close();

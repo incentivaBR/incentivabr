@@ -25,7 +25,7 @@ Para gerações longas (página completa), comece com a Seção A + B em uma ún
 
 Você está construindo a UI da plataforma IncentivaBR (marca pública DestineAI), produto SaaS B2B2C que permite a servidores públicos brasileiros destinarem parte do imposto de renda devido a projetos sociais aprovados pelo governo, sem custo adicional, com retorno integral na declaração anual seguinte.
 
-A plataforma é multi-tenant (cada organização cliente — tribunal, prefeitura, sindicato, associação — tem sua própria white label). Cobre sete leis de incentivo (Rouanet, LIE, PRONON, PRONAS/PCD, LIR, FIA, Fundo do Idoso), mas a versão inicial foca apenas Rouanet com o Circuito do Forró (PRONAC 252026 — projeto musical de forró popular brasileiro, proponente BR Projects LTDA, conta de captação no Banco do Brasil ag. 1419-2 / conta 36.068-6).
+A plataforma é multi-tenant (cada organização cliente — tribunal, prefeitura, sindicato, associação — tem sua própria white label). Cobre sete leis de incentivo (Rouanet, LIE, PRONON, PRONAS/PCD, LIR, FIA, Fundo do Idoso), mas a versão inicial foca apenas Rouanet com o Circuito do Forró (PRONAC 252026 — projeto musical de forró popular brasileiro, proponente BR Projects LTDA, conta de captação no Banco do Brasil ag. 0000-0 / conta 00000-0).
 
 ### Persona-alvo
 
@@ -572,8 +572,8 @@ Gere a página `comprovante.html` — visualização de comprovante de destinaç
 - Projeto: Circuito do Forró
 - PRONAC: 252026
 - Beneficiário: BR Projects LTDA
-- CNPJ do beneficiário: 00.383.111/0001-24
-- Banco: Banco do Brasil — Ag. 1419-2 — Conta de Captação 36.068-6
+- CNPJ do beneficiário: 00.000.000/0001-00
+- Banco: Banco do Brasil — Ag. 0000-0 — Conta de Captação 00000-0
 - Valor destinado: R$ X
 - Data da transferência
 

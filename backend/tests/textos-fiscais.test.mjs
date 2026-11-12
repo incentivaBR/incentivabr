@@ -250,7 +250,11 @@ await teste('toda pagina com [data-fiscal] carrega o tenant.js que o preenche', 
 
 await teste('o nucleo da TINA esta em dia com as paginas e sem conta bancaria', () => {
   const nucleo = fs.readFileSync(path.join(AQUI, '../src/knowledge/nucleo.md'), 'utf8');
-  if (/1419-2|36\.068-6/.test(nucleo)) throw new Error('o nucleo ainda traz a conta bancaria antiga');
+  // Procura o FORMATO de agencia e conta, nao dois numeros especificos: a
+  // versao anterior citava os literais que queria proibir, e por isso ela
+  // mesma era o unico lugar do repositorio onde eles continuavam escritos.
+  const bancaria = nucleo.match(/\b\d{4}-\d\b|\b\d{2}\.\d{3}-\d\b/);
+  if (bancaria) throw new Error('o nucleo da TINA traz dado bancario: ' + bancaria[0]);
   if (/IncentivaBR emite/i.test(nucleo)) throw new Error('o nucleo diz que a plataforma emite o recibo');
   if (/Código 41 — Estatuto/i.test(nucleo)) throw new Error('o nucleo mistura o codigo da Rouanet com o do ECA');
 });
